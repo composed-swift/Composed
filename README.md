@@ -1,3 +1,3 @@
 # Composed
 
-A description of this package.
+A framework for composing data.
