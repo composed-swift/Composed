@@ -122,6 +122,8 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
 
     var didMoveElements: (mapping: SectionProviderMapping, moves: [(IndexPath, IndexPath)])?
 
+    var didUpdate: SectionProviderMapping?
+
     func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
         didInsertSections = (mapping, sections)
     }
@@ -148,6 +150,10 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
 
     func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)]) {
         didMoveElements = (mapping, moves)
+    }
+
+    func mappingsDidUpdate(_ mapping: SectionProviderMapping) {
+        didUpdate = mapping
     }
 
 }

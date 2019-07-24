@@ -46,15 +46,21 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        // add sections.count to all sections >= sectionOffset(for: provider)
+//        let elements = cachedProviderSections.enumerated().filter { $0.offset >= offset }.map { $0.element }
+//        elements.forEach { cachedProviderSections[$0.key] = (cachedProviderSections[$0.key] ?? 0) + sections.count }
+
         let indexes = globalIndexes(for: provider, with: indexes)
         delegate?.mapping(self, didInsertSections: indexes)
-        // add sections.count to all sections >= sectionOffset(for: provider)
     }
 
     public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        // minus sections.count to all sections >= sectionOffset(for: provider)
+//        let elements = cachedProviderSections.enumerated().filter { $0.offset >= offset }.map { $0.element }
+//        elements.forEach { cachedProviderSections[$0.key] = (cachedProviderSections[$0.key] ?? 0) - sections.count }
+
         let indexes = globalIndexes(for: provider, with: indexes)
         delegate?.mapping(self, didRemoveSections: indexes)
-        // minus sections.count to all sections >= sectionOffset(for: provider)
     }
 
     public func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet) {
@@ -102,7 +108,6 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
             cachedProviderSections = providerSections
         }
 
-        // Joseph: can we actually just return here?
         guard let aggregate = provider as? AggregateSectionProvider else { return }
 
         func addOffsets(forChildrenOf aggregate: AggregateSectionProvider, offset: Int = 0) {
@@ -136,10 +141,11 @@ public protocol SectionProviderMappingDelegate: class {
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
 
     func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
+
+    func mappingsDidUpdate(_ mapping: SectionProviderMapping)
 }
 
-// We don't want to import UIKit here so we create the same IndexPath init.
-// This will 'just work' on the consumer's end.
+// We don't want to import UIKit here so we create a private IndexPath initializer
 private extension IndexPath {
     var section: Int {
         return self[0]
