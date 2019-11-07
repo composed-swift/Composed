@@ -20,6 +20,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     public init(provider: SectionProvider) {
         self.provider = provider
         provider.updateDelegate = self
+        provider.sections.forEach { $0.updateDelegate = self }
     }
 
     public func sectionOffset(of provider: SectionProvider) -> Int? {
@@ -46,6 +47,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        sections.forEach { $0.updateDelegate = self }
         // add sections.count to all sections >= sectionOffset(for: provider)
 //        let elements = cachedProviderSections.enumerated().filter { $0.offset >= offset }.map { $0.element }
 //        elements.forEach { cachedProviderSections[$0.key] = (cachedProviderSections[$0.key] ?? 0) + sections.count }
@@ -55,6 +57,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        sections.forEach { $0.updateDelegate = nil }
         // minus sections.count to all sections >= sectionOffset(for: provider)
 //        let elements = cachedProviderSections.enumerated().filter { $0.offset >= offset }.map { $0.element }
 //        elements.forEach { cachedProviderSections[$0.key] = (cachedProviderSections[$0.key] ?? 0) - sections.count }
@@ -113,10 +116,12 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         func addOffsets(forChildrenOf aggregate: AggregateSectionProvider, offset: Int = 0) {
             for child in aggregate.providers {
                 let aggregateSectionOffset = aggregate.sectionOffset(for: child)
+
                 guard aggregateSectionOffset > -1 else {
-                    assertionFailure("AggregateSectionProvider should return a value > -1 for section offset of child \(child)")
+                    assertionFailure("AggregateSectionProvider should return a value > -1 fo.r section offset of child \(child)")
                     continue
                 }
+
                 providerSections[HashableProvider(child)] = offset + aggregateSectionOffset
 
                 if let aggregate = child as? AggregateSectionProvider {
