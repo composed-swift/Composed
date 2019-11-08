@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 /**
  An object that encapsulates the logic required to map `SectionProvider`s to
@@ -151,16 +151,16 @@ public protocol SectionProviderMappingDelegate: class {
 }
 
 // We don't want to import UIKit here so we create a private IndexPath initializer
-private extension IndexPath {
-    var section: Int {
-        return self[0]
-    }
-
-    var item: Int {
-        return self[1]
-    }
-
-    init(item: Int, section: Int) {
-        self.init(indexes: [section, item])
-    }
-}
+//private extension IndexPath {
+//    var section: Int {
+//        return self[0]
+//    }
+//
+//    var item: Int {
+//        return self[1]
+//    }
+//
+//    init(item: Int, section: Int) {
+//        self.init(indexes: [section, item])
+//    }
+//}
