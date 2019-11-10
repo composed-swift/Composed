@@ -2,22 +2,26 @@ import CoreData
 
 open class ManagedSection<Element>: Section where Element: NSManagedObject {
 
-    fileprivate weak var parent: ManagedSectionProvider<ManagedSection<Element>, Element>?
+    public let managedObjectContext: NSManagedObjectContext
+    public let sectionInfo: NSFetchedResultsSectionInfo
     public var updateDelegate: SectionUpdateDelegate?
 
     public var numberOfElements: Int {
-        return parent!.numberOfElements(in: self)
+        return sectionInfo.numberOfObjects
     }
 
     public func element(at index: Int) -> Element {
-        return parent!.element(in: self, at: index)
+        return sectionInfo.objects?[index] as! Element
     }
 
-    public required init() { }
+    public required init(sectionInfo: NSFetchedResultsSectionInfo, managedObjectContext: NSManagedObjectContext) {
+        self.sectionInfo = sectionInfo
+        self.managedObjectContext = managedObjectContext
+    }
 
 }
 
-public final class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionProvider, SectionProviderUpdateDelegate, NSFetchedResultsControllerDelegate where ManagedSection: Composed.ManagedSection<Element> {
+open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionProvider, SectionProviderUpdateDelegate, NSFetchedResultsControllerDelegate where ManagedSection: Composed.ManagedSection<Element> {
 
     public var updateDelegate: SectionProviderUpdateDelegate?
 
@@ -38,12 +42,8 @@ public final class ManagedSectionProvider<ManagedSection, Element>: NSObject, Se
         
         do {
             try fetchedResultsController?.performFetch()
-            for _ in fetchedResultsController!.sections ?? [] {
-                let section = ManagedSection.init()
-
-//                section.parent = self
-                // this ends up as nil! Can we get the data another way???
-
+            (fetchedResultsController?.sections ?? []).forEach {
+                let section = ManagedSection(sectionInfo: $0, managedObjectContext: managedObjectContext)
                 sections.append(section)
             }
         } catch {
@@ -83,10 +83,11 @@ public final class ManagedSectionProvider<ManagedSection, Element>: NSObject, Se
     }
 
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
+        assert(Thread.isMainThread)
+
         switch type {
         case .insert:
-            let section = ManagedSection.init()
-//            section.parent = self
+            let section = ManagedSection(sectionInfo: sectionInfo, managedObjectContext: managedObjectContext)
             sections.append(section)
             updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: sectionIndex))
         case .delete:
@@ -98,6 +99,8 @@ public final class ManagedSectionProvider<ManagedSection, Element>: NSObject, Se
     }
 
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        assert(Thread.isMainThread)
+
         switch type {
         case .insert:
             let section = sections[newIndexPath!.section]
