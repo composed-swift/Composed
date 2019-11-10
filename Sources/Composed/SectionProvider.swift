@@ -14,17 +14,17 @@ public protocol SectionProvider: class {
 
 }
 
-extension SectionProvider {
+public extension SectionProvider {
 
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         return sections.isEmpty || sections.allSatisfy { $0.isEmpty }
     }
 
-    public var numberOfSections: Int {
+    var numberOfSections: Int {
         return sections.count
     }
 
-    public func numberOfElements(in section: Int) -> Int {
+    func numberOfElements(in section: Int) -> Int {
         return sections[section].numberOfElements
     }
 
@@ -66,7 +66,39 @@ public struct HashableProvider: Hashable {
 
 
 public protocol SectionProviderUpdateDelegate: class {
+    func providerDidReload(_ provider: SectionProvider)
+    func providerWillUpdate(_ provider: SectionProvider)
+    func providerDidUpdate(_ provider: SectionProvider)
+    
     func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet)
     func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet)
     func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet)
+}
+
+public extension SectionProviderUpdateDelegate where Self: SectionProvider {
+
+    func providerWillUpdate(_ provider: SectionProvider) {
+        updateDelegate?.providerWillUpdate(self)
+    }
+
+    func providerDidUpdate(_ provider: SectionProvider) {
+        updateDelegate?.providerDidUpdate(self)
+    }
+
+    func providerDidReload(_ provider: SectionProvider) {
+        updateDelegate?.providerDidUpdate(provider)
+    }
+
+    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        updateDelegate?.provider(provider, didInsertSections: sections, at: indexes)
+    }
+
+    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
+    }
+
+    func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet) {
+        updateDelegate?.provider(provider, didUpdateSections: sections, at: indexes)
+    }
+
 }

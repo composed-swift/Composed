@@ -1,5 +1,20 @@
 import UIKit
 
+public protocol SectionProviderMappingDelegate: class {
+    func mappingDidReload(_ mapping: SectionProviderMapping)
+    func mappingWillUpdate(_ mapping: SectionProviderMapping)
+    func mappingDidUpdate(_ mapping: SectionProviderMapping)
+
+    func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet)
+    func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath])
+    func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet)
+    func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath])
+    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
+    func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
+    func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
+    func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int]
+}
+
 /**
  An object that encapsulates the logic required to map `SectionProvider`s to
  a global context, allowing elements in a `Section` to be referenced via an
@@ -46,6 +61,14 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexSet(indexes.map { $0 + offset })
     }
 
+    public func providerWillUpdate(_ provider: SectionProvider) {
+        delegate?.mappingWillUpdate(self)
+    }
+
+    public func providerDidUpdate(_ provider: SectionProvider) {
+        delegate?.mappingDidUpdate(self)
+    }
+
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
         sections.forEach { $0.updateDelegate = self }
         // add sections.count to all sections >= sectionOffset(for: provider)
@@ -86,6 +109,10 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     public func selectedIndexes(in section: Section) -> [Int] {
         guard let index = sectionOffset(of: section) else { return [] }
         return delegate?.mapping(self, selectedIndexesIn: index) ?? []
+    }
+
+    public func providerDidReload(_ provider: SectionProvider) {
+        delegate?.mappingDidReload(self)
     }
 
     public func section(_ section: Section, didInsertElementAt index: Int) {
@@ -138,21 +165,4 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         addOffsets(forChildrenOf: aggregate)
     }
 
-}
-
-public protocol SectionProviderMappingDelegate: class {
-    func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet)
-    func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath])
-
-    func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet)
-    func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath])
-
-    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
-    func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
-
-    func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
-
-    func mappingsDidUpdate(_ mapping: SectionProviderMapping)
-
-    func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int]
 }

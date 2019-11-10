@@ -17,3 +17,21 @@ public protocol SectionUpdateDelegate: class {
 
     func selectedIndexes(in section: Section) -> [Int]
 }
+
+public struct HashableSection: Hashable {
+
+    public static func == (lhs: HashableSection, rhs: HashableSection) -> Bool {
+        return lhs.section === rhs.section
+    }
+
+    private let section: Section
+
+    public init(_ section: Section) {
+        self.section = section
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(section))
+    }
+
+}

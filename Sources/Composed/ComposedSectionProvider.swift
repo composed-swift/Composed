@@ -90,16 +90,4 @@ public final class ComposedSectionProvider: AggregateSectionProvider, SectionPro
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: index))
     }
 
-    public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
-        updateDelegate?.provider(provider, didInsertSections: sections, at: indexes)
-    }
-
-    public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
-        updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
-    }
-
-    public func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet) {
-        updateDelegate?.provider(provider, didUpdateSections: sections, at: indexes)
-    }
-
 }

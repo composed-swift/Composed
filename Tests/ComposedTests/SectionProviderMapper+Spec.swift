@@ -152,7 +152,7 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
         didMoveElements = (mapping, moves)
     }
 
-    func mappingsDidUpdate(_ mapping: SectionProviderMapping) {
+    func mappingDidUpdate(_ mapping: SectionProviderMapping) {
         didUpdate = mapping
     }
 
