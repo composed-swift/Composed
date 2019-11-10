@@ -17,7 +17,7 @@ open class ManagedSection<Element>: Section where Element: NSManagedObject {
 
 }
 
-public final class ManagedSectionProvider<Section, Element>: NSObject, SectionProvider, SectionProviderUpdateDelegate, NSFetchedResultsControllerDelegate where Section: ManagedSection<Element> {
+public final class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionProvider, SectionProviderUpdateDelegate, NSFetchedResultsControllerDelegate where ManagedSection: Composed.ManagedSection<Element> {
 
     public var updateDelegate: SectionProviderUpdateDelegate?
 
@@ -39,11 +39,11 @@ public final class ManagedSectionProvider<Section, Element>: NSObject, SectionPr
         do {
             try fetchedResultsController?.performFetch()
             for _ in fetchedResultsController!.sections ?? [] {
-                let section = Section.init()
-                section.parent = self as? ManagedSectionProvider<ManagedSection<Element>, Element>
+                let section = ManagedSection.init()
 
+//                section.parent = self
                 // this ends up as nil! Can we get the data another way???
-                
+
                 sections.append(section)
             }
         } catch {
@@ -85,8 +85,8 @@ public final class ManagedSectionProvider<Section, Element>: NSObject, SectionPr
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
         switch type {
         case .insert:
-            let section = Section.init()
-            section.parent = self as? ManagedSectionProvider<ManagedSection<Element>, Element>
+            let section = ManagedSection.init()
+//            section.parent = self
             sections.append(section)
             updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: sectionIndex))
         case .delete:
