@@ -14,4 +14,6 @@ public protocol SectionUpdateDelegate: class {
     func section(_ section: Section, didRemoveElementAt index: Int)
     func section(_ section: Section, didUpdateElementAt index: Int)
     func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int)
+
+    func selectedIndexes(in section: Section) -> [Int]
 }

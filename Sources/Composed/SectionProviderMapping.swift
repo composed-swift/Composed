@@ -83,6 +83,11 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexPath(item: index, section: offset)
     }
 
+    public func selectedIndexes(in section: Section) -> [Int] {
+        guard let index = sectionOffset(of: section) else { return [] }
+        return delegate?.mapping(self, selectedIndexesIn: index) ?? []
+    }
+
     public func section(_ section: Section, didInsertElementAt index: Int) {
         guard let indexPath = self.indexPath(for: index, in: section) else { return }
         delegate?.mapping(self, didInsertElementsAt: [indexPath])
@@ -148,19 +153,6 @@ public protocol SectionProviderMappingDelegate: class {
     func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
 
     func mappingsDidUpdate(_ mapping: SectionProviderMapping)
-}
 
-// We don't want to import UIKit here so we create a private IndexPath initializer
-//private extension IndexPath {
-//    var section: Int {
-//        return self[0]
-//    }
-//
-//    var item: Int {
-//        return self[1]
-//    }
-//
-//    init(item: Int, section: Int) {
-//        self.init(indexes: [section, item])
-//    }
-//}
+    func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int]
+}
