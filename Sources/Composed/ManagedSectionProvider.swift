@@ -1,8 +1,32 @@
 import CoreData
 
+public struct Persistence {
+    private let persistentContainer: NSPersistentContainer
+    public var viewContext: NSManagedObjectContext {
+        return persistentContainer.viewContext
+    }
+
+    public var newBackgroundContext: NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return context
+    }
+
+    public func performBackgroundTask(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        persistentContainer.performBackgroundTask { context in
+            context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            block(context)
+        }
+    }
+
+    public init(persistentContainer: NSPersistentContainer) {
+        self.persistentContainer = persistentContainer
+    }
+}
+
 open class ManagedSection<Element>: Section where Element: NSManagedObject {
 
-    public let managedObjectContext: NSManagedObjectContext
+    public let persistence: Persistence
     public let sectionInfo: NSFetchedResultsSectionInfo
     public var updateDelegate: SectionUpdateDelegate?
 
@@ -14,9 +38,9 @@ open class ManagedSection<Element>: Section where Element: NSManagedObject {
         return sectionInfo.objects?[index] as! Element
     }
 
-    public required init(sectionInfo: NSFetchedResultsSectionInfo, managedObjectContext: NSManagedObjectContext) {
+    public required init(sectionInfo: NSFetchedResultsSectionInfo, persistence: Persistence) {
         self.sectionInfo = sectionInfo
-        self.managedObjectContext = managedObjectContext
+        self.persistence = persistence
     }
 
 }
@@ -27,23 +51,23 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
 
     public private(set) var sections: [Composed.Section] = []
 
-    private let managedObjectContext: NSManagedObjectContext
+    private let persistence: Persistence
     fileprivate var fetchedResultsController: NSFetchedResultsController<Element>?
 
-    public init(managedObjectContext: NSManagedObjectContext) {
-        self.managedObjectContext = managedObjectContext
+    public init(persistence: Persistence) {
+        self.persistence = persistence
         super.init()
     }
 
     public func replace(fetchRequest: NSFetchRequest<Element>, sectionNameKeyPath: String? = nil) {
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: sectionNameKeyPath, cacheName: nil)
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: persistence.viewContext, sectionNameKeyPath: sectionNameKeyPath, cacheName: nil)
         fetchedResultsController?.delegate = self
         updateDelegate?.providerDidUpdate(self)
         
         do {
             try fetchedResultsController?.performFetch()
             (fetchedResultsController?.sections ?? []).forEach {
-                let section = ManagedSection(sectionInfo: $0, managedObjectContext: managedObjectContext)
+                let section = ManagedSection(sectionInfo: $0, persistence: persistence)
                 sections.append(section)
             }
         } catch {
@@ -87,7 +111,7 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
 
         switch type {
         case .insert:
-            let section = ManagedSection(sectionInfo: sectionInfo, managedObjectContext: managedObjectContext)
+            let section = ManagedSection(sectionInfo: sectionInfo, persistence: persistence)
             sections.append(section)
             updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: sectionIndex))
         case .delete:
