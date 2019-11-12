@@ -1,6 +1,6 @@
 import CoreData
 
-public struct Persistence {
+public final class Persistence {
     private let persistentContainer: NSPersistentContainer
     public var viewContext: NSManagedObjectContext {
         return persistentContainer.viewContext
