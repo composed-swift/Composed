@@ -134,7 +134,11 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
             section.updateDelegate?.section(section, didInsertElementAt: newIndexPath!.item)
         case .delete:
             let section = sections[indexPath!.section]
-            section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
+            if section.numberOfElements == 0 {
+                updateDelegate?.providerDidReload(self)
+            } else {
+                section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
+            }
         case .update:
             let section = sections[indexPath!.section]
             section.updateDelegate?.section(section, didUpdateElementAt: indexPath!.item)
