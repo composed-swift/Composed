@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 public protocol Section: class {
     var numberOfElements: Int { get }

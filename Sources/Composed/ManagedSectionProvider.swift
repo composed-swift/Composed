@@ -30,6 +30,10 @@ open class ManagedSection<Element>: Section where Element: NSManagedObject {
     public let sectionInfo: NSFetchedResultsSectionInfo
     public var updateDelegate: SectionUpdateDelegate?
 
+    public var elements: [Element] {
+        return sectionInfo.objects as? [Element] ?? []
+    }
+
     public var numberOfElements: Int {
         return sectionInfo.numberOfObjects
     }
@@ -56,7 +60,6 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
 
     public init(persistence: Persistence) {
         self.persistence = persistence
-        super.init()
     }
 
     public func replace(fetchRequest: NSFetchRequest<Element>, sectionNameKeyPath: String? = nil) {
