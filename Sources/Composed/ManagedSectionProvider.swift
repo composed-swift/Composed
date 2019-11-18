@@ -1,7 +1,8 @@
 import CoreData
 
 public final class Persistence {
-    private let persistentContainer: NSPersistentContainer
+
+    public let persistentContainer: NSPersistentContainer
     public var viewContext: NSManagedObjectContext {
         return persistentContainer.viewContext
     }
@@ -22,6 +23,7 @@ public final class Persistence {
     public init(persistentContainer: NSPersistentContainer) {
         self.persistentContainer = persistentContainer
     }
+    
 }
 
 open class ManagedSection<Element>: Section where Element: NSManagedObject {
