@@ -74,6 +74,7 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
             (fetchedResultsController?.sections ?? []).forEach {
                 let section = ManagedSection(sectionInfo: $0, persistence: persistence)
                 sections.append(section)
+                didInsert(section: section, at: sections.count - 1)
             }
         } catch {
             fatalError(error.localizedDescription)
@@ -105,6 +106,9 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
         return controller.object(at: IndexPath(item: index, section: self.index(of: section)))
     }
 
+    open func didInsert(section: ManagedSection, at index: Int) { }
+    open func didRemove(section: ManagedSection, at index: Int) { }
+
     // MARK: - NSFetchedResultsControllerDelegate
 
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
@@ -118,10 +122,12 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
         case .insert:
             let section = ManagedSection(sectionInfo: sectionInfo, persistence: persistence)
             sections.append(section)
+            didInsert(section: section, at: sectionIndex)
             updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: sectionIndex))
         case .delete:
-            let section = sections[sectionIndex]
+            let section = sections[sectionIndex] as! ManagedSection
             sections.remove(at: sectionIndex)
+            didRemove(section: section, at: sectionIndex)
             updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: sectionIndex))
         default: fatalError("Unsupported type")
         }

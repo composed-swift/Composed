@@ -1,13 +1,13 @@
 import Foundation
 
-public final class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpdateDelegate {
+open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpdateDelegate {
 
     private enum Child {
         case provider(SectionProvider)
         case section(Section)
     }
 
-    public var updateDelegate: SectionProviderUpdateDelegate?
+    open var updateDelegate: SectionProviderUpdateDelegate?
 
     private var children: [Child] = []
 
