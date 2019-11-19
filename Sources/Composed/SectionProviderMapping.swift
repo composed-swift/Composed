@@ -12,7 +12,10 @@ public protocol SectionProviderMappingDelegate: class {
     func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
     func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
+
     func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int]
+    func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath)
+    func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath)
 }
 
 /**
@@ -109,6 +112,16 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     public func selectedIndexes(in section: Section) -> [Int] {
         guard let index = sectionOffset(of: section) else { return [] }
         return delegate?.mapping(self, selectedIndexesIn: index) ?? []
+    }
+
+    public func section(_ section: Section, select index: Int) {
+        guard let section = sectionOffset(of: section) else { return }
+        delegate?.mapping(self, select: IndexPath(item: index, section: section))
+    }
+
+    public func section(_ section: Section, deselect index: Int) {
+        guard let section = sectionOffset(of: section) else { return }
+        delegate?.mapping(self, deselect: IndexPath(item: index, section: section))
     }
 
     public func providerDidReload(_ provider: SectionProvider) {

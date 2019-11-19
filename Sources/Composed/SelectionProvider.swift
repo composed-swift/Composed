@@ -8,14 +8,22 @@ public protocol SelectionProvider: Section {
 
     func shouldDeselect(at index: Int) -> Bool
     func didDeselect(at index: Int)
+
+    func select(index: Int)
+    func deselect(index: Int)
 }
 
 public extension SelectionProvider {
     var allowsMultipleSelection: Bool { return false }
     var selectedIndexes: [Int] { return updateDelegate?.selectedIndexes(in: self) ?? [] }
+
     func shouldHighlight(at index: Int) -> Bool { return true }
     func shouldSelect(at index: Int) -> Bool { return true }
-    func shouldDeselect(at index: Int) -> Bool { return true }
     func didSelect(at index: Int) { }
+
+    func shouldDeselect(at index: Int) -> Bool { return true }
     func didDeselect(at index: Int) { }
+
+    func select(index: Int) { updateDelegate?.section(self, select: index) }
+    func deselect(index: Int) { updateDelegate?.section(self, deselect: index) }
 }

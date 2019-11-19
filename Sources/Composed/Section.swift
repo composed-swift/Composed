@@ -17,6 +17,8 @@ public protocol SectionUpdateDelegate: class {
     func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int)
 
     func selectedIndexes(in section: Section) -> [Int]
+    func section(_ section: Section, select index: Int)
+    func section(_ section: Section, deselect index: Int)
 }
 
 public struct HashableSection: Hashable {
