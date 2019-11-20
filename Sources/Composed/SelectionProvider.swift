@@ -1,4 +1,7 @@
-public protocol SelectionProvider: Section {
+@available(*, deprecated, renamed: "SelectionHandler")
+public protocol SelectionProvider: Section { }
+
+public protocol SelectionHandler: Section {
     var allowsMultipleSelection: Bool { get }
     var selectedIndexes: [Int] { get }
 
@@ -13,7 +16,7 @@ public protocol SelectionProvider: Section {
     func deselect(index: Int)
 }
 
-public extension SelectionProvider {
+public extension SelectionHandler {
     var allowsMultipleSelection: Bool { return false }
     var selectedIndexes: [Int] { return updateDelegate?.selectedIndexes(in: self) ?? [] }
 
