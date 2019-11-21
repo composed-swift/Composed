@@ -16,6 +16,8 @@ public protocol SectionProviderMappingDelegate: class {
     func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int]
     func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath)
     func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath)
+
+    func mapping(_ mapping: SectionProviderMapping, isEditingIn section: Int) -> Bool
 }
 
 /**
@@ -107,6 +109,11 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
             return nil
         }
         return IndexPath(item: index, section: offset)
+    }
+
+    public func isEditing(in section: Section) -> Bool {
+        guard let index = sectionOffset(of: section) else { return false }
+        return delegate?.mapping(self, isEditingIn: index) ?? false
     }
 
     public func selectedIndexes(in section: Section) -> [Int] {
