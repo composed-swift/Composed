@@ -17,6 +17,12 @@ public final class Persistence {
         persistentContainer.performBackgroundTask { context in
             context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             block(context)
+            
+            do {
+                try context.save()
+            } catch {
+                print(error)
+            }
         }
     }
 
@@ -142,11 +148,7 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
             section.updateDelegate?.section(section, didInsertElementAt: newIndexPath!.item)
         case .delete:
             let section = sections[indexPath!.section]
-            if section.numberOfElements == 0 {
-                updateDelegate?.providerDidReload(self)
-            } else {
-                section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
-            }
+            section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
         case .update:
             let section = sections[indexPath!.section]
             section.updateDelegate?.section(section, didUpdateElementAt: indexPath!.item)
