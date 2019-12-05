@@ -135,7 +135,8 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
             sections.remove(at: sectionIndex)
             didRemove(section: section, at: sectionIndex)
             updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: sectionIndex))
-        default: fatalError("Unsupported type")
+        default:
+            updateDelegate?.providerDidReload(self)
         }
     }
 
@@ -145,10 +146,22 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
         switch type {
         case .insert:
             let section = sections[newIndexPath!.section]
-            section.updateDelegate?.section(section, didInsertElementAt: newIndexPath!.item)
+
+            if let sections = controller.sections,
+                newIndexPath!.section > sections.count {
+                updateDelegate?.providerDidReload(self)
+            } else {
+                section.updateDelegate?.section(section, didInsertElementAt: newIndexPath!.item)
+            }
         case .delete:
             let section = sections[indexPath!.section]
-            section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
+
+            if let sections = controller.sections,
+                sections[indexPath!.section].numberOfObjects == 1 {
+                updateDelegate?.providerDidReload(self)
+            } else {
+                section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
+            }
         case .update:
             let section = sections[indexPath!.section]
             section.updateDelegate?.section(section, didUpdateElementAt: indexPath!.item)
@@ -156,8 +169,12 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
             let fromSection = sections[indexPath!.section]
             let toSection = sections[newIndexPath!.section]
 
-            fromSection.updateDelegate?.section(fromSection, didRemoveElementAt: indexPath!.item)
-            toSection.updateDelegate?.section(toSection, didInsertElementAt: newIndexPath!.item)
+            if indexPath == newIndexPath {
+                fromSection.updateDelegate?.section(fromSection, didUpdateElementAt: indexPath!.item)
+            } else {
+                fromSection.updateDelegate?.section(fromSection, didRemoveElementAt: indexPath!.item)
+                toSection.updateDelegate?.section(toSection, didInsertElementAt: newIndexPath!.item)
+            }
         default: fatalError("Unsupported type")
         }
     }

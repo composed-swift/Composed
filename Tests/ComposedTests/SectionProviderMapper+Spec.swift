@@ -117,7 +117,6 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     var didRemoveSections: (mapping: SectionProviderMapping, sections: IndexSet)?
     var didRemoveElements: (section: SectionProviderMapping, indexPaths: [IndexPath])?
 
-    var didUpdateSections: (mapping: SectionProviderMapping, sections: IndexSet)?
     var didUpdateElements: (section: SectionProviderMapping, indexPaths: [IndexPath])?
 
     var didMoveElements: (mapping: SectionProviderMapping, moves: [(IndexPath, IndexPath)])?
@@ -138,10 +137,6 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
 
     func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath]) {
         didRemoveElements = (mapping, indexPaths)
-    }
-
-    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) {
-        didUpdateSections = (mapping, sections)
     }
 
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath]) {

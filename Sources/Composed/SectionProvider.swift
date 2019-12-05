@@ -72,7 +72,6 @@ public protocol SectionProviderUpdateDelegate: class {
     
     func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet)
     func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet)
-    func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet)
 }
 
 public extension SectionProviderUpdateDelegate where Self: SectionProvider {
@@ -95,10 +94,6 @@ public extension SectionProviderUpdateDelegate where Self: SectionProvider {
 
     func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
         updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
-    }
-
-    func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet) {
-        updateDelegate?.provider(provider, didUpdateSections: sections, at: indexes)
     }
 
 }

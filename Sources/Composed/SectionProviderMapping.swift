@@ -9,7 +9,7 @@ public protocol SectionProviderMappingDelegate: class {
     func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath])
     func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet)
     func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath])
-    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
+
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
     func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
 
@@ -92,15 +92,6 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
         let indexes = globalIndexes(for: provider, with: indexes)
         delegate?.mapping(self, didRemoveSections: indexes)
-    }
-
-    public func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet) {
-        guard let offset = sectionOffset(of: provider) else {
-            assertionFailure("Cannot call \(#function) with a provider not in the hierachy")
-            return
-        }
-        let indexes = IndexSet(indexes.map { $0 + offset })
-        delegate?.mapping(self, didUpdateSections: indexes)
     }
 
     private func indexPath(for index: Int, in section: Section) -> IndexPath? {

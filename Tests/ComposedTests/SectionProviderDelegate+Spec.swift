@@ -50,7 +50,6 @@ final class MockDelegate: SectionProviderUpdateDelegate {
 
     var didInsertSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?
     var didRemoveSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?
-    var didUpdateSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?
 
     func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
         didInsertSections = (provider, sections, indexes)
@@ -58,10 +57,6 @@ final class MockDelegate: SectionProviderUpdateDelegate {
 
     func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
         didRemoveSections = (provider, sections, indexes)
-    }
-
-    func provider(_ provider: SectionProvider, didUpdateSections sections: [Section], at indexes: IndexSet) {
-        didUpdateSections = (provider, sections, indexes)
     }
 
 }
