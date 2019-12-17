@@ -41,6 +41,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         self.provider = provider
         provider.updateDelegate = self
         provider.sections.forEach { $0.updateDelegate = self }
+        rebuildSectionOffsets()
     }
 
     public func sectionOffset(of provider: SectionProvider) -> Int? {

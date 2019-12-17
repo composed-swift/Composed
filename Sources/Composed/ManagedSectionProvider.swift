@@ -128,13 +128,13 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
         case .insert:
             let section = ManagedSection(sectionInfo: sectionInfo, persistence: persistence)
             sections.append(section)
-            didInsert(section: section, at: sectionIndex)
             updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: sectionIndex))
+            didInsert(section: section, at: sectionIndex)
         case .delete:
             let section = sections[sectionIndex] as! ManagedSection
             sections.remove(at: sectionIndex)
-            didRemove(section: section, at: sectionIndex)
             updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: sectionIndex))
+            didRemove(section: section, at: sectionIndex)
         default:
             updateDelegate?.providerDidReload(self)
         }
@@ -157,6 +157,7 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
             let section = sections[indexPath!.section]
 
             if let sections = controller.sections,
+                !sections.isEmpty,
                 sections[indexPath!.section].numberOfObjects == 1 {
                 updateDelegate?.providerDidReload(self)
             } else {
