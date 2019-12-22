@@ -85,7 +85,7 @@ public extension SectionProviderUpdateDelegate where Self: SectionProvider {
     }
 
     func providerDidReload(_ provider: SectionProvider) {
-        updateDelegate?.providerDidUpdate(provider)
+        updateDelegate?.providerDidReload(provider)
     }
 
     func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {

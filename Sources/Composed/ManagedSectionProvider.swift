@@ -1,40 +1,8 @@
 import CoreData
 
-public final class Persistence {
-
-    public let persistentContainer: NSPersistentContainer
-    public var viewContext: NSManagedObjectContext {
-        return persistentContainer.viewContext
-    }
-
-    public var newBackgroundContext: NSManagedObjectContext {
-        let context = persistentContainer.newBackgroundContext()
-        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        return context
-    }
-
-    public func performBackgroundTask(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        persistentContainer.performBackgroundTask { context in
-            context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-            block(context)
-            
-            do {
-                try context.save()
-            } catch {
-                print(error)
-            }
-        }
-    }
-
-    public init(persistentContainer: NSPersistentContainer) {
-        self.persistentContainer = persistentContainer
-    }
-    
-}
-
 open class ManagedSection<Element>: Section where Element: NSManagedObject {
 
-    public let persistence: Persistence
+    public let persistence: NSPersistentContainer
     public let sectionInfo: NSFetchedResultsSectionInfo
     public var updateDelegate: SectionUpdateDelegate?
 
@@ -50,7 +18,7 @@ open class ManagedSection<Element>: Section where Element: NSManagedObject {
         return sectionInfo.objects?[index] as! Element
     }
 
-    public required init(sectionInfo: NSFetchedResultsSectionInfo, persistence: Persistence) {
+    public required init(sectionInfo: NSFetchedResultsSectionInfo, persistence: NSPersistentContainer) {
         self.sectionInfo = sectionInfo
         self.persistence = persistence
     }
@@ -63,10 +31,10 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
 
     public private(set) var sections: [Composed.Section] = []
 
-    private let persistence: Persistence
+    private let persistence: NSPersistentContainer
     fileprivate var fetchedResultsController: NSFetchedResultsController<Element>?
 
-    public init(persistence: Persistence) {
+    public init(persistence: NSPersistentContainer) {
         self.persistence = persistence
     }
 
@@ -158,7 +126,7 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
 
             if let sections = controller.sections,
                 !sections.isEmpty,
-                sections[indexPath!.section].numberOfObjects == 1 {
+                sections[indexPath!.section].numberOfObjects == 0 {
                 updateDelegate?.providerDidReload(self)
             } else {
                 section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
