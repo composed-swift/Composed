@@ -22,7 +22,7 @@ public extension SelectionHandler {
 
     func shouldHighlight(at index: Int) -> Bool { return true }
     func shouldSelect(at index: Int) -> Bool { return true }
-    func didSelect(at index: Int) { }
+    func didSelect(at index: Int) { deselect(index: index) }
 
     func shouldDeselect(at index: Int) -> Bool { return true }
     func didDeselect(at index: Int) { }
