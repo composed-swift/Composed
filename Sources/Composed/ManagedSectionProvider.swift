@@ -41,9 +41,9 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
     public func replace(fetchRequest: NSFetchRequest<Element>, sectionNameKeyPath: String? = nil) {
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: persistence.viewContext, sectionNameKeyPath: sectionNameKeyPath, cacheName: nil)
         fetchedResultsController?.delegate = self
-        updateDelegate?.providerDidUpdate(self)
-        
+
         do {
+            sections.removeAll()
             try fetchedResultsController?.performFetch()
             (fetchedResultsController?.sections ?? []).forEach {
                 let section = ManagedSection(sectionInfo: $0, persistence: persistence)
@@ -51,8 +51,10 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
                 didInsert(section: section, at: sections.count - 1)
             }
         } catch {
-            fatalError(error.localizedDescription)
+            assertionFailure(error.localizedDescription)
         }
+
+        updateDelegate?.providerDidUpdate(self)
     }
 
     public var numberOfSections: Int {
