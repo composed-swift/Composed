@@ -54,7 +54,7 @@ open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionPro
             assertionFailure(error.localizedDescription)
         }
 
-        updateDelegate?.providerDidUpdate(self)
+        updateDelegate?.providerDidReload(self)
     }
 
     public var numberOfSections: Int {

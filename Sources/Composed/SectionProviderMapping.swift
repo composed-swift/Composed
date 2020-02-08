@@ -72,7 +72,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func providerDidUpdate(_ provider: SectionProvider) {
-        delegate?.mappingDidReload(self)
+        delegate?.mappingDidUpdate(self)
     }
 
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
