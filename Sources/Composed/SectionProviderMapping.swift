@@ -142,6 +142,10 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mapping(self, didUpdateElementsAt: [indexPath])
     }
 
+    public func sectionDidReload(_ section: Section) {
+        delegate?.mappingDidReload(self)
+    }
+
     public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {
         guard let source = self.indexPath(for: index, in: section) else { return }
         guard let destination = self.indexPath(for: newIndex, in: section) else { return }

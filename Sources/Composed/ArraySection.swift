@@ -4,7 +4,7 @@ open class ArraySection<Element>: Section {
 
     public weak var updateDelegate: SectionUpdateDelegate?
 
-    public var elements: [Element]
+    public private(set) var elements: [Element]
 
     public init(elements: [Element] = []) {
         self.elements = elements
@@ -22,6 +22,11 @@ open class ArraySection<Element>: Section {
         let index = elements.count
         elements.append(element)
         updateDelegate?.section(self, didInsertElementAt: index)
+    }
+
+    public func replace(elements: [Element]) {
+        self.elements = elements
+        updateDelegate?.sectionDidReload(self)
     }
 
 }
