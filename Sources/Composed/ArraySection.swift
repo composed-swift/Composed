@@ -1,12 +1,16 @@
 import Foundation
 
-open class ArraySection<Element>: Section {
+open class ArraySection<Element>: Section, ExpressibleByArrayLiteral {
 
     public weak var updateDelegate: SectionUpdateDelegate?
 
     public private(set) var elements: [Element]
 
-    public init(elements: [Element] = []) {
+    public required init() {
+        elements = []
+    }
+
+    public required init(arrayLiteral elements: Element...) {
         self.elements = elements
     }
 
@@ -18,15 +22,111 @@ open class ArraySection<Element>: Section {
         return elements.count
     }
 
-    public func append(element: Element) {
-        let index = elements.count
-        elements.append(element)
-        updateDelegate?.section(self, didInsertElementAt: index)
+}
+
+extension ArraySection: Sequence {
+
+    public typealias Iterator = Array<Element>.Iterator
+
+    public func makeIterator() -> IndexingIterator<Array<Element>> {
+        return elements.makeIterator()
     }
 
-    public func replace(elements: [Element]) {
-        self.elements = elements
+}
+
+extension ArraySection: MutableCollection, RandomAccessCollection, BidirectionalCollection {
+
+    public typealias Index = Array<Element>.Index
+
+    public var isEmpty: Bool { return elements.isEmpty }
+    public var startIndex: Index { return elements.startIndex }
+    public var endIndex: Index { return elements.endIndex }
+
+    public func index(after i: Array<Element>.Index) -> Array<Element>.Index {
+        return elements.index(after: i)
+    }
+
+    public subscript(position: Index) -> Iterator.Element {
+        get { return elements[position] }
+        set(newValue) {
+            elements[position] = newValue
+            updateDelegate?.sectionWillUpdate(self)
+            updateDelegate?.section(self, didUpdateElementAt: position)
+            updateDelegate?.sectionDidUpdate(self)
+        }
+    }
+
+    public func append(_ newElement: Element) {
+        elements.append(newElement)
+        updateDelegate?.section(self, didInsertElementAt: elements.count - 1)
+        updateDelegate?.sectionDidUpdate(self)
+    }
+
+    public func append<S>(contentsOf newElements: S) where S: Sequence, Element == S.Element {
+        updateDelegate?.sectionWillUpdate(self)
+        let oldCount = elements.count
+        elements.append(contentsOf: newElements)
+        let newCount = elements.count
+        (oldCount..<newCount).forEach {
+            updateDelegate?.section(self, didInsertElementAt: $0)
+        }
+        updateDelegate?.sectionDidUpdate(self)
+    }
+
+    @discardableResult
+    public func removeLast() -> Element {
+        let element = elements.removeLast()
+        updateDelegate?.section(self, didRemoveElementAt: elements.count)
+        updateDelegate?.sectionDidUpdate(self)
+        return element
+    }
+
+    public func removeLast(_ k: Int) {
+        updateDelegate?.sectionWillUpdate(self)
+        let oldCount = elements.count
+        elements.removeLast(k)
+        let newCount = elements.count
+        (newCount..<oldCount).forEach {
+            updateDelegate?.section(self, didRemoveElementAt: $0)
+        }
+        updateDelegate?.sectionDidUpdate(self)
+    }
+
+    @discardableResult
+    public func remove(at position: Index) -> Element {
+        let element = elements.remove(at: position)
+        updateDelegate?.section(self, didRemoveElementAt: position)
+        updateDelegate?.sectionDidUpdate(self)
+        return element
+    }
+
+}
+
+extension ArraySection: Equatable where Element: Equatable {
+    public static func == (lhs: ArraySection<Element>, rhs: ArraySection<Element>) -> Bool {
+        return lhs.elements == rhs.elements
+    }
+}
+
+extension ArraySection: Hashable where Element: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        elements.hash(into: &hasher)
+    }
+}
+
+extension ArraySection: RangeReplaceableCollection {
+
+    public func replaceSubrange<C: Swift.Collection, R: RangeExpression>(_ subrange: R, with newElements: C) where C.Element == Element, R.Bound == Index {
+        updateDelegate?.sectionWillUpdate(self)
+        elements.replaceSubrange(subrange, with: newElements)
         updateDelegate?.sectionDidReload(self)
+        updateDelegate?.sectionDidUpdate(self)
     }
 
+}
+
+extension ArraySection: CustomStringConvertible {
+    public var description: String {
+        return String(describing: elements)
+    }
 }

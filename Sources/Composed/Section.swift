@@ -11,6 +11,9 @@ public extension Section {
 }
 
 public protocol SectionUpdateDelegate: class {
+    func sectionWillUpdate(_ section: Section)
+    func sectionDidUpdate(_ section: Section)
+
     func section(_ section: Section, didInsertElementAt index: Int)
     func section(_ section: Section, didRemoveElementAt index: Int)
     func section(_ section: Section, didUpdateElementAt index: Int)

@@ -10,6 +10,7 @@ public protocol SectionProviderMappingDelegate: class {
     func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet)
     func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath])
 
+    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
     func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
 
@@ -127,6 +128,14 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mappingDidReload(self)
     }
 
+    public func sectionWillUpdate(_ section: Section) {
+        delegate?.mappingWillUpdate(self)
+    }
+
+    public func sectionDidUpdate(_ section: Section) {
+        delegate?.mappingDidUpdate(self)
+    }
+
     public func section(_ section: Section, didInsertElementAt index: Int) {
         guard let indexPath = self.indexPath(for: index, in: section) else { return }
         delegate?.mapping(self, didInsertElementsAt: [indexPath])
@@ -143,7 +152,11 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func sectionDidReload(_ section: Section) {
-        delegate?.mappingDidReload(self)
+        guard let index = sectionOffset(of: section) else {
+            delegate?.mappingDidReload(self)
+            return
+        }
+        delegate?.mapping(self, didUpdateSections: IndexSet(integer: index))
     }
 
     public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {
