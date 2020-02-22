@@ -2,9 +2,17 @@ import Foundation
 
 open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpdateDelegate {
 
-    private enum Child {
+    private enum Child: Equatable {
         case provider(SectionProvider)
         case section(Section)
+
+        static func == (lhs: Child, rhs: Child) -> Bool {
+            switch (lhs, rhs) {
+            case let (.section(lhs), .section(rhs)): return lhs === rhs
+            case let (.provider(lhs), .provider(rhs)): return lhs === rhs
+            default: return false
+            }
+        }
     }
 
     open var updateDelegate: SectionProviderUpdateDelegate?
@@ -86,8 +94,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
 
         let index = index
+        updateDelegate?.providerWillUpdate(self)
         children.insert(.section(child), at: index)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: index))
+        updateDelegate?.providerDidUpdate(self)
     }
 
     public func insert(_ child: SectionProvider, at index: Int) {
@@ -98,8 +108,44 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         let firstIndex = index
         let endIndex = firstIndex + child.sections.count
 
+        updateDelegate?.providerWillUpdate(self)
         children.insert(.provider(child), at: index)
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
+        updateDelegate?.providerDidUpdate(self)
+    }
+
+    public func remove(_ child: Section) {
+        remove(.section(child))
+    }
+
+    public func remove(_ child: SectionProvider) {
+        remove(.provider(child))
+    }
+
+    private func remove(_ child: Child) {
+        guard let index = children.firstIndex(of: child) else { return }
+        remove(at: index)
+    }
+
+    public func remove(at index: Int) {
+        guard children.indices.contains(index) else { return }
+        let child = children[index]
+        var sections: [Section] = []
+
+        switch child {
+        case let .section(child):
+            sections.append(child)
+        case let .provider(child):
+            sections.append(contentsOf: child.sections)
+        }
+
+        let firstIndex = index
+        let endIndex = index + sections.count
+
+        updateDelegate?.providerWillUpdate(self)
+        children.remove(at: index)
+        updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
+        updateDelegate?.providerDidUpdate(self)
     }
 
 }

@@ -49,8 +49,8 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
     public subscript(position: Index) -> Iterator.Element {
         get { return elements[position] }
         set(newValue) {
-            elements[position] = newValue
             updateDelegate?.sectionWillUpdate(self)
+            elements[position] = newValue
             updateDelegate?.section(self, didUpdateElementAt: position)
             updateDelegate?.sectionDidUpdate(self)
         }
@@ -59,7 +59,6 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
     public func append(_ newElement: Element) {
         elements.append(newElement)
         updateDelegate?.section(self, didInsertElementAt: elements.count - 1)
-        updateDelegate?.sectionDidUpdate(self)
     }
 
     public func append<S>(contentsOf newElements: S) where S: Sequence, Element == S.Element {
@@ -73,8 +72,27 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         updateDelegate?.sectionDidUpdate(self)
     }
 
+    public func insert(_ newElement: Element, at i: Index) {
+        updateDelegate?.sectionWillUpdate(self)
+        elements.insert(newElement, at: i)
+        updateDelegate?.section(self, didInsertElementAt: i)
+        updateDelegate?.sectionDidUpdate(self)
+    }
+
+    public func insert<C>(contentsOf newElements: C, at i: Index) where C: Collection, Element == C.Element {
+        updateDelegate?.sectionWillUpdate(self)
+        let oldCount = elements.count
+        elements.insert(contentsOf: newElements, at: i)
+        let newCount = elements.count
+        (oldCount..<newCount).forEach {
+            updateDelegate?.section(self, didInsertElementAt: $0)
+        }
+        updateDelegate?.sectionDidUpdate(self)
+    }
+
     @discardableResult
     public func removeLast() -> Element {
+        updateDelegate?.sectionWillUpdate(self)
         let element = elements.removeLast()
         updateDelegate?.section(self, didRemoveElementAt: elements.count)
         updateDelegate?.sectionDidUpdate(self)
@@ -94,6 +112,7 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
 
     @discardableResult
     public func remove(at position: Index) -> Element {
+        updateDelegate?.sectionWillUpdate(self)
         let element = elements.remove(at: position)
         updateDelegate?.section(self, didRemoveElementAt: position)
         updateDelegate?.sectionDidUpdate(self)
@@ -117,10 +136,8 @@ extension ArraySection: Hashable where Element: Hashable {
 extension ArraySection: RangeReplaceableCollection {
 
     public func replaceSubrange<C: Swift.Collection, R: RangeExpression>(_ subrange: R, with newElements: C) where C.Element == Element, R.Bound == Index {
-        updateDelegate?.sectionWillUpdate(self)
         elements.replaceSubrange(subrange, with: newElements)
         updateDelegate?.sectionDidReload(self)
-        updateDelegate?.sectionDidUpdate(self)
     }
 
 }

@@ -11,14 +11,17 @@ public extension Section {
 }
 
 public protocol SectionUpdateDelegate: class {
+    // suspends updates
     func sectionWillUpdate(_ section: Section)
+    // resumes updates
     func sectionDidUpdate(_ section: Section)
+    // forces the whole section to reload
+    func sectionDidReload(_ section: Section)
 
     func section(_ section: Section, didInsertElementAt index: Int)
     func section(_ section: Section, didRemoveElementAt index: Int)
     func section(_ section: Section, didUpdateElementAt index: Int)
     func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int)
-    func sectionDidReload(_ section: Section)
 
     func selectedIndexes(in section: Section) -> [Int]
     func section(_ section: Section, select index: Int)
