@@ -5,6 +5,8 @@ public protocol SectionProviderMappingDelegate: class {
     func mappingWillUpdate(_ mapping: SectionProviderMapping)
     func mappingDidUpdate(_ mapping: SectionProviderMapping)
 
+    func mapping(_ mapping: SectionProviderMapping, performBatchUpdates: () -> Void)
+
     func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet)
     func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath])
     func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet)
@@ -126,6 +128,12 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
     public func providerDidReload(_ provider: SectionProvider) {
         delegate?.mappingDidReload(self)
+    }
+
+    public func section(_ section: Section, performBatchUpdates: (Section) -> Void) {
+        delegate?.mapping(self) {
+            performBatchUpdates(section)
+        }
     }
 
     public func sectionWillUpdate(_ section: Section) {

@@ -17,6 +17,7 @@ public protocol SectionUpdateDelegate: class {
     func sectionDidUpdate(_ section: Section)
     // forces the whole section to reload
     func sectionDidReload(_ section: Section)
+    func section(_ section: Section, performBatchUpdates: (Section) -> Void)
 
     func section(_ section: Section, didInsertElementAt index: Int)
     func section(_ section: Section, didRemoveElementAt index: Int)
