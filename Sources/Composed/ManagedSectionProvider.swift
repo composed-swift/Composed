@@ -1,157 +1,80 @@
 import CoreData
 
-open class ManagedSection<Element>: Section where Element: NSManagedObject {
+open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate, Section where Element: NSManagedObject {
 
-    public let persistence: NSPersistentContainer
-    public let sectionInfo: NSFetchedResultsSectionInfo
+    public let managedObjectContext: NSManagedObjectContext
     public var updateDelegate: SectionUpdateDelegate?
 
+    private var fetchedResultsController: NSFetchedResultsController<Element>?
+
     public var elements: [Element] {
-        return sectionInfo.objects as? [Element] ?? []
+        return fetchedResultsController?.fetchedObjects ?? []
     }
 
     public var numberOfElements: Int {
-        return sectionInfo.numberOfObjects
+        return fetchedResultsController?.fetchedObjects?.count ?? 0
     }
 
-    public func element(at index: Int) -> Element {
-        return sectionInfo.objects?[index] as! Element
+    public init(managedObjectContext: NSManagedObjectContext, fetchRequest: NSFetchRequest<Element>? = nil) {
+        self.managedObjectContext = managedObjectContext
+        super.init()
+
+        if let fetchRequest = fetchRequest {
+            replace(fetchRequest: fetchRequest)
+        }
     }
 
-    public required init(sectionInfo: NSFetchedResultsSectionInfo, persistence: NSPersistentContainer) {
-        self.sectionInfo = sectionInfo
-        self.persistence = persistence
-    }
-
-}
-
-open class ManagedSectionProvider<ManagedSection, Element>: NSObject, SectionProvider, SectionProviderUpdateDelegate, NSFetchedResultsControllerDelegate where ManagedSection: Composed.ManagedSection<Element> {
-
-    public var updateDelegate: SectionProviderUpdateDelegate?
-
-    public private(set) var sections: [Composed.Section] = []
-
-    private let persistence: NSPersistentContainer
-    fileprivate var fetchedResultsController: NSFetchedResultsController<Element>?
-
-    public init(persistence: NSPersistentContainer) {
-        self.persistence = persistence
-    }
-
-    public func replace(fetchRequest: NSFetchRequest<Element>, sectionNameKeyPath: String? = nil) {
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: persistence.viewContext, sectionNameKeyPath: sectionNameKeyPath, cacheName: nil)
+    public func replace(fetchRequest: NSFetchRequest<Element>) {
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController?.delegate = self
 
         do {
-            sections.removeAll()
             try fetchedResultsController?.performFetch()
-            (fetchedResultsController?.sections ?? []).forEach {
-                let section = ManagedSection(sectionInfo: $0, persistence: persistence)
-                sections.append(section)
-                didInsert(section: section, at: sections.count - 1)
-            }
         } catch {
             assertionFailure(error.localizedDescription)
         }
 
-        updateDelegate?.providerDidReload(self)
+        updateDelegate?.sectionDidReload(self)
     }
 
-    public var numberOfSections: Int {
-        return fetchedResultsController?.sections?.count ?? 0
-    }
-
-    public func numberOfElements(in section: Int) -> Int {
-        return fetchedResultsController?.sections?[section].numberOfObjects ?? 0
-    }
-
-    private func index(of section: Section) -> Int {
-        guard let section = sections.firstIndex(where: { HashableSection(section) == HashableSection($0) }) else {
-            fatalError("Section does not belong to this provider")
+    public func element(at index: Int) -> Element {
+        guard let controller = fetchedResultsController else {
+            fatalError("A valid fetchRequest has not been configured. You must provide a fetchRequest before calling this method.")
         }
-        return section
+
+        return controller.object(at: IndexPath(item: index, section: 0))
     }
 
-    internal func numberOfElements(in section: Section) -> Int {
-        let index = self.index(of: section)
-        return numberOfElements(in: index)
+    public func index(of element: Element) -> Int? {
+        return fetchedResultsController?.indexPath(forObject: element)?.item
     }
-
-    internal func element(in section: Section, at index: Int) -> Element {
-        guard let controller = fetchedResultsController else { fatalError("No fetchResultsController attached") }
-        return controller.object(at: IndexPath(item: index, section: self.index(of: section)))
-    }
-
-    open func didInsert(section: ManagedSection, at index: Int) { }
-    open func didRemove(section: ManagedSection, at index: Int) { }
-
-    // MARK: - NSFetchedResultsControllerDelegate
 
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        updateDelegate?.providerWillUpdate(self)
-    }
-
-    public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
-        assert(Thread.isMainThread)
-
-        switch type {
-        case .insert:
-            let section = ManagedSection(sectionInfo: sectionInfo, persistence: persistence)
-            sections.append(section)
-            updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: sectionIndex))
-            didInsert(section: section, at: sectionIndex)
-        case .delete:
-            let section = sections[sectionIndex] as! ManagedSection
-            sections.remove(at: sectionIndex)
-            updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: sectionIndex))
-            didRemove(section: section, at: sectionIndex)
-        default:
-            updateDelegate?.providerDidReload(self)
-        }
+        updateDelegate?.sectionWillUpdate(self)
     }
 
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        assert(Thread.isMainThread)
-
         switch type {
         case .insert:
-            let section = sections[newIndexPath!.section]
-
-            if let sections = controller.sections,
-                newIndexPath!.section > sections.count {
-                updateDelegate?.providerDidReload(self)
-            } else {
-                section.updateDelegate?.section(section, didInsertElementAt: newIndexPath!.item)
-            }
+            updateDelegate?.section(self, didInsertElementAt: newIndexPath!.item)
         case .delete:
-            let section = sections[indexPath!.section]
-
-            if let sections = controller.sections,
-                !sections.isEmpty,
-                sections[indexPath!.section].numberOfObjects == 0 {
-                updateDelegate?.providerDidReload(self)
+            let sections = fetchedResultsController?.sections ?? []
+            if !sections.isEmpty, sections.first?.numberOfObjects == 0 {
+                updateDelegate?.sectionDidReload(self)
             } else {
-                section.updateDelegate?.section(section, didRemoveElementAt: indexPath!.item)
+                updateDelegate?.section(self, didRemoveElementAt: indexPath!.item)
             }
         case .update:
-            let section = sections[indexPath!.section]
-            section.updateDelegate?.section(section, didUpdateElementAt: indexPath!.item)
+            updateDelegate?.section(self, didUpdateElementAt: indexPath!.item)
         case .move:
-            let fromSection = sections[indexPath!.section]
-            let toSection = sections[newIndexPath!.section]
-
-            if indexPath == newIndexPath {
-                fromSection.updateDelegate?.section(fromSection, didUpdateElementAt: indexPath!.item)
-            } else {
-                fromSection.updateDelegate?.section(fromSection, didRemoveElementAt: indexPath!.item)
-                toSection.updateDelegate?.section(toSection, didInsertElementAt: newIndexPath!.item)
-            }
-        default: fatalError("Unsupported type")
+            updateDelegate?.section(self, didMoveElementAt: indexPath!.item, to: newIndexPath!.item)
+        default:
+            fatalError("Unsupported type")
         }
     }
 
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        updateDelegate?.providerDidUpdate(self)
+        updateDelegate?.sectionDidUpdate(self)
     }
 
 }
