@@ -160,11 +160,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func sectionDidReload(_ section: Section) {
-        guard let index = sectionOffset(of: section) else {
-            delegate?.mappingDidReload(self)
-            return
-        }
-        delegate?.mapping(self, didUpdateSections: IndexSet(integer: index))
+        delegate?.mappingDidReload(self)
     }
 
     public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {
