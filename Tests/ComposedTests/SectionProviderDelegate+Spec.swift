@@ -48,6 +48,18 @@ final class SectionProviderDelegate_Spec: QuickSpec {
 
 final class MockDelegate: SectionProviderUpdateDelegate {
 
+    func providerDidReload(_ provider: SectionProvider) {
+
+    }
+
+    func providerWillUpdate(_ provider: SectionProvider) {
+
+    }
+
+    func providerDidUpdate(_ provider: SectionProvider) {
+        
+    }
+
     var didInsertSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?
     var didRemoveSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?
 

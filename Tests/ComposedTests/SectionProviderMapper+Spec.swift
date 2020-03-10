@@ -106,11 +106,11 @@ final class SectionProviderMapping_Spec: QuickSpec {
             }
         }
     }
-
+    
 }
 
 final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
-    
+
     var didInsertSections: (mapping: SectionProviderMapping, sections: IndexSet)?
     var didInsertElements: (section: SectionProviderMapping, indexPaths: [IndexPath])?
 
@@ -122,6 +122,22 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     var didMoveElements: (mapping: SectionProviderMapping, moves: [(IndexPath, IndexPath)])?
 
     var didUpdate: SectionProviderMapping?
+
+    func mappingDidReload(_ mapping: SectionProviderMapping) {
+
+    }
+
+    func mappingWillUpdate(_ mapping: SectionProviderMapping) {
+
+    }
+
+    func mappingDidUpdate(_ mapping: SectionProviderMapping) {
+        didUpdate = mapping
+    }
+
+    func mapping(_ mapping: SectionProviderMapping, performBatchUpdates: () -> Void) {
+
+    }
 
     func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
         didInsertSections = (mapping, sections)
@@ -139,6 +155,10 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
         didRemoveElements = (mapping, indexPaths)
     }
 
+    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) {
+
+    }
+
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath]) {
         didUpdateElements = (mapping, indexPaths)
     }
@@ -147,8 +167,20 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
         didMoveElements = (mapping, moves)
     }
 
-    func mappingDidUpdate(_ mapping: SectionProviderMapping) {
-        didUpdate = mapping
+    func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int] {
+        return []
+    }
+
+    func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath) {
+
+    }
+
+    func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath) {
+
+    }
+
+    func mapping(_ mapping: SectionProviderMapping, isEditingIn section: Int) -> Bool {
+        return false
     }
 
 }
