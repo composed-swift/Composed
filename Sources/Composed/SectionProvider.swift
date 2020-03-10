@@ -10,8 +10,6 @@ public protocol SectionProvider: class {
 
     var numberOfSections: Int { get }
 
-    func numberOfElements(in section: Int) -> Int
-
 }
 
 public extension SectionProvider {
@@ -22,10 +20,6 @@ public extension SectionProvider {
 
     var numberOfSections: Int {
         return sections.count
-    }
-
-    func numberOfElements(in section: Int) -> Int {
-        return sections[section].numberOfElements
     }
 
 }
