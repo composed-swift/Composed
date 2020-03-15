@@ -119,6 +119,19 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         return element
     }
 
+    public func removeAll() {
+        updateDelegate?.sectionWillUpdate(self)
+        let indexes = IndexSet(integersIn: indices)
+        indexes.forEach { updateDelegate?.section(self, didRemoveElementAt: $0) }
+        elements.removeAll()
+        updateDelegate?.sectionDidUpdate(self)
+    }
+
+    public func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
+        try elements.removeAll(where: shouldBeRemoved)
+        updateDelegate?.sectionDidReload(self)
+    }
+
 }
 
 extension ArraySection: Equatable where Element: Equatable {
