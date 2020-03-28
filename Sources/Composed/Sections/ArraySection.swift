@@ -42,11 +42,7 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
     public var startIndex: Index { return elements.startIndex }
     public var endIndex: Index { return elements.endIndex }
 
-    public func index(after i: Array<Element>.Index) -> Array<Element>.Index {
-        return elements.index(after: i)
-    }
-
-    public subscript(position: Index) -> Iterator.Element {
+    public subscript(position: Index) -> Element {
         get { return elements[position] }
         set(newValue) {
             updateDelegate?.sectionWillUpdate(self)

@@ -78,3 +78,27 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
     }
 
 }
+
+extension ManagedSection: RandomAccessCollection, BidirectionalCollection {
+
+    public typealias Index = Array<Element>.Index
+
+    public var isEmpty: Bool { return elements.isEmpty }
+    public var startIndex: Index { return elements.startIndex }
+    public var endIndex: Index { return elements.endIndex }
+
+    public subscript(position: Index) -> Element {
+        return elements[position]
+    }
+
+}
+
+extension ManagedSection: Sequence {
+
+    public typealias Iterator = Array<Element>.Iterator
+
+    public func makeIterator() -> IndexingIterator<Array<Element>> {
+        return elements.makeIterator()
+    }
+
+}
