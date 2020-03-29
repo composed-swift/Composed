@@ -136,7 +136,7 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     }
 
     func mapping(_ mapping: SectionProviderMapping, performBatchUpdates: () -> Void) {
-
+        
     }
 
     func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
