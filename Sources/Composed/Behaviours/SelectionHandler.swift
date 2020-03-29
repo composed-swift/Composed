@@ -14,6 +14,9 @@ public protocol SelectionHandler: Section {
 
     func select(index: Int)
     func deselect(index: Int)
+
+    func selectAll()
+    func deselectAll()
 }
 
 public extension SelectionHandler {
@@ -29,4 +32,22 @@ public extension SelectionHandler {
 
     func select(index: Int) { updateDelegate?.section(self, select: index) }
     func deselect(index: Int) { updateDelegate?.section(self, deselect: index) }
+
+    func selectAll() {
+        (0..<numberOfElements).forEach { select(index: $0) }
+    }
+
+    func deselectAll() {
+        (0..<numberOfElements).forEach { deselect(index: $0) }
+    }
+}
+
+public extension SelectionHandler where Self: EditingHandler {
+    func shouldHighlight(at index: Int) -> Bool {
+        if allowsMultipleSelection {
+            return allowsEditing(at: index)
+        } else {
+            return true
+        }
+    }
 }
