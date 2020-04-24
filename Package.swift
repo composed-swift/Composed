@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.2
 
 import PackageDescription
 
@@ -13,8 +13,8 @@ let package = Package(
             targets: ["Composed"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/quick/quick", from: "2.0.0"),
-        .package(url: "https://github.com/quick/nimble", from: "8.0.0"),
+        .package(name: "Quick", url: "https://github.com/quick/quick", from: "2.0.0"),
+        .package(name: "Nimble", url: "https://github.com/quick/nimble", from: "8.0.0"),
     ],
     targets: [
         .target(
