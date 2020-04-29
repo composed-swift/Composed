@@ -163,8 +163,4 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath) { }
     func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath) { }
 
-    func mapping(_ mapping: SectionProviderMapping, isEditingIn section: Int) -> Bool {
-        return false
-    }
-
 }

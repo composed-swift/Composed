@@ -1,43 +1,102 @@
 import UIKit
 
+/// A delegate for responding to mapping updates
 public protocol SectionProviderMappingDelegate: class {
-    func mappingDidReload(_ mapping: SectionProviderMapping)
+
+    /// Notifies the delegate that the mapping will being updating
+    /// - Parameter mapping: The mapping that provided this update
     func mappingWillBeginUpdating(_ mapping: SectionProviderMapping)
+
+    /// Notifies the delegate that the mapping did end updating
+    /// - Parameter mapping: The mapping that provided this update
     func mappingDidEndUpdating(_ mapping: SectionProviderMapping)
 
+    /// Notifies the delegate that the mapping was invalidated
+    /// - Parameter mapping: The mapping that provided this update
+    func mappingDidInvalidate(_ mapping: SectionProviderMapping)
+
+    /// Notifies the delegate that the mapping did insert sections
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - sections: The section indexes
     func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet)
+
+    /// Notifies the delegate that the mapping did insert elements
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - indexPaths: The element indexPaths
     func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath])
+
+    /// Notifies the delegate that the mapping did remove sections
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - sections: The section indexes
     func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet)
+
+    /// Notifies the delegate that the mapping did remove elements
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - indexPaths: The element indexPaths
     func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath])
 
+    /// Notifies the delegate that the mapping did update sections
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - sections: The section indexes
     func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
+
+    /// Notifies the delegate that the mapping did update elements
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - indexPaths: The element indexPaths
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
+
+    /// Notifies the delegate that the mapping did move elements
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - moves: The source and target element indexPaths as a tuple
     func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
 
+    /// Asks the delegate for its selected indexes in the specified section
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - section: The section index
     func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int]
+
+    /// Asks the delegate to select the specified indexPath
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - indexPath: The element indexPath
     func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath)
+
+    /// Asks the delegate to deselect the specified indexPath
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - indexPath: The element indexPath
     func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath)
 
-    func mapping(_ mapping: SectionProviderMapping, isEditingIn section: Int) -> Bool
 }
 
-/**
- An object that encapsulates the logic required to map `SectionProvider`s to
- a global context, allowing elements in a `Section` to be referenced via an
- `IndexPath`
- */
+/// An object that encapsulates the logic required to map `SectionProvider`s to a global context,
+/// allowing elements in a `Section` to be referenced via an `IndexPath`
 public final class SectionProviderMapping: SectionProviderUpdateDelegate, SectionUpdateDelegate {
 
+    /// The delegate that will respond to updates
     public weak var delegate: SectionProviderMappingDelegate?
 
+    /// The root provider that contains all other providers and sections
     public let provider: SectionProvider
 
+    /// The number of sections in this mapping
     public var numberOfSections: Int {
         return provider.numberOfSections
     }
 
+    /// The cached providers for each section, improves lookup peformance
     private var cachedProviderSections: [HashableProvider: Int] = [:]
 
+    /// Makes a new mapping for the specified provider
+    /// - Parameter provider: The provider to map
     public init(provider: SectionProvider) {
         self.provider = provider
         provider.updateDelegate = self
@@ -45,10 +104,16 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         rebuildSectionOffsets()
     }
 
+    /// The global section offset for the specified provider, nil if none found
+    /// - Parameter provider: The provider this index should represent
+    /// - Returns: The section index in a global context
     public func sectionOffset(of provider: SectionProvider) -> Int? {
         return cachedProviderSections[HashableProvider(provider)]
     }
 
+    /// The global section offset for the specified section, nil if none found
+    /// - Parameter section: The section this index should represent
+    /// - Returns: The section index in a global context
     public func sectionOffset(of section: Section) -> Int? {
         return provider.sections.firstIndex(where: { $0 === section })
     }
@@ -104,11 +169,6 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexPath(item: index, section: offset)
     }
 
-    public func isEditing(_ section: Section) -> Bool {
-        guard let index = sectionOffset(of: section) else { return false }
-        return delegate?.mapping(self, isEditingIn: index) ?? false
-    }
-
     public func selectedIndexes(in section: Section) -> [Int] {
         guard let index = sectionOffset(of: section) else { return [] }
         return delegate?.mapping(self, selectedIndexesIn: index) ?? []
@@ -125,7 +185,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func invalidateAll(_ provider: SectionProvider) {
-        delegate?.mappingDidReload(self)
+        delegate?.mappingDidInvalidate(self)
     }
 
     public func willBeginUpdating(_ section: Section) {
@@ -152,7 +212,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func invalidateAll(_ section: Section) {
-        delegate?.mappingDidReload(self)
+        delegate?.mappingDidInvalidate(self)
     }
 
     public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {
@@ -161,6 +221,8 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mapping(self, didMoveElementsAt: [(source, destination)])
     }
 
+    // Rebuilds the cached providers to improve lookup performance.
+    // This is generally only required when a sections are either inserted or removed, so it should be fairly efficient.
     private func rebuildSectionOffsets() {
         var providerSections: [HashableProvider: Int] = [HashableProvider(provider): 0]
 
@@ -188,6 +250,25 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         }
 
         addOffsets(forChildrenOf: aggregate)
+    }
+
+}
+
+/// A convenient wrapper to provide hashability and equality to a section provider for comparison and storage in a `SectionProviderMapping`
+private struct HashableProvider: Hashable {
+
+    public static func == (lhs: HashableProvider, rhs: HashableProvider) -> Bool {
+        return lhs.provider === rhs.provider
+    }
+
+    private let provider: SectionProvider
+
+    public init(_ provider: SectionProvider) {
+        self.provider = provider
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(provider))
     }
 
 }
