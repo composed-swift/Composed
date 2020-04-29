@@ -1,22 +1,48 @@
-@available(*, deprecated, renamed: "SelectionHandler")
-public protocol SelectionProvider: Section { }
+import Foundation
 
+/// Provides selection handling for a section
 public protocol SelectionHandler: Section {
+
+    /// Return `true` to allow multiple selection in this section, defaults to `false`
     var allowsMultipleSelection: Bool { get }
+
+    /// Returns all element indexes that are currently selected
     var selectedIndexes: [Int] { get }
 
+    /// When a highlight is attempted, this method will be called giving the caller a chance to prevent it
+    /// - Parameter index: The element index
     func shouldHighlight(at index: Int) -> Bool
+
+    /// When a selection is attempted, this method will be called giving the caller a chance to prevent it
+    /// - Parameter index: The element index
     func shouldSelect(at index: Int) -> Bool
+
+    /// When a selection occurs, this method will be called to notify the section
+    /// - Parameter index: The element index
     func didSelect(at index: Int)
 
+    /// When a deselection is attempted, this method will be called giving the caller a chance to prevent it
+    /// - Parameter index: The element index
     func shouldDeselect(at index: Int) -> Bool
+
+    /// When a deselection occurs, this method will be called to notify the section
+    /// - Parameter index: The element index
     func didDeselect(at index: Int)
 
+    /// Selects the element at the specified index
+    /// - Parameter index: The element index
     func select(index: Int)
+
+    /// Deselects the element at the specified index
+    /// - Parameter index: The element index
     func deselect(index: Int)
 
+    /// Selects all elements in this section
     func selectAll()
+
+    /// Deselects all elements in this section
     func deselectAll()
+
 }
 
 public extension SelectionHandler {
