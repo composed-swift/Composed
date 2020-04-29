@@ -60,9 +60,9 @@ public struct HashableProvider: Hashable {
 
 
 public protocol SectionProviderUpdateDelegate: class {
-    func providerDidReload(_ provider: SectionProvider)
-    func providerWillUpdate(_ provider: SectionProvider)
-    func providerDidUpdate(_ provider: SectionProvider)
+    func invalidateAll(_ provider: SectionProvider)
+    func willBeginUpdating(_ provider: SectionProvider)
+    func didEndUpdating(_ provider: SectionProvider)
     
     func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet)
     func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet)
@@ -70,16 +70,16 @@ public protocol SectionProviderUpdateDelegate: class {
 
 public extension SectionProviderUpdateDelegate where Self: SectionProvider {
 
-    func providerWillUpdate(_ provider: SectionProvider) {
-        updateDelegate?.providerWillUpdate(self)
+    func willBeginUpdating(_ provider: SectionProvider) {
+        updateDelegate?.willBeginUpdating(self)
     }
 
-    func providerDidUpdate(_ provider: SectionProvider) {
-        updateDelegate?.providerDidUpdate(self)
+    func didEndUpdating(_ provider: SectionProvider) {
+        updateDelegate?.didEndUpdating(self)
     }
 
-    func providerDidReload(_ provider: SectionProvider) {
-        updateDelegate?.providerDidReload(provider)
+    func invalidateAll(_ provider: SectionProvider) {
+        updateDelegate?.invalidateAll(provider)
     }
 
     func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {

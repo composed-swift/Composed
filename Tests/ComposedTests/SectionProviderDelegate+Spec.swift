@@ -48,7 +48,7 @@ final class SectionProviderDelegate_Spec: QuickSpec {
 
 final class MockDelegate: SectionProviderUpdateDelegate {
 
-    func providerDidReload(_ provider: SectionProvider) {
+    func invalidateAll(_ provider: SectionProvider) {
 
     }
 

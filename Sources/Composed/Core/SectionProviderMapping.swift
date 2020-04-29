@@ -2,10 +2,8 @@ import UIKit
 
 public protocol SectionProviderMappingDelegate: class {
     func mappingDidReload(_ mapping: SectionProviderMapping)
-    func mappingWillUpdate(_ mapping: SectionProviderMapping)
-    func mappingDidUpdate(_ mapping: SectionProviderMapping)
-
-    func mapping(_ mapping: SectionProviderMapping, performBatchUpdates: () -> Void)
+    func mappingWillBeginUpdating(_ mapping: SectionProviderMapping)
+    func mappingDidEndUpdating(_ mapping: SectionProviderMapping)
 
     func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet)
     func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath])
@@ -70,12 +68,12 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexSet(indexes.map { $0 + offset })
     }
 
-    public func providerWillUpdate(_ provider: SectionProvider) {
-        delegate?.mappingWillUpdate(self)
+    public func willBeginUpdating(_ provider: SectionProvider) {
+        delegate?.mappingWillBeginUpdating(self)
     }
 
-    public func providerDidUpdate(_ provider: SectionProvider) {
-        delegate?.mappingDidUpdate(self)
+    public func didEndUpdating(_ provider: SectionProvider) {
+        delegate?.mappingDidEndUpdating(self)
     }
 
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
@@ -106,7 +104,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexPath(item: index, section: offset)
     }
 
-    public func isEditing(in section: Section) -> Bool {
+    public func isEditing(_ section: Section) -> Bool {
         guard let index = sectionOffset(of: section) else { return false }
         return delegate?.mapping(self, isEditingIn: index) ?? false
     }
@@ -126,22 +124,16 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mapping(self, deselect: IndexPath(item: index, section: section))
     }
 
-    public func providerDidReload(_ provider: SectionProvider) {
+    public func invalidateAll(_ provider: SectionProvider) {
         delegate?.mappingDidReload(self)
     }
 
-    public func section(_ section: Section, performBatchUpdates: (Section) -> Void) {
-        delegate?.mapping(self) {
-            performBatchUpdates(section)
-        }
+    public func willBeginUpdating(_ section: Section) {
+        delegate?.mappingWillBeginUpdating(self)
     }
 
-    public func sectionWillUpdate(_ section: Section) {
-        delegate?.mappingWillUpdate(self)
-    }
-
-    public func sectionDidUpdate(_ section: Section) {
-        delegate?.mappingDidUpdate(self)
+    public func didEndUpdating(_ section: Section) {
+        delegate?.mappingDidEndUpdating(self)
     }
 
     public func section(_ section: Section, didInsertElementAt index: Int) {
@@ -159,7 +151,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mapping(self, didUpdateElementsAt: [indexPath])
     }
 
-    public func sectionDidReload(_ section: Section) {
+    public func invalidateAll(_ section: Section) {
         delegate?.mappingDidReload(self)
     }
 

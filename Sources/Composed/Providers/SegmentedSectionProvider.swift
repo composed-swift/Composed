@@ -17,7 +17,7 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
 
     open var updateDelegate: SectionProviderUpdateDelegate?
     public var currentIndex: Int = -1 {
-        didSet { updateDelegate?.providerDidReload(self) }
+        didSet { updateDelegate?.invalidateAll(self) }
     }
 
     private var currentChild: Child? {
@@ -116,7 +116,7 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         // if we don't have a `currentChild` yet, update it
         guard currentChild == nil else { return }
         currentIndex = index
-        updateDelegate?.providerDidReload(self)
+        updateDelegate?.invalidateAll(self)
     }
 
     public func remove(_ child: Section) {
@@ -140,7 +140,7 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
             currentIndex = max(-1, currentIndex - 1)
         }
 
-        updateDelegate?.providerDidReload(self)
+        updateDelegate?.invalidateAll(self)
     }
 
 }

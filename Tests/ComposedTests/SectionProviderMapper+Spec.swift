@@ -123,20 +123,11 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
 
     var didUpdate: SectionProviderMapping?
 
-    func mappingDidReload(_ mapping: SectionProviderMapping) {
-
-    }
-
-    func mappingWillUpdate(_ mapping: SectionProviderMapping) {
-
-    }
+    func mappingDidReload(_ mapping: SectionProviderMapping) { }
+    func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) { }
 
     func mappingDidUpdate(_ mapping: SectionProviderMapping) {
         didUpdate = mapping
-    }
-
-    func mapping(_ mapping: SectionProviderMapping, performBatchUpdates: () -> Void) {
-        
     }
 
     func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
@@ -155,9 +146,7 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
         didRemoveElements = (mapping, indexPaths)
     }
 
-    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) {
-
-    }
+    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) { }
 
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath]) {
         didUpdateElements = (mapping, indexPaths)
@@ -171,13 +160,8 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
         return []
     }
 
-    func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath) {
-
-    }
-
-    func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath) {
-
-    }
+    func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath) { }
+    func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath) { }
 
     func mapping(_ mapping: SectionProviderMapping, isEditingIn section: Int) -> Bool {
         return false

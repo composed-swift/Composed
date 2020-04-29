@@ -34,7 +34,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
             assertionFailure(error.localizedDescription)
         }
 
-        updateDelegate?.sectionDidReload(self)
+        updateDelegate?.invalidateAll(self)
     }
 
     public func element(at index: Int) -> Element {
@@ -50,7 +50,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
     }
 
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        updateDelegate?.sectionWillUpdate(self)
+        updateDelegate?.willBeginUpdating(self)
     }
 
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
@@ -60,7 +60,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         case .delete:
             let sections = fetchedResultsController?.sections ?? []
             if !sections.isEmpty, sections.first?.numberOfObjects == 0 {
-                updateDelegate?.sectionDidReload(self)
+                updateDelegate?.invalidateAll(self)
             } else {
                 updateDelegate?.section(self, didRemoveElementAt: indexPath!.item)
             }
@@ -74,7 +74,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
     }
 
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        updateDelegate?.sectionDidUpdate(self)
+        updateDelegate?.didEndUpdating(self)
     }
 
 }

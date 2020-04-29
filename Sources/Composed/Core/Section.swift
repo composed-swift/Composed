@@ -1,23 +1,37 @@
 import Foundation
 import CoreGraphics
 
+/// Rerepresents a single section of data. The delegate is used to propogate updates to its 'parent'
 public protocol Section: class {
+
+    /// The number of elements contained in this section
     var numberOfElements: Int { get }
+
+    /// The delegate that will respond to updates
     var updateDelegate: SectionUpdateDelegate? { get set }
+
 }
 
 public extension Section {
+
+    /// Returns true if the section contains no elements, false otherwise
     var isEmpty: Bool { return numberOfElements == 0 }
+
 }
 
 public protocol SectionUpdateDelegate: class {
-    // suspends updates
-    func sectionWillUpdate(_ section: Section)
-    // resumes updates
-    func sectionDidUpdate(_ section: Section)
-    // forces the whole section to reload
-    func sectionDidReload(_ section: Section)
-    func section(_ section: Section, performBatchUpdates: (Section) -> Void)
+
+    /// Notifies the delegate before a section will process updates
+    /// - Parameter section: The section that will be updated
+    func willBeginUpdating(_ section: Section)
+
+    /// Notifies the delegate after a section has processed updates
+    /// - Parameter section: The section that was updated
+    func didEndUpdating(_ section: Section)
+
+    /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
+    /// - Parameter section: The section that requested the invalidation
+    func invalidateAll(_ section: Section)
 
     func section(_ section: Section, didInsertElementAt index: Int)
     func section(_ section: Section, didRemoveElementAt index: Int)
@@ -28,7 +42,7 @@ public protocol SectionUpdateDelegate: class {
     func section(_ section: Section, select index: Int)
     func section(_ section: Section, deselect index: Int)
 
-    func isEditing(in section: Section) -> Bool
+    func isEditing(_ section: Section) -> Bool
 }
 
 public struct HashableSection: Hashable {

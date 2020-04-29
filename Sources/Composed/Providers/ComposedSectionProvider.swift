@@ -94,10 +94,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
 
         let index = index
-        updateDelegate?.providerWillUpdate(self)
+        updateDelegate?.willBeginUpdating(self)
         children.insert(.section(child), at: index)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: index))
-        updateDelegate?.providerDidUpdate(self)
+        updateDelegate?.didEndUpdating(self)
     }
 
     public func insert(_ child: SectionProvider, at index: Int) {
@@ -108,10 +108,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         let firstIndex = index
         let endIndex = firstIndex + child.sections.count
 
-        updateDelegate?.providerWillUpdate(self)
+        updateDelegate?.willBeginUpdating(self)
         children.insert(.provider(child), at: index)
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
-        updateDelegate?.providerDidUpdate(self)
+        updateDelegate?.didEndUpdating(self)
     }
 
     public func remove(_ child: Section) {
@@ -142,10 +142,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         let firstIndex = index
         let endIndex = index + sections.count
 
-        updateDelegate?.providerWillUpdate(self)
+        updateDelegate?.willBeginUpdating(self)
         children.remove(at: index)
         updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
-        updateDelegate?.providerDidUpdate(self)
+        updateDelegate?.didEndUpdating(self)
     }
 
 }
