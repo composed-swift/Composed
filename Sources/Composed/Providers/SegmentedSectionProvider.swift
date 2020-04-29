@@ -28,7 +28,6 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         }
     }
 
-    /// Get/set the delegate that will respond to updates
     open var updateDelegate: SectionProviderUpdateDelegate?
 
     /// Represents all of the children this provider contains

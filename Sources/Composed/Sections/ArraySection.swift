@@ -1,19 +1,46 @@
 import Foundation
 
+/**
+ Represents a section that manages its elements via an `Array`. This type of section is useful for representing in-memory data.
+
+ This type conforms to various standard library protocols to provide a more familiar API.
+
+ `ArraySection` conforms to the following protocols from the standard library:
+
+     Sequence
+     MutableCollection
+     RandomAccessCollection
+     BidirectionalCollection
+     RangeReplaceableCollection
+
+ Example usage:
+
+     let section = ArraySection<Int>()
+     section.append(contentsOf: [1, 2, 3])
+     section.numberOfElements // returns 3
+
+ */
 open class ArraySection<Element>: Section, ExpressibleByArrayLiteral {
 
     public weak var updateDelegate: SectionUpdateDelegate?
 
+    /// Represents the elements this section contains
     public private(set) var elements: [Element]
 
+    /// Makes an empty `ArraySection`
     public required init() {
         elements = []
     }
 
+    /// Makes an `ArraySection` containing the specified elements
+    /// - Parameter elements: The elements to append
     public required init(arrayLiteral elements: Element...) {
         self.elements = elements
     }
 
+    /// Returns the element at the specified index
+    /// - Parameter index: The position of the element to access. `index` must be greater than or equal to `startIndex` and less than `endIndex`.
+    /// - Returns: If the index is valid, the element. Otherwise
     public func element(at index: Int) -> Element {
         return elements[index]
     }
@@ -86,6 +113,8 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         updateDelegate?.didEndUpdating(self)
     }
 
+    /// Removes the last element
+    /// - Returns: The element that was removed
     @discardableResult
     public func removeLast() -> Element {
         updateDelegate?.willBeginUpdating(self)
@@ -95,6 +124,8 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         return element
     }
 
+    /// Removes the last `k` (number of) elements
+    /// - Parameter k: The number of elements to remove from the end
     public func removeLast(_ k: Int) {
         updateDelegate?.willBeginUpdating(self)
         let oldCount = elements.count
@@ -115,6 +146,7 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         return element
     }
 
+    /// Removes all elements from this section
     public func removeAll() {
         updateDelegate?.willBeginUpdating(self)
         let indexes = IndexSet(integersIn: indices)

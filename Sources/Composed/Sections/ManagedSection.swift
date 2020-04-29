@@ -1,13 +1,35 @@
 import CoreData
 
+/**
+ Represents a section that provides its elements via an `NSFetchedResultsController`. This section is useful for representing data managed by CoreData.
+
+ This type conforms to various standard library protocols to provide a more familiar API.
+
+ `ManagedSection` conforms to the following protocols from the standard library:
+
+     Sequence
+     RandomAccessCollection
+     BidirectionalCollection
+
+ Example usage:
+
+     let section = ManagedSection<Person>(managedObjectContext: context)
+     let request: NSFetchRequest<Person> = Person.fetchRequest()
+     request.sortDescriptors = [...]
+     section.replace(fetchRequest: request)
+ */
 open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate, Section where Element: NSManagedObject {
 
+    /// Returns the `NSManagedObjectContext` associated with this section
     public let managedObjectContext: NSManagedObjectContext
+
     public var updateDelegate: SectionUpdateDelegate?
 
+    // The current controller that will return elements
     private var fetchedResultsController: NSFetchedResultsController<Element>?
 
-    public var elements: [Element] {
+    // A convenience property for return all fetched elements
+    private var elements: [Element] {
         return fetchedResultsController?.fetchedObjects ?? []
     }
 
@@ -15,6 +37,10 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         return fetchedResultsController?.fetchedObjects?.count ?? 0
     }
 
+    /// Makes a `ManagedSection` with the specified context and optional request
+    /// - Parameters:
+    ///   - managedObjectContext: The context to associate with this section
+    ///   - fetchRequest: The initial request to use for fetching data (optional)
     public init(managedObjectContext: NSManagedObjectContext, fetchRequest: NSFetchRequest<Element>? = nil) {
         self.managedObjectContext = managedObjectContext
         super.init()
@@ -24,6 +50,8 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         }
     }
 
+    /// Replaces the current fetch request with the specified request
+    /// - Parameter fetchRequest: The new fetch request
     public func replace(fetchRequest: NSFetchRequest<Element>) {
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController?.delegate = self
@@ -37,6 +65,9 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         updateDelegate?.invalidateAll(self)
     }
 
+    /// Returns the element at the specified index
+    /// - Parameter index: The position of the element to access. `index` must be greater than or equal to `startIndex` and less than `endIndex`.
+    /// - Returns: If the index is valid, the element. Otherwise
     public func element(at index: Int) -> Element {
         guard let controller = fetchedResultsController else {
             fatalError("A valid fetchRequest has not been configured. You must provide a fetchRequest before calling this method.")
@@ -45,6 +76,9 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         return controller.object(at: IndexPath(item: index, section: 0))
     }
 
+    /// The index of the specified element. Returns nil if the element is _not_ in this section.
+    /// - Parameter element: The element to look lookup
+    /// - Returns: The index of the element if it is in this section, nil otherwise
     public func index(of element: Element) -> Int? {
         return fetchedResultsController?.indexPath(forObject: element)?.item
     }

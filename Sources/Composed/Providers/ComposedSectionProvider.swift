@@ -27,7 +27,6 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
     }
 
-    /// Get/set the delegate that will respond to updates
     open var updateDelegate: SectionProviderUpdateDelegate?
 
     /// Represents all of the children this provider contains
