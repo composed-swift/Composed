@@ -6,7 +6,7 @@ public protocol SectionProvider: class {
     /// The child sections contained in this provider
     var sections: [Section] { get }
 
-    /// The number of section contained in this provider
+    /// The number of sections in this provider
     var numberOfSections: Int { get }
 
     /// The delegate that will respond to updates

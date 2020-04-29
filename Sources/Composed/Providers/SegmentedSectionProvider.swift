@@ -1,5 +1,18 @@
 import Foundation
 
+/**
+ Represents an collection of `Section`'s and `SectionProvider`'s. The provider supports infinite nesting, including other `SegmentedSectionProvider`'s. One or zero children may be active at any time, so `numberOfSections` and `numberOfElements(in:)` will return values representative of the currenly active child only.
+
+     let provider = SegmentedSectionProvider()
+     provider.append(section1) // 5 elements
+     provider.append(section2) // 3 elements
+
+     provider.currentIndex = 1
+
+     provider.numberOfSections        // returns 1
+     provider.numberOfElements(in: 0) // return 3
+     provider.numberOfElements(in: 1) // out-of-bounds error
+ */
 open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUpdateDelegate {
 
     private enum Child: Equatable {
@@ -15,17 +28,25 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         }
     }
 
+    /// Get/set the delegate that will respond to updates
     open var updateDelegate: SectionProviderUpdateDelegate?
+
+    /// Represents all of the children this provider contains
+    private var children: [Child] = []
+
+    /// Get/set the index of the child to make 'active'
     public var currentIndex: Int = -1 {
         didSet { updateDelegate?.invalidateAll(self) }
     }
 
+    /// Returns the currently 'active' child
     private var currentChild: Child? {
         guard children.indices.contains(currentIndex) else { return nil }
         return children[currentIndex]
     }
 
-    open var providers: [SectionProvider] {
+    /// Returns all the providers this provider contains
+    public var providers: [SectionProvider] {
         switch currentChild {
         case .section:
             return []
@@ -36,7 +57,8 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         }
     }
 
-    open var sections: [Section] {
+    /// Returns all the sections this provider contains
+    public var sections: [Section] {
         switch currentChild {
         case let .provider(childProvider):
             return childProvider.sections
@@ -46,8 +68,6 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
             return []
         }
     }
-
-    private var children: [Child] = []
 
     public init() { }
 
@@ -62,6 +82,9 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         }
     }
 
+    /// Returns the number of elements in the specified section
+    /// - Parameter section: The section index
+    /// - Returns: The number of elements
     public func numberOfElements(in section: Int) -> Int {
         return sections[section].numberOfElements
     }
@@ -92,37 +115,53 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         return -1
     }
 
+    /// Appends the specified `SectionProvider` to the provider
+    /// - Parameter child: The `SectionProvider` to append
     public func append(_ child: SectionProvider) {
         insert(child, at: children.count)
     }
 
+    /// Appends the specified `Section` to the provider
+    /// - Parameter child: The `Section` to append
     public func append(_ child: Section) {
         insert(child, at: children.count)
     }
 
+    /// Inserts the specified `SectionProvider` at the given index
+    /// - Parameters:
+    ///   - child: The `SectionProvider` to insert
+    ///   - index: The index where the `SectionProvider` should be inserted
     public func insert(_ child: SectionProvider, at index: Int) {
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
         children.insert(.provider(child), at: index)
         insert(at: index)
     }
 
+    /// Inserts the specified `Section` at the given index
+    /// - Parameters:
+    ///   - child: The `Section` to insert
+    ///   - index: The index where the `Section` should be inserted
     public func insert(_ child: Section, at index: Int) {
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
         children.insert(.section(child), at: index)
         insert(at: index)
     }
 
-    func insert(at index: Int) {
+    private func insert(at index: Int) {
         // if we don't have a `currentChild` yet, update it
         guard currentChild == nil else { return }
         currentIndex = index
         updateDelegate?.invalidateAll(self)
     }
 
+    /// Removes the specified `Section`
+    /// - Parameter child: The `Section` to remove
     public func remove(_ child: Section) {
         remove(.section(child))
     }
 
+    /// Removes the specified `SectionProvider`
+    /// - Parameter child: The `SectionProvider` to remove
     public func remove(_ child: SectionProvider) {
         remove(.provider(child))
     }
@@ -132,6 +171,8 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         remove(at: index)
     }
 
+    /// Remove the child at the specified index
+    /// - Parameter index: The index to remove
     public func remove(at index: Int) {
         guard children.indices.contains(index) else { return }
         children.remove(at: index)

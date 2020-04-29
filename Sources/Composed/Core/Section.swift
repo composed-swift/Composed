@@ -4,7 +4,7 @@ import CoreGraphics
 /// Represents a single section of data.
 public protocol Section: class {
 
-    /// The number of elements contained in this section
+    /// The number of elements in this section
     var numberOfElements: Int { get }
 
     /// The delegate that will respond to updates

@@ -1,7 +1,19 @@
 import Foundation
 
+/**
+ Represents an collection of `Section`'s and `SectionProvider`'s. The provider supports infinite nesting, including other `ComposedSectionProvider`'s. All children will be active at all times, so `numberOfSections` and `numberOfElements(in:)` will return values representative of all children.
+
+     let provider = ComposedSectionProvider()
+     provider.append(section1) // 5 elements
+     provider.append(section2) // 3 elements
+
+     provider.numberOfSections        // returns 2
+     provider.numberOfElements(in: 0) // returns 5
+     provider.numberOfElements(in: 1) // return2 3
+ */
 open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpdateDelegate {
 
+    /// Represents either a section or a provider
     private enum Child: Equatable {
         case provider(SectionProvider)
         case section(Section)
@@ -15,10 +27,13 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
     }
 
+    /// Get/set the delegate that will respond to updates
     open var updateDelegate: SectionProviderUpdateDelegate?
 
+    /// Represents all of the children this provider contains
     private var children: [Child] = []
 
+    /// Returns all the sections this provider contains
     public var sections: [Section] {
         return children.flatMap { kind -> [Section] in
             switch kind {
@@ -30,6 +45,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
     }
 
+    /// Returns all the providers this provider contains
     public var providers: [SectionProvider] {
         return children.compactMap { kind  in
             switch kind {
@@ -51,6 +67,9 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
     public init() { }
 
+    /// Returns the number of elements in the specified section
+    /// - Parameter section: The section index
+    /// - Returns: The number of elements
     public func numberOfElements(in section: Int) -> Int {
         return sections[section].numberOfElements
     }
@@ -82,14 +101,22 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         return -1
     }
 
+    /// Appends the specified `SectionProvider` to the provider
+    /// - Parameter child: The `SectionProvider` to append
     public func append(_ child: SectionProvider) {
         insert(child, at: children.count)
     }
 
+    /// Appends the specified `Section` to the provider
+    /// - Parameter child: The `Section` to append
     public func append(_ child: Section) {
         insert(child, at: children.count)
     }
 
+    /// Inserts the specified `Section` at the given index
+    /// - Parameters:
+    ///   - child: The `Section` to insert
+    ///   - index: The index where the `Section` should be inserted
     public func insert(_ child: Section, at index: Int) {
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
 
@@ -100,6 +127,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         updateDelegate?.didEndUpdating(self)
     }
 
+    /// Inserts the specified `SectionProvider` at the given index
+    /// - Parameters:
+    ///   - child: The `SectionProvider` to insert
+    ///   - index: The index where the `SectionProvider` should be inserted
     public func insert(_ child: SectionProvider, at index: Int) {
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
 
@@ -114,10 +145,14 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         updateDelegate?.didEndUpdating(self)
     }
 
+    /// Removes the specified `Section`
+    /// - Parameter child: The `Section` to remove
     public func remove(_ child: Section) {
         remove(.section(child))
     }
 
+    /// Removes the specified `SectionProvider`
+    /// - Parameter child: The `SectionProvider` to remove
     public func remove(_ child: SectionProvider) {
         remove(.provider(child))
     }
@@ -127,6 +162,8 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         remove(at: index)
     }
 
+    /// Remove the child at the specified index
+    /// - Parameter index: The index to remove
     public func remove(at index: Int) {
         guard children.indices.contains(index) else { return }
         let child = children[index]
