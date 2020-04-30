@@ -2,7 +2,7 @@
 
 **Composed** is a protocol oriented framework for composing data from various sources in our app. It provides various concrete implementations for common use cases.
 
-> If you prefer to look at code, there's a demo project here: [ComposedDemo](http://github.com/composed-swift/composed-demo
+> If you prefer to look at code, there's a demo project here: [ComposedDemo](http://github.com/composed-swift/composed-demo)
 
 The library bases everything on just 2 primitives, `Section` and `SectionProvider`.
 
