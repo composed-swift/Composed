@@ -29,7 +29,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
     private var fetchedResultsController: NSFetchedResultsController<Element>?
 
     // A convenience property for return all fetched elements
-    private var elements: [Element] {
+    public var elements: [Element] {
         return fetchedResultsController?.fetchedObjects ?? []
     }
 
