@@ -27,14 +27,13 @@ open class ArraySection<Element>: Section, ExpressibleByArrayLiteral {
     /// Represents the elements this section contains
     public private(set) var elements: [Element]
 
-    /// Makes an empty `ArraySection`
     public required init() {
         elements = []
     }
 
     /// Makes an `ArraySection` containing the specified elements
     /// - Parameter elements: The elements to append
-    public required init(arrayLiteral elements: Element...) {
+    required public init(arrayLiteral elements: Element...) {
         self.elements = elements
     }
 
@@ -147,7 +146,7 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
     }
 
     public func move(from source: Int, to target: Index) {
-        elements.swapAt(source, target)
+        elements.insert(elements.remove(at: source), at: target)
     }
 
     /// Removes all elements from this section

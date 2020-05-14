@@ -83,16 +83,14 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         return fetchedResultsController?.indexPath(forObject: element)?.item
     }
 
-    public var isSuspended: Bool {
-        return fetchedResultsController?.delegate == nil
-    }
+    public private(set) var isSuspended: Bool = false
 
     public func suspend() {
-        fetchedResultsController?.delegate = nil
+        isSuspended = true
     }
 
     public func resume() {
-        fetchedResultsController?.delegate = self
+        isSuspended = false
     }
 
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
