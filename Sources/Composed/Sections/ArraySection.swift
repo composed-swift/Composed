@@ -146,6 +146,10 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         return element
     }
 
+    public func move(from source: Int, to target: Index) {
+        elements.swapAt(source, target)
+    }
+
     /// Removes all elements from this section
     public func removeAll() {
         updateDelegate?.willBeginUpdating(self)

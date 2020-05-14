@@ -75,6 +75,13 @@ public protocol SectionProviderMappingDelegate: class {
     ///   - indexPath: The element indexPath
     func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath)
 
+    /// Asks the delegate to move the specified indexPath
+    /// - Parameters:
+    ///   - mapping: The mapping that provided this update
+    ///   - sourceIndexPath: The initial indexPath
+    ///   - destinationIndexPath: The final indexPath
+    func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath)
+
 }
 
 /// An object that encapsulates the logic required to map `SectionProvider`s to a global context,
@@ -213,6 +220,14 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
     public func invalidateAll(_ section: Section) {
         delegate?.mappingDidInvalidate(self)
+    }
+
+    public func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int) {
+        guard let sourceIndexPath = self.indexPath(for: sourceIndex, in: section),
+            let destinationIndexPath = self.indexPath(for: destinationIndex, in: section) else {
+                return
+        }
+        delegate?.mapping(self, move: sourceIndexPath, to: destinationIndexPath)
     }
 
     public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {

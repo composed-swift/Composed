@@ -75,4 +75,11 @@ public protocol SectionUpdateDelegate: class {
     ///   - index: The index of the element that should be deselected
     func section(_ section: Section, deselect index: Int)
 
+    /// Notifies the delegate that the source index should be moved to the destination index
+    /// - Parameters:
+    ///   - section: The section where the move should be performed
+    ///   - sourceIndex: The initial index where the element will be moved from
+    ///   - destinationIndex: The final index where the element will be moved to
+    func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int)
+
 }
