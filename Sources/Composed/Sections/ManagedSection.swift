@@ -58,11 +58,10 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
 
         do {
             try fetchedResultsController?.performFetch()
+            updateDelegate?.invalidateAll(self)
         } catch {
             assertionFailure(error.localizedDescription)
         }
-
-        updateDelegate?.invalidateAll(self)
     }
 
     /// Returns the element at the specified index
