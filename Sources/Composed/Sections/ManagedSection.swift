@@ -52,8 +52,8 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
 
     /// Replaces the current fetch request with the specified request
     /// - Parameter fetchRequest: The new fetch request
-    public func replace(fetchRequest: NSFetchRequest<Element>) {
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+    public func replace(fetchRequest: NSFetchRequest<Element>, cacheName: String? = nil) {
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: cacheName)
         fetchedResultsController?.delegate = self
 
         do {
@@ -83,11 +83,26 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         return fetchedResultsController?.indexPath(forObject: element)?.item
     }
 
+    public var isSuspended: Bool {
+        return fetchedResultsController?.delegate == nil
+    }
+
+    public func suspend() {
+        fetchedResultsController?.delegate = nil
+    }
+
+    public func resume() {
+        fetchedResultsController?.delegate = self
+    }
+
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        guard !isSuspended else { return }
         updateDelegate?.willBeginUpdating(self)
     }
 
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        guard !isSuspended else { return }
+
         switch type {
         case .insert:
             updateDelegate?.section(self, didInsertElementAt: newIndexPath!.item)
@@ -108,6 +123,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
     }
 
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        guard !isSuspended else { return }
         updateDelegate?.didEndUpdating(self)
     }
 
