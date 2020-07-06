@@ -193,6 +193,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
     public func invalidateAll(_ provider: SectionProvider) {
         delegate?.mappingDidInvalidate(self)
+        provider.sections.forEach { $0.updateDelegate = self }
     }
 
     public func willBeginUpdating(_ section: Section) {
