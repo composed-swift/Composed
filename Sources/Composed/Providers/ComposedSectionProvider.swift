@@ -27,7 +27,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
     }
 
-    open var updateDelegate: SectionProviderUpdateDelegate?
+    open weak var updateDelegate: SectionProviderUpdateDelegate?
 
     /// Represents all of the children this provider contains
     private var children: [Child] = []

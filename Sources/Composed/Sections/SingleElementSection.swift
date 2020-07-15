@@ -13,7 +13,7 @@ import Foundation
  */
 open class SingleElementSection<Element>: Section {
 
-    public var updateDelegate: SectionUpdateDelegate?
+    public weak var updateDelegate: SectionUpdateDelegate?
 
     /// Returns the element
     public private(set) var element: Element

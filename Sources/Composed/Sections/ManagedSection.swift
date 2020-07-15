@@ -23,7 +23,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
     /// Returns the `NSManagedObjectContext` associated with this section
     public let managedObjectContext: NSManagedObjectContext
 
-    public var updateDelegate: SectionUpdateDelegate?
+    public weak var updateDelegate: SectionUpdateDelegate?
 
     // The current controller that will return elements
     private var fetchedResultsController: NSFetchedResultsController<Element>?
