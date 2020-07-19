@@ -163,4 +163,8 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath) { }
     func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath) { }
 
+    func mappingDidEndUpdating(_ mapping: SectionProviderMapping) {}
+    func mappingDidInvalidate(_ mapping: SectionProviderMapping) {}
+    func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {}
+
 }
