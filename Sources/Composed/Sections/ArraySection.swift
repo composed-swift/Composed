@@ -80,8 +80,10 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
     }
 
     public func append(_ newElement: Element) {
+        updateDelegate?.willBeginUpdating(self)
         elements.append(newElement)
         updateDelegate?.section(self, didInsertElementAt: elements.count - 1)
+        updateDelegate?.didEndUpdating(self)
     }
 
     public func append<S>(contentsOf newElements: S) where S: Sequence, Element == S.Element {
