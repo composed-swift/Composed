@@ -1,7 +1,7 @@
 import UIKit
 
 /// Provides element move handling for a `Section`
-#warning("Refactor MoveHandler into a protocol that augments drag and drop handlers")
+#warning("todo: Refactor MoveHandler into a protocol that augments drag and drop handlers")
 public protocol MoveHandler: Section {
 
     var allowsReorder: Bool { get }
