@@ -154,6 +154,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     /// - Parameter child: The `SectionProvider` to remove
     public func remove(_ child: SectionProvider) {
         remove(.provider(child))
+        child.updateDelegate = nil
     }
 
     private func remove(_ child: Child) {

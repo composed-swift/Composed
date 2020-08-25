@@ -40,23 +40,19 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         set {
             if children.isEmpty { _currentIndex = -1 }
 
-            // grab the old child
-            let oldChild = currentChild
+            // grab the old index
+            let oldIndex = _currentIndex
             // clamp the value
             let newIndex = max(0, min(children.count - 1, newValue))
 
             // if the value won't result in a change, ignore it
             if _currentIndex == newIndex { return }
-            // grab the new child
-            let newChild = currentChild
 
             updateDelegate?.willBeginUpdating(self)
             _currentIndex = newIndex
-            remove(oldChild)
-            insert(newChild)
+            updateDelegate(forRemovalOf: children[oldIndex])
+            updateDelegate(forInsertionOf: children[newIndex])
             updateDelegate?.didEndUpdating(self)
-
-            print(children.indices, _currentIndex)
         }
     }
 
@@ -171,13 +167,13 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     private func insert(at index: Int) {
         if children.count == 1 {
             _currentIndex = index
-            insert(currentChild)
+            updateDelegate(forInsertionOf: currentChild)
         } else if index <= _currentIndex {
-            // Just the index in sync
+            // Just keep the index in sync
             _currentIndex += 1
+        } else {
+            // we're inserting at the end, do nothing
         }
-
-        print(children.indices, _currentIndex)
     }
 
     /// Removes the specified `Section`
@@ -208,32 +204,31 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         // if this is the last section
         if children.isEmpty {
             _currentIndex = -1
-            remove(child)
+            updateDelegate(forRemovalOf: child)
         }
         // if our index is still technically valid
         else if _currentIndex <= children.count - 1 {
             updateDelegate?.willBeginUpdating(self)
-            remove(child)
-            insert(currentChild)
+            updateDelegate(forRemovalOf: child)
+            updateDelegate(forInsertionOf: currentChild)
             updateDelegate?.didEndUpdating(self)
         }
         // if our index should be decremented
         else {
             updateDelegate?.willBeginUpdating(self)
             _currentIndex -= 1
-            remove(child)
-            insert(currentChild)
+            updateDelegate(forRemovalOf: child)
+            updateDelegate(forInsertionOf: currentChild)
             updateDelegate?.didEndUpdating(self)
         }
-
-        print(children.indices, _currentIndex)
     }
 
     // MARK: UpdateDelegate
 
-    private func remove(_ child: Child?) {
+    private func updateDelegate(forRemovalOf child: Child?) {
         switch child {
         case let .provider(provider):
+            provider.updateDelegate = nil
             updateDelegate?.provider(self, didRemoveSections: provider.sections, at: IndexSet(provider.sections.indices))
         case let .section(section):
             updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: 0))
@@ -242,9 +237,10 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         }
     }
 
-    private func insert(_ child: Child?) {
+    private func updateDelegate(forInsertionOf child: Child?) {
         switch child {
         case let .provider(provider):
+            provider.updateDelegate = self
             updateDelegate?.provider(self, didInsertSections: provider.sections, at: IndexSet(provider.sections.indices))
         case let .section(section):
             updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: 0))

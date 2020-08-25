@@ -7,31 +7,37 @@ import UIKit
 final class SegmentedSectionProvider_Spec: QuickSpec {
 
     override func spec() {
-        describe("SegmentedSectionProvider") {
-            var global: SegmentedSectionProvider!
-            var mapping: SectionProviderMapping!
-            var child1: ComposedSectionProvider!
-            var child2: ArraySection<String>!
+        var segment: SegmentedSectionProvider!
+        var child1: ComposedSectionProvider!
+        var child2: ArraySection<String>!
+        var mapping: SectionProviderMapping!
 
+        describe("SegmentedSectionProvider") {
             beforeEach {
-                global = SegmentedSectionProvider()
-                mapping = SectionProviderMapping(provider: global)
+                segment = SegmentedSectionProvider()
+                mapping = SectionProviderMapping(provider: segment)
 
                 child1 = ComposedSectionProvider()
                 let child1a = ArraySection<String>()
                 let child1b = ArraySection<String>()
                 child2 = ArraySection<String>()
 
-                global.append(child1)
-                global.append(child2)
+                segment.append(child1)
+                segment.append(child2)
 
                 child1.append(child1a)
                 child1.append(child1b)
+
+                print(segment.children)
             }
 
             context("after changing the `currentIndex") {
                 beforeEach {
-                    global.currentIndex = 1
+                    segment.currentIndex = 1
+                }
+
+                it("should contain 1 section") {
+                    expect(segment.numberOfSections).to(equal(1))
                 }
 
                 it("should unset the delegate of the previous child") {
@@ -44,6 +50,10 @@ final class SegmentedSectionProvider_Spec: QuickSpec {
             }
 
             context("without changing the `currentIndex`") {
+                it("should contain 2 section") {
+                    expect(segment.numberOfSections).to(equal(2))
+                }
+
                 it("should set the delegate") {
                     expect(child1.updateDelegate).toNot(beNil())
                 }
