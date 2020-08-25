@@ -147,7 +147,11 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         return element
     }
 
-    public func move(from source: Int, to target: Index) {
+    public func commitInteractiveMove(from source: Int, to target: Index) {
+        // This is called at the end of an interactive move,
+        // as such we don't want to update the delegate since it would a duplicate move to occur.
+        // We just need to update our model to match so that when the cell is reused,
+        // it will have the correct element backing it.
         elements.insert(elements.remove(at: source), at: target)
     }
 
