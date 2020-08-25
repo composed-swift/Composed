@@ -33,35 +33,21 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     /// Represents all of the children this provider contains
     private var children: [Child] = []
 
-    private func setNewIndex(index: Int, previous child: Child?) {
-        switch child {
-        case let .provider(provider):
-            updateDelegate?.provider(self, didRemoveSections: provider.sections, at: IndexSet(provider.sections.indices))
-        case let .section(section):
-            updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: 0))
-        case .none:
-            print("Nothing to remove")
-        }
+    private var _currentIndex: Int = -1
 
-        currentIndex = index
-
-        switch currentChild {
-        case let .provider(provider):
-            updateDelegate?.provider(self, didInsertSections: provider.sections, at: IndexSet(provider.sections.indices))
-        case let .section(section):
-            updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: 0))
-        case .none:
-            print("Nothing to insert")
+    /// Get/set the index of the child to make 'active'
+    public var currentIndex: Int {
+        get { _currentIndex }
+        set {
+            _currentIndex = newValue
+            updateDelegate?.invalidateAll(self)
         }
     }
 
-    /// Get/set the index of the child to make 'active'
-    public var currentIndex: Int = -1
-
     /// Returns the currently 'active' child
     private var currentChild: Child? {
-        guard children.indices.contains(currentIndex) else { return nil }
-        return children[currentIndex]
+        guard children.indices.contains(_currentIndex) else { return nil }
+        return children[_currentIndex]
     }
 
     /// Returns all the providers this provider contains
@@ -167,15 +153,10 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     }
 
     private func insert(at index: Int) {
-        let previous = currentChild
-
-        defer {
-            setNewIndex(index: currentIndex, previous: previous)
-        }
-
         // if we don't have a `currentChild` yet, update it
         guard currentChild == nil else { return }
-        currentIndex = index
+        _currentIndex = index
+        insert(newIndex: index, newChild: currentChild)
     }
 
     /// Removes the specified `Section`
@@ -199,15 +180,38 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     /// - Parameter index: The index to remove
     public func remove(at index: Int) {
         guard children.indices.contains(index) else { return }
-        let previous = currentChild
+        let oldChild = currentChild
+        let oldIndex = currentIndex
 
         children.remove(at: index)
 
-        if currentIndex == index {
-            currentIndex = max(-1, currentIndex - 1)
+        if oldIndex == index {
+            _currentIndex = max(-1, _currentIndex - 1)
         }
 
-        setNewIndex(index: currentIndex, previous: previous)
+        remove(oldIndex: oldIndex, oldChild: oldChild)
+    }
+
+    private func remove(oldIndex: Int, oldChild: Child?) {
+        switch oldChild {
+        case .provider(let provider):
+            updateDelegate?.provider(self, didRemoveSections: provider.sections, at: IndexSet(provider.sections.indices))
+        case .section(let section):
+            updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: 0))
+        case .none:
+            break
+        }
+    }
+
+    private func insert(newIndex: Int, newChild: Child?) {
+        switch newChild {
+        case .provider(let provider):
+            updateDelegate?.provider(self, didInsertSections: provider.sections, at: IndexSet(provider.sections.indices))
+        case .section(let section):
+            updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: 0))
+        case .none:
+            break
+        }
     }
 
 }
