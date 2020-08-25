@@ -33,10 +33,30 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     /// Represents all of the children this provider contains
     private var children: [Child] = []
 
-    /// Get/set the index of the child to make 'active'
-    public var currentIndex: Int = -1 {
-        didSet { updateDelegate?.invalidateAll(self) }
+    private func setNewIndex(index: Int, previous child: Child?) {
+        switch child {
+        case let .provider(provider):
+            updateDelegate?.provider(self, didRemoveSections: provider.sections, at: IndexSet(provider.sections.indices))
+        case let .section(section):
+            updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: 0))
+        case .none:
+            print("Nothing to remove")
+        }
+
+        currentIndex = index
+
+        switch currentChild {
+        case let .provider(provider):
+            updateDelegate?.provider(self, didInsertSections: provider.sections, at: IndexSet(provider.sections.indices))
+        case let .section(section):
+            updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: 0))
+        case .none:
+            print("Nothing to insert")
+        }
     }
+
+    /// Get/set the index of the child to make 'active'
+    public var currentIndex: Int = -1
 
     /// Returns the currently 'active' child
     private var currentChild: Child? {
@@ -147,10 +167,15 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     }
 
     private func insert(at index: Int) {
+        let previous = currentChild
+
+        defer {
+            setNewIndex(index: currentIndex, previous: previous)
+        }
+
         // if we don't have a `currentChild` yet, update it
         guard currentChild == nil else { return }
         currentIndex = index
-        updateDelegate?.invalidateAll(self)
     }
 
     /// Removes the specified `Section`
@@ -174,13 +199,15 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     /// - Parameter index: The index to remove
     public func remove(at index: Int) {
         guard children.indices.contains(index) else { return }
+        let previous = currentChild
+
         children.remove(at: index)
 
         if currentIndex == index {
             currentIndex = max(-1, currentIndex - 1)
         }
 
-        updateDelegate?.invalidateAll(self)
+        setNewIndex(index: currentIndex, previous: previous)
     }
 
 }
