@@ -172,6 +172,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         case let .section(child):
             sections.append(child)
         case let .provider(child):
+            child.updateDelegate = nil
             sections.append(contentsOf: child.sections)
         }
 

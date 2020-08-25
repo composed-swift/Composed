@@ -15,11 +15,11 @@ import Foundation
  */
 open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUpdateDelegate {
 
-    private enum Child: Equatable {
+    public enum Child: Equatable {
         case provider(SectionProvider)
         case section(Section)
 
-        static func == (lhs: Child, rhs: Child) -> Bool {
+        public static func == (lhs: Child, rhs: Child) -> Bool {
             switch (lhs, rhs) {
             case let (.section(lhs), .section(rhs)): return lhs === rhs
             case let (.provider(lhs), .provider(rhs)): return lhs === rhs
@@ -31,17 +31,35 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     open weak var updateDelegate: SectionProviderUpdateDelegate?
 
     /// Represents all of the children this provider contains
-    private var children: [Child] = []
+    public private(set) var children: [Child] = []
 
+    private var _currentIndex: Int = -1
     /// Get/set the index of the child to make 'active'
-    public var currentIndex: Int = -1 {
-        didSet { updateDelegate?.invalidateAll(self) }
+    public var currentIndex: Int {
+        get { _currentIndex }
+        set {
+            if children.isEmpty { _currentIndex = -1 }
+
+            // grab the old index
+            let oldIndex = _currentIndex
+            // clamp the value
+            let newIndex = max(0, min(children.count - 1, newValue))
+
+            // if the value won't result in a change, ignore it
+            if _currentIndex == newIndex { return }
+
+            updateDelegate?.willBeginUpdating(self)
+            _currentIndex = newIndex
+            updateDelegate(forRemovalOf: children[oldIndex])
+            updateDelegate(forInsertionOf: children[newIndex])
+            updateDelegate?.didEndUpdating(self)
+        }
     }
 
     /// Returns the currently 'active' child
     private var currentChild: Child? {
-        guard children.indices.contains(currentIndex) else { return nil }
-        return children[currentIndex]
+        guard children.indices.contains(_currentIndex) else { return nil }
+        return children[_currentIndex]
     }
 
     /// Returns all the providers this provider contains
@@ -131,7 +149,7 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     ///   - child: The `SectionProvider` to insert
     ///   - index: The index where the `SectionProvider` should be inserted
     public func insert(_ child: SectionProvider, at index: Int) {
-        guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
+        guard (children.startIndex...children.endIndex).contains(index) else { fatalError("Index out of bounds: \(index)") }
         children.insert(.provider(child), at: index)
         insert(at: index)
     }
@@ -141,16 +159,21 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     ///   - child: The `Section` to insert
     ///   - index: The index where the `Section` should be inserted
     public func insert(_ child: Section, at index: Int) {
-        guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
+        guard (children.startIndex...children.endIndex).contains(index) else { fatalError("Index out of bounds: \(index)") }
         children.insert(.section(child), at: index)
         insert(at: index)
     }
 
     private func insert(at index: Int) {
-        // if we don't have a `currentChild` yet, update it
-        guard currentChild == nil else { return }
-        currentIndex = index
-        updateDelegate?.invalidateAll(self)
+        if children.count == 1 {
+            _currentIndex = index
+            updateDelegate(forInsertionOf: currentChild)
+        } else if index <= _currentIndex {
+            // Just keep the index in sync
+            _currentIndex += 1
+        } else {
+            // we're inserting at the end, do nothing
+        }
     }
 
     /// Removes the specified `Section`
@@ -174,13 +197,56 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     /// - Parameter index: The index to remove
     public func remove(at index: Int) {
         guard children.indices.contains(index) else { return }
+
+        let child = currentChild
         children.remove(at: index)
 
-        if currentIndex == index {
-            currentIndex = max(-1, currentIndex - 1)
+        // if this is the last section
+        if children.isEmpty {
+            _currentIndex = -1
+            updateDelegate(forRemovalOf: child)
         }
+        // if our index is still technically valid
+        else if _currentIndex <= children.count - 1 {
+            updateDelegate?.willBeginUpdating(self)
+            updateDelegate(forRemovalOf: child)
+            updateDelegate(forInsertionOf: currentChild)
+            updateDelegate?.didEndUpdating(self)
+        }
+        // if our index should be decremented
+        else {
+            updateDelegate?.willBeginUpdating(self)
+            _currentIndex -= 1
+            updateDelegate(forRemovalOf: child)
+            updateDelegate(forInsertionOf: currentChild)
+            updateDelegate?.didEndUpdating(self)
+        }
+    }
 
-        updateDelegate?.invalidateAll(self)
+    // MARK: UpdateDelegate
+
+    private func updateDelegate(forRemovalOf child: Child?) {
+        switch child {
+        case let .provider(provider):
+            provider.updateDelegate = nil
+            updateDelegate?.provider(self, didRemoveSections: provider.sections, at: IndexSet(provider.sections.indices))
+        case let .section(section):
+            updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: 0))
+        case .none:
+            break
+        }
+    }
+
+    private func updateDelegate(forInsertionOf child: Child?) {
+        switch child {
+        case let .provider(provider):
+            provider.updateDelegate = self
+            updateDelegate?.provider(self, didInsertSections: provider.sections, at: IndexSet(provider.sections.indices))
+        case let .section(section):
+            updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: 0))
+        case .none:
+            break
+        }
     }
 
 }

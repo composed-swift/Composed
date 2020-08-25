@@ -47,6 +47,13 @@ final class SectionProviderDelegate_Spec: QuickSpec {
 }
 
 final class MockDelegate: SectionProviderUpdateDelegate {
+    func willBeginUpdating(_ provider: SectionProvider) {
+
+    }
+
+    func didEndUpdating(_ provider: SectionProvider) {
+        
+    }
 
     func invalidateAll(_ provider: SectionProvider) {
 
