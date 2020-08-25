@@ -15,11 +15,11 @@ import Foundation
  */
 open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUpdateDelegate {
 
-    private enum Child: Equatable {
+    public enum Child: Equatable {
         case provider(SectionProvider)
         case section(Section)
 
-        static func == (lhs: Child, rhs: Child) -> Bool {
+        public static func == (lhs: Child, rhs: Child) -> Bool {
             switch (lhs, rhs) {
             case let (.section(lhs), .section(rhs)): return lhs === rhs
             case let (.provider(lhs), .provider(rhs)): return lhs === rhs
@@ -31,16 +31,32 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     open weak var updateDelegate: SectionProviderUpdateDelegate?
 
     /// Represents all of the children this provider contains
-    private var children: [Child] = []
+    public private(set) var children: [Child] = []
 
     private var _currentIndex: Int = -1
-
     /// Get/set the index of the child to make 'active'
     public var currentIndex: Int {
         get { _currentIndex }
         set {
-            _currentIndex = newValue
-            updateDelegate?.invalidateAll(self)
+            if children.isEmpty { _currentIndex = -1 }
+
+            // grab the old child
+            let oldChild = currentChild
+            // clamp the value
+            let newIndex = max(0, min(children.count - 1, newValue))
+
+            // if the value won't result in a change, ignore it
+            if _currentIndex == newIndex { return }
+            // grab the new child
+            let newChild = currentChild
+
+            updateDelegate?.willBeginUpdating(self)
+            _currentIndex = newIndex
+            remove(oldChild)
+            insert(newChild)
+            updateDelegate?.didEndUpdating(self)
+
+            print(children.indices, _currentIndex)
         }
     }
 
@@ -137,7 +153,7 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     ///   - child: The `SectionProvider` to insert
     ///   - index: The index where the `SectionProvider` should be inserted
     public func insert(_ child: SectionProvider, at index: Int) {
-        guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
+        guard (children.startIndex...children.endIndex).contains(index) else { fatalError("Index out of bounds: \(index)") }
         children.insert(.provider(child), at: index)
         insert(at: index)
     }
@@ -147,16 +163,21 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     ///   - child: The `Section` to insert
     ///   - index: The index where the `Section` should be inserted
     public func insert(_ child: Section, at index: Int) {
-        guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
+        guard (children.startIndex...children.endIndex).contains(index) else { fatalError("Index out of bounds: \(index)") }
         children.insert(.section(child), at: index)
         insert(at: index)
     }
 
     private func insert(at index: Int) {
-        // if we don't have a `currentChild` yet, update it
-        guard currentChild == nil else { return }
-        _currentIndex = index
-        insert(newIndex: index, newChild: currentChild)
+        if children.count == 1 {
+            _currentIndex = index
+            insert(currentChild)
+        } else if index <= _currentIndex {
+            // Just the index in sync
+            _currentIndex += 1
+        }
+
+        print(children.indices, _currentIndex)
     }
 
     /// Removes the specified `Section`
@@ -180,34 +201,52 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
     /// - Parameter index: The index to remove
     public func remove(at index: Int) {
         guard children.indices.contains(index) else { return }
-        let oldChild = currentChild
-        let oldIndex = currentIndex
 
+        let child = currentChild
         children.remove(at: index)
 
-        if oldIndex == index {
-            _currentIndex = max(-1, _currentIndex - 1)
+        // if this is the last section
+        if children.isEmpty {
+            _currentIndex = -1
+            remove(child)
+        }
+        // if our index is still technically valid
+        else if _currentIndex <= children.count - 1 {
+            updateDelegate?.willBeginUpdating(self)
+            remove(child)
+            insert(currentChild)
+            updateDelegate?.didEndUpdating(self)
+        }
+        // if our index should be decremented
+        else {
+            updateDelegate?.willBeginUpdating(self)
+            _currentIndex -= 1
+            remove(child)
+            insert(currentChild)
+            updateDelegate?.didEndUpdating(self)
         }
 
-        remove(oldIndex: oldIndex, oldChild: oldChild)
+        print(children.indices, _currentIndex)
     }
 
-    private func remove(oldIndex: Int, oldChild: Child?) {
-        switch oldChild {
-        case .provider(let provider):
+    // MARK: UpdateDelegate
+
+    private func remove(_ child: Child?) {
+        switch child {
+        case let .provider(provider):
             updateDelegate?.provider(self, didRemoveSections: provider.sections, at: IndexSet(provider.sections.indices))
-        case .section(let section):
+        case let .section(section):
             updateDelegate?.provider(self, didRemoveSections: [section], at: IndexSet(integer: 0))
         case .none:
             break
         }
     }
 
-    private func insert(newIndex: Int, newChild: Child?) {
-        switch newChild {
-        case .provider(let provider):
+    private func insert(_ child: Child?) {
+        switch child {
+        case let .provider(provider):
             updateDelegate?.provider(self, didInsertSections: provider.sections, at: IndexSet(provider.sections.indices))
-        case .section(let section):
+        case let .section(section):
             updateDelegate?.provider(self, didInsertSections: [section], at: IndexSet(integer: 0))
         case .none:
             break
