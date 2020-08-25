@@ -154,7 +154,6 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     /// - Parameter child: The `SectionProvider` to remove
     public func remove(_ child: SectionProvider) {
         remove(.provider(child))
-        child.updateDelegate = nil
     }
 
     private func remove(_ child: Child) {
@@ -173,6 +172,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         case let .section(child):
             sections.append(child)
         case let .provider(child):
+            child.updateDelegate = nil
             sections.append(contentsOf: child.sections)
         }
 
