@@ -1,10 +1,10 @@
 import UIKit
 
 /// Provides element move handling for a `Section`
-#warning("todo: Refactor MoveHandler into a protocol that augments drag and drop handlers")
 public protocol MoveHandler: Section {
 
-    var allowsReorder: Bool { get }
+    func canMove(index: Int) -> Bool
+    func targetIndex(sourceIndex: Int, proposedIndex: Int) -> Int
 
     /// When a move occurs, this method will be called to notify the section
     /// - Parameters:
@@ -12,4 +12,11 @@ public protocol MoveHandler: Section {
     ///   - destinationIndex: The final destination index of the element
     func didMove(sourceIndexes: IndexSet, to destinationIndex: Int)
 
+}
+
+public extension MoveHandler {
+    func canMove(index: Int) -> Bool { return true }
+    func targetIndex(sourceIndex: Int, proposedIndex: Int) -> Int {
+        return proposedIndex
+    }
 }

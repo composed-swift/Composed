@@ -150,20 +150,12 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
         sections.forEach { $0.updateDelegate = self }
-        // add sections.count to all sections >= sectionOffset(for: provider)
-//        let elements = cachedProviderSections.enumerated().filter { $0.offset >= offset }.map { $0.element }
-//        elements.forEach { cachedProviderSections[$0.key] = (cachedProviderSections[$0.key] ?? 0) + sections.count }
-
         let indexes = globalIndexes(for: provider, with: indexes)
         delegate?.mapping(self, didInsertSections: indexes)
     }
 
     public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
         sections.forEach { $0.updateDelegate = nil }
-        // minus sections.count to all sections >= sectionOffset(for: provider)
-//        let elements = cachedProviderSections.enumerated().filter { $0.offset >= offset }.map { $0.element }
-//        elements.forEach { cachedProviderSections[$0.key] = (cachedProviderSections[$0.key] ?? 0) - sections.count }
-
         let indexes = globalIndexes(for: provider, with: indexes)
         delegate?.mapping(self, didRemoveSections: indexes)
     }
@@ -192,6 +184,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func invalidateAll(_ provider: SectionProvider) {
+        provider.sections.forEach { $0.updateDelegate = self }
         delegate?.mappingDidInvalidate(self)
     }
 
@@ -219,6 +212,7 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     }
 
     public func invalidateAll(_ section: Section) {
+        provider.sections.forEach { $0.updateDelegate = self }
         delegate?.mappingDidInvalidate(self)
     }
 
