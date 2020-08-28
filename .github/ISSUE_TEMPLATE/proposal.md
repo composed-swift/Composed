@@ -1,13 +1,13 @@
 ---
 name: Proposal
 about: A proposal for an enhancement or change to the library.
-title: "[PROPOSAL] title"
+title: "[PROPOSAL] [short title]"
 labels: proposal
 assignees: ''
 
 ---
 
-# [title]
+# [short title]
 
 * Author: @[your user name]
 * Status: **Proposal ([1.1](https://github.com/composed-swift/ComposedUI/milestone/1.1))**
