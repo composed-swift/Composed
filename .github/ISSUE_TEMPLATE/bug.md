@@ -1,7 +1,7 @@
 ---
 name: Bug
 about: Report a bug to help us improve the library
-title: "[BUG]"
+title: "[BUG] short_title"
 labels: bug
 assignees: ''
 
