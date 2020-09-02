@@ -5,7 +5,12 @@ import CoreGraphics
 public protocol Section: class {
 
     /// The number of elements in this section
+    @available(iOS, deprecated: 13, message: "Please use itemIdentifiers instead")
+    @available(tvOS, deprecated: 13, message: "Please use itemIdentifiers instead")
+    @available(macOS, deprecated: 10.15, message: "Please use itemIdentifiers instead")
     var numberOfElements: Int { get }
+
+    var itemIdentifiers: [AnyHashable] { get }
 
     /// The delegate that will respond to updates
     var updateDelegate: SectionUpdateDelegate? { get set }
@@ -16,6 +21,10 @@ public extension Section {
 
     /// Returns true if the section contains no elements, false otherwise
     var isEmpty: Bool { return numberOfElements == 0 }
+
+    var numberOfElements: Int {
+        return itemIdentifiers.count
+    }
 
 }
 

@@ -18,14 +18,6 @@ open class SingleElementSection<Element>: Section {
     /// Returns the element
     public private(set) var element: Element
 
-    /// Generally returns 1, however if `element == Optional<Element>.none` returns 0
-    public var numberOfElements: Int {
-        switch element as Any {
-        case Optional<Any>.none: return 0
-        default: return 1
-        }
-    }
-
     /// Makes a `SingleElementSection` with the specified element
     /// - Parameter element: The element
     public init(element: Element) {
@@ -52,4 +44,18 @@ open class SingleElementSection<Element>: Section {
         updateDelegate?.didEndUpdating(self)
     }
 
+}
+
+extension SingleElementSection {
+    public var itemIdentifiers: [AnyHashable] {
+        switch element as Any {
+        case Optional<Any>.none: return []
+        default: return [0]
+        }
+    }
+}
+
+@available(iOS 13, *)
+extension SingleElementSection where Element: Identifiable {
+    public var itemIdentifiers: [AnyHashable] { return [element.id] }
 }

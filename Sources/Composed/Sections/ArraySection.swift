@@ -44,10 +44,6 @@ open class ArraySection<Element>: Section, ExpressibleByArrayLiteral {
         return elements[index]
     }
 
-    public var numberOfElements: Int {
-        return elements.count
-    }
-
 }
 
 extension ArraySection: Sequence {
@@ -195,5 +191,18 @@ extension ArraySection: RangeReplaceableCollection {
 extension ArraySection: CustomStringConvertible {
     public var description: String {
         return String(describing: elements)
+    }
+}
+
+extension ArraySection {
+    public var itemIdentifiers: [AnyHashable] {
+        return indices.map { $0 }
+    }
+}
+
+@available(iOS 13, *)
+extension ArraySection where Element: Identifiable {
+    public var itemIdentifiers: [AnyHashable] {
+        return elements.map { $0.id }
     }
 }

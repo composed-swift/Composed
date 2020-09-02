@@ -33,10 +33,6 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         return fetchedResultsController?.fetchedObjects ?? []
     }
 
-    public var numberOfElements: Int {
-        return fetchedResultsController?.fetchedObjects?.count ?? 0
-    }
-
     /// Makes a `ManagedSection` with the specified context and optional request
     /// - Parameters:
     ///   - managedObjectContext: The context to associate with this section
@@ -78,6 +74,7 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
     /// The index of the specified element. Returns nil if the element is _not_ in this section.
     /// - Parameter element: The element to look lookup
     /// - Returns: The index of the element if it is in this section, nil otherwise
+    @available(*, deprecated, renamed: "firstIndex(of:)", message: "This method will be obsoleted in 2.0")
     public func index(of element: Element) -> Int? {
         return fetchedResultsController?.indexPath(forObject: element)?.item
     }
@@ -148,4 +145,17 @@ extension ManagedSection: Sequence {
         return elements.makeIterator()
     }
 
+}
+
+extension ManagedSection {
+    public var itemIdentifiers: [AnyHashable] {
+        return elements.map { $0 }
+    }
+}
+
+@available(iOS 13, *)
+extension ManagedSection where Element: Identifiable {
+    public var itemIdentifiers: [AnyHashable] {
+        return elements.map { $0.id }
+    }
 }
