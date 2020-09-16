@@ -100,6 +100,24 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         return -1
     }
 
+    /// Returns the first index of the `section`, or `nil` if the section is not a child of this
+    /// composed section provider.
+    ///
+    /// - Parameter section: The section to return the first index of.
+    /// - Returns: The first index of `section`, or `nil` if the section is not a child.
+    public func firstIndex(of section: Section) -> Int? {
+        children.firstIndex(of: .section(section))
+    }
+
+    /// Returns the first index of the `sectionProvider`, or `nil` if the section is not a child of
+    /// this composed section provider.
+    ///
+    /// - Parameter sectionProvider: The section provider to return the first index of.
+    /// - Returns: The first index of `sectionProvider`, or `nil` if the section provider is not a child.
+    public func firstIndex(of sectionProvider: SectionProvider) -> Int? {
+        children.firstIndex(of: .provider(sectionProvider))
+    }
+
     /// Appends the specified `SectionProvider` to the provider
     /// - Parameter child: The `SectionProvider` to append
     public func append(_ child: SectionProvider) {
@@ -185,4 +203,164 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         updateDelegate?.didEndUpdating(self)
     }
 
+}
+
+// MARK:- Convenience Functions
+
+extension ComposedSectionProvider {
+    /// Returns a bool indicating if the composed section provider contains `section`.
+    ///
+    /// - Parameter section: The section to search for.
+    /// - Returns: `true` if the composed section provider contains `section`, otherwise `false`.
+    public func contains(_ section: Section) -> Bool {
+        firstIndex(of: section) != nil
+    }
+
+    /// Returns a bool indicating if the section provider contains `sectionProvider`.
+    ///
+    /// - Parameter sectionProvider: The section provider to search for.
+    /// - Returns: `true` if the composed section provider contains `sectionProvider`, otherwise `false`.
+    public func contains(_ sectionProvider: SectionProvider) -> Bool {
+        firstIndex(of: sectionProvider) != nil
+    }
+
+    /// Inserts the provided section after an existing section. If `existingSection` is not a child
+    /// of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSection: The section to insert.
+    ///   - existingSection: A child section of the composed section provider.
+    /// - Returns: The index of the inserted section, or `nil` if `existingSection` is not a child
+    ///     of this composed section.
+    @discardableResult
+    public func insert(_ newSection: Section, after existingSection: Section) -> Int? {
+        guard let existingSectionIndex = firstIndex(of: existingSection) else { return nil }
+
+        let newIndex = existingSectionIndex + 1
+        insert(newSection, at: newIndex)
+
+        return newIndex
+    }
+
+    /// Inserts the provided section provider after an existing section. If `existingSection` is not
+    /// a child of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSectionProvider: The section provider to insert.
+    ///   - existingSection: A child section of the composed section provider.
+    /// - Returns: The index of the inserted section provider, or `nil` if `existingSection` is not
+    ///     a child of this composed section.
+    @discardableResult
+    public func insert(_ newSectionProvider: SectionProvider, after existingSection: Section) -> Int? {
+        guard let existingSectionIndex = firstIndex(of: existingSection) else { return nil }
+
+        let newIndex = existingSectionIndex + 1
+        insert(newSectionProvider, at: newIndex)
+
+        return newIndex
+    }
+
+    /// Inserts the provided section after an existing section provider. If `existingSectionProvider`
+    /// is not a child of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSection: The section to insert.
+    ///   - existingSectionProvider: A child section provider of the composed section provider.
+    /// - Returns: The index of the inserted section, or `nil` if `existingSectionProvider` is not
+    ///     a child of this composed section.
+    @discardableResult
+    public func insert(_ newSection: Section, after existingSectionProvider: SectionProvider) -> Int? {
+        guard let existingSectionProviderIndex = firstIndex(of: existingSectionProvider) else { return nil }
+
+        let newIndex = existingSectionProviderIndex + 1
+        insert(newSection, at: newIndex)
+
+        return newIndex
+    }
+
+    /// Inserts the provided section provider after an existing section provider. If `existingSectionProvider`
+    /// is not a child of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSectionProvider: The section provider to insert.
+    ///   - existingSectionProvider: A child section provider of the composed section provider.
+    /// - Returns: The index of the inserted section provider, or `nil` if `existingSection` is not
+    ///     a child of this composed section.
+    @discardableResult
+    public func insert(_ newSectionProvider: SectionProvider, after existingSectionProvider: SectionProvider) -> Int? {
+        guard let existingSectionProviderIndex = firstIndex(of: existingSectionProvider) else { return nil }
+
+        let newIndex = existingSectionProviderIndex + 1
+        insert(newSectionProvider, at: newIndex)
+
+        return newIndex
+    }
+
+    /// Inserts the provided section before an existing section. If `existingSection` is not a child
+    /// of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSection: The section to insert.
+    ///   - existingSection: A child section of the composed section provider.
+    /// - Returns: The index of the inserted section, or `nil` if `existingSection` is not a child
+    ///     of this composed section.
+    @discardableResult
+    public func insert(_ newSection: Section, before existingSection: Section) -> Int? {
+        guard let newIndex = firstIndex(of: existingSection) else { return nil }
+
+        insert(newSection, at: newIndex)
+
+        return newIndex
+    }
+
+    /// Inserts the provided section provider before an existing section. If `existingSection` is not
+    /// a child of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSectionProvider: The section provider to insert.
+    ///   - existingSection: A child section of the composed section provider.
+    /// - Returns: The index of the inserted section provider, or `nil` if `existingSection` is not
+    ///     a child of this composed section.
+    @discardableResult
+    public func insert(_ newSectionProvider: SectionProvider, before existingSection: Section) -> Int? {
+        guard let newIndex = firstIndex(of: existingSection) else { return nil }
+
+        insert(newSectionProvider, at: newIndex)
+
+        return newIndex
+    }
+
+    /// Inserts the provided section before an existing section provider. If `existingSectionProvider`
+    /// is not a child of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSection: The section to insert.
+    ///   - existingSectionProvider: A child section provider of the composed section provider.
+    /// - Returns: The index of the inserted section, or `nil` if `existingSectionProvider` is not
+    ///     a child of this composed section.
+    @discardableResult
+    public func insert(_ newSection: Section, before existingSectionProvider: SectionProvider) -> Int? {
+        guard let newIndex = firstIndex(of: existingSectionProvider) else { return nil }
+
+        insert(newSection, at: newIndex)
+
+        return newIndex
+    }
+
+    /// Inserts the provided section provider before an existing section provider. If `existingSectionProvider`
+    /// is not a child of this composed section provider this function does nothing.
+    ///
+    /// - Parameters:
+    ///   - newSectionProvider: The section provider to insert.
+    ///   - existingSectionProvider: A child section provider of the composed section provider.
+    /// - Returns: The index of the inserted section provider, or `nil` if `existingSection` is not
+    ///     a child of this composed section.
+    @discardableResult
+    public func insert(_ newSectionProvider: SectionProvider, before existingSectionProvider: SectionProvider) -> Int? {
+        guard let newIndex = firstIndex(of: existingSectionProvider) else { return nil }
+
+        insert(newSectionProvider, at: newIndex)
+
+        return newIndex
+    }
 }
