@@ -100,6 +100,32 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         return -1
     }
 
+    public func sectionOffset(for section: Section) -> Int {
+        var offset: Int = 0
+
+        for child in children {
+            switch child {
+            case .section(let childSection):
+                if childSection === section {
+                    return offset
+                }
+
+                offset += 1
+            case .provider(let childProvider):
+                if let childProvider = childProvider as? AggregateSectionProvider {
+                    if let index = childProvider.sections.firstIndex(where: { $0 === section }) {
+                        return offset + index
+                    }
+                }
+
+                offset += childProvider.numberOfSections
+            }
+        }
+
+        // Provider is not in the hierachy
+        return -1
+    }
+
     /// Appends the specified `SectionProvider` to the provider
     /// - Parameter child: The `SectionProvider` to append
     public func append(_ child: SectionProvider) {
@@ -119,10 +145,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     public func insert(_ child: Section, at index: Int) {
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
 
-        let index = index
         updateDelegate?.willBeginUpdating(self)
         children.insert(.section(child), at: index)
-        updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: index))
+        let sectionOffset = self.sectionOffset(for: child)
+        updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
         updateDelegate?.didEndUpdating(self)
     }
 
@@ -135,11 +161,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         child.updateDelegate = self
 
-        let firstIndex = index
-        let endIndex = firstIndex + child.sections.count
-
         updateDelegate?.willBeginUpdating(self)
         children.insert(.provider(child), at: index)
+        let firstIndex = sectionOffset(for: child)
+        let endIndex = firstIndex + child.sections.count
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         updateDelegate?.didEndUpdating(self)
     }
