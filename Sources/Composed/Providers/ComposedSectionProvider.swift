@@ -191,18 +191,21 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     public func remove(at index: Int) {
         guard children.indices.contains(index) else { return }
         let child = children[index]
-        var sections: [Section] = []
+        let sections: [Section]
+        let sectionOffset: Int
 
         switch child {
         case let .section(child):
-            sections.append(child)
+            sections = [child]
+            sectionOffset = self.sectionOffset(for: child)
         case let .provider(child):
             child.updateDelegate = nil
-            sections.append(contentsOf: child.sections)
+            sectionOffset = self.sectionOffset(for: child)
+            sections = child.sections
         }
 
-        let firstIndex = index
-        let endIndex = index + sections.count
+        let firstIndex = sectionOffset
+        let endIndex = sectionOffset + sections.count
 
         updateDelegate?.willBeginUpdating(self)
         children.remove(at: index)

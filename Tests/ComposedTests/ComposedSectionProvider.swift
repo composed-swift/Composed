@@ -112,7 +112,7 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                 }
 
                 it("should pass the correct indexes to the delegate") {
-                    expect(mockDelegate.didRemoveSectionsCalls.last!.2) == IndexSet(integer: countBefore)
+                    expect(mockDelegate.didRemoveSectionsCalls.last!.2) == IndexSet(integer: countBefore - 1)
                 }
             }
         }
