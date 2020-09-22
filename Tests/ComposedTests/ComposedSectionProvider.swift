@@ -72,6 +72,28 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                     expect(mockDelegate.didInsertSectionsCalls.last!.2) == IndexSet(integer: countBefore)
                 }
             }
+
+            context("when a section provider is inserted after a section provider with multiple sections") {
+                var mockDelegate: MockSectionProviderUpdateDelegate!
+                var countBefore: Int!
+                var sectionProvider: ComposedSectionProvider!
+
+                beforeEach {
+                    mockDelegate = MockSectionProviderUpdateDelegate()
+                    global.updateDelegate = mockDelegate
+                    sectionProvider = ComposedSectionProvider()
+                    sectionProvider.append(ArraySection<String>())
+                    sectionProvider.append(ArraySection<String>())
+
+                    countBefore = global.numberOfSections
+
+                    global.append(sectionProvider)
+                }
+
+                it("should pass the correct indexes to the delegate") {
+                    expect(mockDelegate.didInsertSectionsCalls.last!.2) == IndexSet(IndexSet(integersIn: countBefore..<(countBefore + sectionProvider.numberOfSections)))
+                }
+            }
         }
     }
 
