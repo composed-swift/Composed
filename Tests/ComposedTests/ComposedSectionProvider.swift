@@ -91,7 +91,7 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                 }
 
                 it("should pass the correct indexes to the delegate") {
-                    expect(mockDelegate.didInsertSectionsCalls.last!.2) == IndexSet(IndexSet(integersIn: countBefore..<(countBefore + sectionProvider.numberOfSections)))
+                    expect(mockDelegate.didInsertSectionsCalls.last!.2) == IndexSet(integersIn: countBefore..<(countBefore + sectionProvider.numberOfSections))
                 }
             }
         }
