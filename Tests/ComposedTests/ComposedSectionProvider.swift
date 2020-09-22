@@ -1,5 +1,6 @@
 import Quick
 import Nimble
+import Foundation
 
 @testable import Composed
 
@@ -52,7 +53,54 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                 expect(child2.sectionOffset(for: child2z)) == 2
                 expect(child2.sectionOffset(for: child2e)) == 3
             }
+
+            context("when a section is inserted after a section provider with multiple sections") {
+                var mockDelegate: MockSectionProviderUpdateDelegate!
+                var countBefore: Int!
+
+                beforeEach {
+                    mockDelegate = MockSectionProviderUpdateDelegate()
+                    global.updateDelegate = mockDelegate
+
+                    let newSection = ArraySection<String>()
+                    countBefore = global.numberOfSections
+
+                    global.append(newSection)
+                }
+
+                it("should pass the correct indexes to the delegate") {
+                    expect(mockDelegate.didInsertSectionsCalls.last!.2) == IndexSet(integer: countBefore)
+                }
+            }
         }
     }
 
+}
+
+private final class MockSectionProviderUpdateDelegate: SectionProviderUpdateDelegate {
+    private(set) var willBeginUpdatingCalls: [SectionProvider] = []
+    private(set) var didEndUpdatingCalls: [SectionProvider] = []
+    private(set) var invalidateAllCalls: [SectionProvider] = []
+    private(set) var didInsertSectionsCalls: [(SectionProvider, [Section], IndexSet)] = []
+    private(set) var didRemoveSectionsCalls: [(SectionProvider, [Section], IndexSet)] = []
+
+    func willBeginUpdating(_ provider: SectionProvider) {
+        willBeginUpdatingCalls.append(provider)
+    }
+
+    func didEndUpdating(_ provider: SectionProvider) {
+        didEndUpdatingCalls.append(provider)
+    }
+
+    func invalidateAll(_ provider: SectionProvider) {
+        invalidateAllCalls.append(provider)
+    }
+
+    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        didInsertSectionsCalls.append((provider, sections, indexes))
+    }
+
+    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        didRemoveSectionsCalls.append((provider, sections, indexes))
+    }
 }
