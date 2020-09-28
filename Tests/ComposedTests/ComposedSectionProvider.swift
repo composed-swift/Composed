@@ -23,11 +23,13 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                     let child2f = ArraySection<String>()
 
             child1.append(child1a)
-            child1.append(child1b)
+            child1.insert(child1b, after: child1a)
+
             child2.append(child2a)
-            child2a.append(child2b)
             child2a.append(child2c)
-            child2.append(child2z)
+            child2a.insert(child2b, before: child2c)
+
+            child2.insert(child2z, after: child2a)
             child2.append(child2d)
             child2e.append(child2f)
             child2.append(child2e)
