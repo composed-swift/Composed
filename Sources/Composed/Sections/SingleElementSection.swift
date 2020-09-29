@@ -35,21 +35,24 @@ open class SingleElementSection<Element>: Section {
     /// Replaces the element with the specified element
     /// - Parameter element: The new element
     public func replace(element: Element) {
-        updateDelegate?.willBeginUpdating(self)
         let wasEmpty = isEmpty
-        self.element = element
 
         switch (wasEmpty, isEmpty) {
         case (true, true):
             break
         case (true, false):
-            updateDelegate?.section(self, didInsertElementAt: 0)
+            updateDelegate?.section(self, didInsertElementAt: 0) { [weak self] in
+                self?.element = element
+            }
         case (false, true):
-            updateDelegate?.section(self, didRemoveElementAt: 0)
+            updateDelegate?.section(self, didRemoveElementAt: 0) { [weak self] in
+                self?.element = element
+            }
         case (false, false):
-            updateDelegate?.section(self, didUpdateElementAt: 0)
+            updateDelegate?.section(self, didUpdateElementAt: 0) { [weak self] in
+                self?.element = element
+            }
         }
-        updateDelegate?.didEndUpdating(self)
     }
 
 }

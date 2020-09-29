@@ -37,15 +37,18 @@ public protocol AggregateSectionProvider: SectionProvider {
      context of the callee
 
      - parameter provider: The provider to calculate the section offset of
-     - returns: The section offset of the provided section provider, or -1 if
+     - returns: The section offset of the provided section provider, or `nil`if
      the section provider is not in the hierachy
      */
-    func sectionOffset(for provider: SectionProvider) -> Int
+    func sectionOffset(for provider: SectionProvider) -> Int?
 
 }
 
 /// A delegate that will respond to update events from a `SectionProvider`
 public protocol SectionProviderUpdateDelegate: class {
+    /// A closure that will be called synchronously on the main thread. It must perform the updates
+    /// associated with the mapping change before returning.
+    typealias UpdatePerformer = () -> Void
 
     /// /// Notifies the delegate before a provider will process updates
     /// - Parameter provider: The provider that will be updated
@@ -57,21 +60,21 @@ public protocol SectionProviderUpdateDelegate: class {
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
     /// - Parameter provider: The provider that requested the invalidation
-    func invalidateAll(_ provider: SectionProvider)
+    func invalidateAll(_ provider: SectionProvider, performUpdate updatePerformer: @escaping UpdatePerformer)
 
     /// Notifies the delegate that sections were inserted
     /// - Parameters:
     ///   - provider: The provider where the inserts occurred
     ///   - sections: The sections that were inserted
     ///   - indexes: The indexes of the sections that were inserted
-    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet)
+    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer)
 
     /// Notifies the delegate that sections were removed
     /// - Parameters:
     ///   - provider: The provider where the removes occurred
     ///   - sections: The sections that were removed
     ///   - indexes: The indexes of the sections that were removed
-    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet)
+    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer)
 }
 
 // Default implementations to minimise `SectionProvider` implementation requirements
@@ -85,16 +88,16 @@ public extension SectionProviderUpdateDelegate where Self: SectionProvider {
         updateDelegate?.didEndUpdating(self)
     }
 
-    func invalidateAll(_ provider: SectionProvider) {
-        updateDelegate?.invalidateAll(provider)
+    func invalidateAll(_ provider: SectionProvider, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        updateDelegate?.invalidateAll(provider, performUpdate: updatePerformer)
     }
 
-    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
-        updateDelegate?.provider(provider, didInsertSections: sections, at: indexes)
+    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        updateDelegate?.provider(provider, didInsertSections: sections, at: indexes, performUpdate: updatePerformer)
     }
 
-    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
-        updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
+    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes, performUpdate: updatePerformer)
     }
 
 }

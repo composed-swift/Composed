@@ -125,9 +125,9 @@ final class ComposedSectionProvider_Spec: QuickSpec {
 private final class MockSectionProviderUpdateDelegate: SectionProviderUpdateDelegate {
     private(set) var willBeginUpdatingCalls: [SectionProvider] = []
     private(set) var didEndUpdatingCalls: [SectionProvider] = []
-    private(set) var invalidateAllCalls: [SectionProvider] = []
-    private(set) var didInsertSectionsCalls: [(SectionProvider, [Section], IndexSet)] = []
-    private(set) var didRemoveSectionsCalls: [(SectionProvider, [Section], IndexSet)] = []
+    private(set) var invalidateAllCalls: [(SectionProvider, UpdatePerformer)] = []
+    private(set) var didInsertSectionsCalls: [(SectionProvider, [Section], IndexSet, UpdatePerformer)] = []
+    private(set) var didRemoveSectionsCalls: [(SectionProvider, [Section], IndexSet, UpdatePerformer)] = []
 
     func willBeginUpdating(_ provider: SectionProvider) {
         willBeginUpdatingCalls.append(provider)
@@ -137,15 +137,15 @@ private final class MockSectionProviderUpdateDelegate: SectionProviderUpdateDele
         didEndUpdatingCalls.append(provider)
     }
 
-    func invalidateAll(_ provider: SectionProvider) {
-        invalidateAllCalls.append(provider)
+    func invalidateAll(_ provider: SectionProvider, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        invalidateAllCalls.append((provider, updatePerformer))
     }
 
-    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
-        didInsertSectionsCalls.append((provider, sections, indexes))
+    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        didInsertSectionsCalls.append((provider, sections, indexes, updatePerformer))
     }
 
-    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
-        didRemoveSectionsCalls.append((provider, sections, indexes))
+    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        didRemoveSectionsCalls.append((provider, sections, indexes, updatePerformer))
     }
 }

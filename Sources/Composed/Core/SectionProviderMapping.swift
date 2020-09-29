@@ -1,93 +1,8 @@
 import UIKit
 
-/// A delegate for responding to mapping updates
-public protocol SectionProviderMappingDelegate: class {
-
-    /// Notifies the delegate that the mapping will being updating
-    /// - Parameter mapping: The mapping that provided this update
-    func mappingWillBeginUpdating(_ mapping: SectionProviderMapping)
-
-    /// Notifies the delegate that the mapping did end updating
-    /// - Parameter mapping: The mapping that provided this update
-    func mappingDidEndUpdating(_ mapping: SectionProviderMapping)
-
-    /// Notifies the delegate that the mapping was invalidated
-    /// - Parameter mapping: The mapping that provided this update
-    func mappingDidInvalidate(_ mapping: SectionProviderMapping)
-
-    /// Notifies the delegate that the mapping did insert sections
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - sections: The section indexes
-    func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet)
-
-    /// Notifies the delegate that the mapping did insert elements
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - indexPaths: The element indexPaths
-    func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath])
-
-    /// Notifies the delegate that the mapping did remove sections
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - sections: The section indexes
-    func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet)
-
-    /// Notifies the delegate that the mapping did remove elements
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - indexPaths: The element indexPaths
-    func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath])
-
-    /// Notifies the delegate that the mapping did update sections
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - sections: The section indexes
-    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
-
-    /// Notifies the delegate that the mapping did update elements
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - indexPaths: The element indexPaths
-    func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath])
-
-    /// Notifies the delegate that the mapping did move elements
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - moves: The source and target element indexPaths as a tuple
-    func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)])
-
-    /// Asks the delegate for its selected indexes in the specified section
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - section: The section index
-    func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int]
-
-    /// Asks the delegate to select the specified indexPath
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - indexPath: The element indexPath
-    func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath)
-
-    /// Asks the delegate to deselect the specified indexPath
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - indexPath: The element indexPath
-    func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath)
-
-    /// Asks the delegate to move the specified indexPath
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - sourceIndexPath: The initial indexPath
-    ///   - destinationIndexPath: The final indexPath
-    func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath)
-
-}
-
 /// An object that encapsulates the logic required to map `SectionProvider`s to a global context,
 /// allowing elements in a `Section` to be referenced via an `IndexPath`
-public final class SectionProviderMapping: SectionProviderUpdateDelegate, SectionUpdateDelegate {
-
+public final class SectionProviderMapping: SectionProviderUpdateDelegate {
     /// The delegate that will respond to updates
     public weak var delegate: SectionProviderMappingDelegate?
 
@@ -148,16 +63,16 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mappingDidEndUpdating(self)
     }
 
-    public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+    public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
         sections.forEach { $0.updateDelegate = self }
         let indexes = globalIndexes(for: provider, with: indexes)
-        delegate?.mapping(self, didInsertSections: indexes)
+        delegate?.mapping(self, didInsertSections: indexes, performUpdate: updatePerformer)
     }
 
-    public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+    public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
         sections.forEach { $0.updateDelegate = nil }
         let indexes = globalIndexes(for: provider, with: indexes)
-        delegate?.mapping(self, didRemoveSections: indexes)
+        delegate?.mapping(self, didRemoveSections: indexes, performUpdate: updatePerformer)
     }
 
     private func indexPath(for index: Int, in section: Section) -> IndexPath? {
@@ -183,8 +98,8 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mapping(self, deselect: IndexPath(item: index, section: section))
     }
 
-    public func invalidateAll(_ provider: SectionProvider) {
-        delegate?.mappingDidInvalidate(self)
+    public func invalidateAll(_ provider: SectionProvider, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        delegate?.mappingDidInvalidate(self, performUpdate: updatePerformer)
     }
 
     public func willBeginUpdating(_ section: Section) {
@@ -195,38 +110,23 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mappingDidEndUpdating(self)
     }
 
-    public func section(_ section: Section, didInsertElementAt index: Int) {
-        guard let indexPath = self.indexPath(for: index, in: section) else { return }
-        delegate?.mapping(self, didInsertElementsAt: [indexPath])
-    }
-
-    public func section(_ section: Section, didRemoveElementAt index: Int) {
-        guard let indexPath = self.indexPath(for: index, in: section) else { return }
-        delegate?.mapping(self, didRemoveElementsAt: [indexPath])
-    }
-
-    public func section(_ section: Section, didUpdateElementAt index: Int) {
-        guard let indexPath = self.indexPath(for: index, in: section) else { return }
-        delegate?.mapping(self, didUpdateElementsAt: [indexPath])
-    }
-
-    public func invalidateAll(_ section: Section) {
+    public func invalidateAll(_ section: Section, performUpdate updatePerformer: @escaping UpdatePerformer) {
         provider.sections.forEach { $0.updateDelegate = self }
-        delegate?.mappingDidInvalidate(self)
+        delegate?.mappingDidInvalidate(self, performUpdate: updatePerformer)
     }
 
-    public func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int) {
-        guard let sourceIndexPath = self.indexPath(for: sourceIndex, in: section),
-            let destinationIndexPath = self.indexPath(for: destinationIndex, in: section) else {
-                return
-        }
-        delegate?.mapping(self, move: sourceIndexPath, to: destinationIndexPath)
-    }
+//    public func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int) {
+//        guard let sourceIndexPath = self.indexPath(for: sourceIndex, in: section),
+//            let destinationIndexPath = self.indexPath(for: destinationIndex, in: section) else {
+//                return
+//        }
+//        delegate?.mapping(self, move: sourceIndexPath, to: destinationIndexPath)
+//    }
 
-    public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {
+    public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int, performUpdate updatePerformer: @escaping UpdatePerformer) {
         guard let source = self.indexPath(for: index, in: section) else { return }
         guard let destination = self.indexPath(for: newIndex, in: section) else { return }
-        delegate?.mapping(self, didMoveElementsAt: [(source, destination)])
+        delegate?.mapping(self, didMoveElementsAt: [(source, destination)], performUpdate: updatePerformer)
     }
 
     // Rebuilds the cached providers to improve lookup performance.
@@ -242,10 +142,8 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
         func addOffsets(forChildrenOf aggregate: AggregateSectionProvider, offset: Int = 0) {
             for child in aggregate.providers {
-                let aggregateSectionOffset = aggregate.sectionOffset(for: child)
-
-                guard aggregateSectionOffset > -1 else {
-                    assertionFailure("AggregateSectionProvider should return a value > -1 fo.r section offset of child \(child)")
+                guard let aggregateSectionOffset = aggregate.sectionOffset(for: child) else {
+                    assertionFailure("AggregateSectionProvider should return a value for section offset of child \(child)")
                     continue
                 }
 
@@ -260,6 +158,49 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         addOffsets(forChildrenOf: aggregate)
     }
 
+}
+
+extension SectionProviderMapping: SectionUpdateDelegate {
+    public func section(_ section: Section, didInsertElementsAt indexSet: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        var indexPaths: [IndexPath] = []
+
+        for index in indexSet {
+            guard let indexPath = self.indexPath(for: index, in: section) else { return }
+            indexPaths.append(indexPath)
+        }
+
+        delegate?.mapping(self, didInsertElementsAt: indexPaths, performUpdate: updatePerformer)
+    }
+
+    public func section(_ section: Section, didRemoveElementsAt indexSet: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        var indexPaths: [IndexPath] = []
+
+        for index in indexSet {
+            guard let indexPath = self.indexPath(for: index, in: section) else { return }
+            indexPaths.append(indexPath)
+        }
+
+        delegate?.mapping(self, didRemoveElementsAt: indexPaths, performUpdate: updatePerformer)
+    }
+
+    public func section(_ section: Section, didUpdateElementsAt indexSet: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        var indexPaths: [IndexPath] = []
+
+        for index in indexSet {
+            guard let indexPath = self.indexPath(for: index, in: section) else { return }
+            indexPaths.append(indexPath)
+        }
+
+        delegate?.mapping(self, didUpdateElementsAt: indexPaths, performUpdate: updatePerformer)
+    }
+
+    public func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int) {
+        guard let sourceIndexPath = self.indexPath(for: sourceIndex, in: section),
+            let destinationIndexPath = self.indexPath(for: destinationIndex, in: section) else {
+                return
+        }
+        delegate?.mapping(self, move: sourceIndexPath, to: destinationIndexPath)
+    }
 }
 
 /// A convenient wrapper to provide hashability and equality to a section provider for comparison and storage in a `SectionProviderMapping`

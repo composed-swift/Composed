@@ -21,6 +21,9 @@ public extension Section {
 
 /// A delegate that will respond to update events from a `Section`
 public protocol SectionUpdateDelegate: class {
+    /// A closure that will be called synchronously on the main thread. It must perform the updates
+    /// associated with the mapping change before returning.
+    typealias UpdatePerformer = () -> Void
 
     /// Notifies the delegate before a section will process updates
     /// - Parameter section: The section that will be updated
@@ -32,32 +35,50 @@ public protocol SectionUpdateDelegate: class {
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
     /// - Parameter section: The section that requested the invalidation
-    func invalidateAll(_ section: Section)
+    func invalidateAll(_ section: Section, performUpdate updatePerformer: @escaping UpdatePerformer)
 
     /// Notifies the delegate that an element was inserted
     /// - Parameters:
     ///   - section: The section where the insert occurred
     ///   - index: The index of the element that was inserted
-    func section(_ section: Section, didInsertElementAt index: Int)
+    func section(_ section: Section, didInsertElementAt index: Int, performUpdate updatePerformer: @escaping UpdatePerformer)
+
+    /// Notifies the delegate that an element was inserted
+    /// - Parameters:
+    ///   - section: The section where the insert occurred
+    ///   - index: The index of the element that was inserted
+    func section(_ section: Section, didInsertElementsAt indexSet: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer)
 
     /// Notifies the delegate that an element was removed
     /// - Parameters:
     ///   - section: The section where the remove occurred
     ///   - index: The index of the element that was removed
-    func section(_ section: Section, didRemoveElementAt index: Int)
+    func section(_ section: Section, didRemoveElementAt index: Int, performUpdate updatePerformer: @escaping UpdatePerformer)
+
+    /// Notifies the delegate that an element was removed
+    /// - Parameters:
+    ///   - section: The section where the remove occurred
+    ///   - index: The index of the element that was removed
+    func section(_ section: Section, didRemoveElementsAt indexSet: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer)
 
     /// Notifies the delegate that an element was updated
     /// - Parameters:
     ///   - section: The section where the update occurred
     ///   - index: The index of the element that was updated
-    func section(_ section: Section, didUpdateElementAt index: Int)
+    func section(_ section: Section, didUpdateElementAt index: Int, performUpdate updatePerformer: @escaping UpdatePerformer)
+
+    /// Notifies the delegate that an element was updated
+    /// - Parameters:
+    ///   - section: The section where the update occurred
+    ///   - index: The index of the element that was updated
+    func section(_ section: Section, didUpdateElementsAt indexSet: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer)
 
     /// Notifies the delegate that an element was moved
     /// - Parameters:
     ///   - section: The section where the move occurred
     ///   - index: The source index of the element that was moved
     ///   - newIndex: The target index of the element that was moved
-    func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int)
+    func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int, performUpdate updatePerformer: @escaping UpdatePerformer)
 
     /// Returns the currently selected indexes in the specified section
     /// - Parameter section: The section to query
@@ -82,4 +103,18 @@ public protocol SectionUpdateDelegate: class {
     ///   - destinationIndex: The final index where the element will be moved to
     func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int)
 
+}
+
+extension SectionUpdateDelegate {
+    public func section(_ section: Section, didInsertElementAt index: Int, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        self.section(section, didInsertElementsAt: IndexSet(arrayLiteral: index), performUpdate: updatePerformer)
+    }
+
+    public func section(_ section: Section, didRemoveElementAt index: Int, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        self.section(section, didRemoveElementsAt: IndexSet(arrayLiteral: index), performUpdate: updatePerformer)
+    }
+
+    public func section(_ section: Section, didUpdateElementAt index: Int, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        self.section(section, didUpdateElementsAt: IndexSet(arrayLiteral: index), performUpdate: updatePerformer)
+    }
 }

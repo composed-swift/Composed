@@ -39,9 +39,22 @@ final class SectionProviderDelegate_Spec: QuickSpec {
         }
 
         it("section should equal 1") {
-            expect(delegate.didInsertSections?.indexes) === IndexSet(integer: 0)
+            expect(delegate.didInsertSections?.indexes) == IndexSet(integer: 0)
         }
 
+        it("should have zero sections before the update closure has been called") {
+            expect(global.numberOfSections) == 0
+        }
+
+        context("when update closure has been called") {
+            beforeEach {
+                delegate?.didInsertSections?.updatePerformer()
+            }
+
+            it("should have new sections") {
+                expect(global.numberOfSections) == 1
+            }
+        }
     }
 
 }
@@ -55,7 +68,7 @@ final class MockDelegate: SectionProviderUpdateDelegate {
         
     }
 
-    func invalidateAll(_ provider: SectionProvider) {
+    func invalidateAll(_ provider: SectionProvider, performUpdate updatePerformer: @escaping UpdatePerformer) {
 
     }
 
@@ -67,15 +80,14 @@ final class MockDelegate: SectionProviderUpdateDelegate {
         
     }
 
-    var didInsertSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?
-    var didRemoveSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?
+    var didInsertSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet, updatePerformer: UpdatePerformer)?
+    var didRemoveSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet, updatePerformer: UpdatePerformer)?
 
-    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
-        didInsertSections = (provider, sections, indexes)
+    func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        didInsertSections = (provider, sections, indexes, updatePerformer)
     }
 
-    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
-        didRemoveSections = (provider, sections, indexes)
+    func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet, performUpdate updatePerformer: @escaping UpdatePerformer) {
+        didRemoveSections = (provider, sections, indexes, updatePerformer)
     }
-
 }

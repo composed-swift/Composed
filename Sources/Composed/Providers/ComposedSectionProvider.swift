@@ -25,12 +25,24 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
             default: return false
             }
         }
+
+        var sections: [Section] {
+            switch self {
+            case .provider(let provider):
+                return provider.sections
+            case .section(let section):
+                return [section]
+            }
+        }
     }
 
     open weak var updateDelegate: SectionProviderUpdateDelegate?
 
-    /// Represents all of the children this provider contains
+    /// The children that are being returned by the provider.
     private var children: [Child] = []
+
+    /// The children that are to be applied when the consumer next updates.
+    private var pendingChildren: [Child] = []
 
     /// Returns all the sections this provider contains
     public var sections: [Section] {
@@ -73,12 +85,117 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         return sections[section].numberOfElements
     }
 
-    public func sectionOffset(for provider: SectionProvider) -> Int {
+    /// Appends the specified `SectionProvider` to the provider
+    /// - Parameter child: The `SectionProvider` to append
+    public func append(_ child: SectionProvider) {
+        insert(child, at: pendingChildren.count)
+    }
+
+    /// Appends the specified `Section` to the provider
+    /// - Parameter child: The `Section` to append
+    public func append(_ child: Section) {
+        insert(child, at: pendingChildren.count)
+    }
+
+    /// Inserts the specified `Section` at the given index
+    /// - Parameters:
+    ///   - section: The `Section` to insert
+    ///   - index: The index where the `Section` should be inserted
+    public func insert(_ section: Section, at index: Int) {
+        guard (0...pendingChildren.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
+
+        insert(.section(section), at: index)
+    }
+
+    /// Inserts the specified `SectionProvider` at the given index
+    /// - Parameters:
+    ///   - provider: The `SectionProvider` to insert
+    ///   - index: The index where the `SectionProvider` should be inserted
+    public func insert(_ provider: SectionProvider, at index: Int) {
+        guard (0...pendingChildren.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
+
+        provider.updateDelegate = self
+        insert(.provider(provider), at: index)
+    }
+
+    /// Removes the specified `Section`
+    /// - Parameter child: The `Section` to remove
+    public func remove(_ child: Section) {
+        remove(.section(child))
+    }
+
+    /// Removes the specified `SectionProvider`
+    /// - Parameter child: The `SectionProvider` to remove
+    public func remove(_ child: SectionProvider) {
+        remove(.provider(child))
+    }
+
+    private func remove(_ child: Child) {
+        guard let index = pendingChildren.firstIndex(of: child) else { return }
+        remove(at: index)
+    }
+
+    // MARK: - Remove/Insert performers
+
+    /// Remove the child at the specified index
+    /// - Parameter index: The index to remove
+    private func remove(at index: Int) {
+        assert(pendingChildren.indices.contains(index))
+
+        guard let updateDelegate = updateDelegate else {
+            children.remove(at: index)
+            pendingChildren = children
+            return
+        }
+
+        let child = pendingChildren[index]
+        let sections: [Section]
+        let sectionOffset: Int
+
+        switch child {
+        case let .section(section):
+            sections = [section]
+            sectionOffset = self.sectionOffset(for: section)
+
+            guard sectionOffset != -1 else { return }
+        case let .provider(provider):
+            provider.updateDelegate = nil
+            guard let _sectionOffset = self.sectionOffset(for: provider) else { return }
+            sectionOffset = _sectionOffset
+            sections = provider.sections
+        }
+
+        let firstIndex = sectionOffset
+        let endIndex = sectionOffset + sections.count
+
+        pendingChildren.remove(at: index)
+        updateDelegate.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex)) { [weak self] in
+            self?.children.remove(at: index)
+        }
+    }
+
+    private func insert(_ child: Child, at index: Int) {
+        guard let updateDelegate = updateDelegate else {
+            children.insert(child, at: index)
+            pendingChildren = children
+            return
+        }
+
+        let sectionOffset = sectionOffsetForChild(at: index)
+
+        pendingChildren.insert(child, at: index)
+
+        updateDelegate.provider(self, didInsertSections: child.sections, at: IndexSet(sectionOffset ..< (sectionOffset + child.sections.count))) { [weak self] in
+            self?.children.insert(child, at: index)
+        }
+    }
+
+    public func sectionOffset(for provider: SectionProvider) -> Int? {
         guard provider !== self else { return 0 }
 
         var offset: Int = 0
 
-        for child in children {
+        for child in pendingChildren {
             switch child {
             case .section:
                 offset += 1
@@ -86,8 +203,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
                 if childProvider === provider {
                     return offset
                 } else if let childProvider = childProvider as? AggregateSectionProvider {
-                    let sectionOffset = childProvider.sectionOffset(for: provider)
-                    if sectionOffset != -1 {
+                    if let sectionOffset = childProvider.sectionOffset(for: provider) {
                         return offset + sectionOffset
                     }
                 }
@@ -97,13 +213,13 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
 
         // Provider is not in the hierachy
-        return -1
+        return nil
     }
 
-    public func sectionOffset(for section: Section) -> Int {
+    private func sectionOffset(for section: Section) -> Int {
         var offset: Int = 0
 
-        for child in children {
+        for child in pendingChildren {
             switch child {
             case .section(let childSection):
                 if childSection === section {
@@ -126,13 +242,22 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         return -1
     }
 
+    private func sectionOffsetForChild(at index: Int) -> Int {
+        return pendingChildren.prefix(index).reduce(into: 0, { result, kind in
+            switch kind {
+            case .section: result += 1
+            case let .provider(provider): result += provider.numberOfSections
+            }
+        })
+    }
+
     /// Returns the first index of the `section`, or `nil` if the section is not a child of this
     /// composed section provider.
     ///
     /// - Parameter section: The section to return the first index of.
     /// - Returns: The first index of `section`, or `nil` if the section is not a child.
-    public func firstIndex(of section: Section) -> Int? {
-        children.firstIndex(of: .section(section))
+    private func firstIndex(of section: Section) -> Int? {
+        pendingChildren.firstIndex(of: .section(section))
     }
 
     /// Returns the first index of the `sectionProvider`, or `nil` if the section is not a child of
@@ -140,97 +265,9 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     ///
     /// - Parameter sectionProvider: The section provider to return the first index of.
     /// - Returns: The first index of `sectionProvider`, or `nil` if the section provider is not a child.
-    public func firstIndex(of sectionProvider: SectionProvider) -> Int? {
-        children.firstIndex(of: .provider(sectionProvider))
+    private func firstIndex(of sectionProvider: SectionProvider) -> Int? {
+        pendingChildren.firstIndex(of: .provider(sectionProvider))
     }
-
-    /// Appends the specified `SectionProvider` to the provider
-    /// - Parameter child: The `SectionProvider` to append
-    public func append(_ child: SectionProvider) {
-        insert(child, at: children.count)
-    }
-
-    /// Appends the specified `Section` to the provider
-    /// - Parameter child: The `Section` to append
-    public func append(_ child: Section) {
-        insert(child, at: children.count)
-    }
-
-    /// Inserts the specified `Section` at the given index
-    /// - Parameters:
-    ///   - child: The `Section` to insert
-    ///   - index: The index where the `Section` should be inserted
-    public func insert(_ child: Section, at index: Int) {
-        guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
-
-        updateDelegate?.willBeginUpdating(self)
-        children.insert(.section(child), at: index)
-        let sectionOffset = self.sectionOffset(for: child)
-        updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
-        updateDelegate?.didEndUpdating(self)
-    }
-
-    /// Inserts the specified `SectionProvider` at the given index
-    /// - Parameters:
-    ///   - child: The `SectionProvider` to insert
-    ///   - index: The index where the `SectionProvider` should be inserted
-    public func insert(_ child: SectionProvider, at index: Int) {
-        guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
-
-        child.updateDelegate = self
-
-        updateDelegate?.willBeginUpdating(self)
-        children.insert(.provider(child), at: index)
-        let firstIndex = sectionOffset(for: child)
-        let endIndex = firstIndex + child.sections.count
-        updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
-        updateDelegate?.didEndUpdating(self)
-    }
-
-    /// Removes the specified `Section`
-    /// - Parameter child: The `Section` to remove
-    public func remove(_ child: Section) {
-        remove(.section(child))
-    }
-
-    /// Removes the specified `SectionProvider`
-    /// - Parameter child: The `SectionProvider` to remove
-    public func remove(_ child: SectionProvider) {
-        remove(.provider(child))
-    }
-
-    private func remove(_ child: Child) {
-        guard let index = children.firstIndex(of: child) else { return }
-        remove(at: index)
-    }
-
-    /// Remove the child at the specified index
-    /// - Parameter index: The index to remove
-    public func remove(at index: Int) {
-        guard children.indices.contains(index) else { return }
-        let child = children[index]
-        let sections: [Section]
-        let sectionOffset: Int
-
-        switch child {
-        case let .section(child):
-            sections = [child]
-            sectionOffset = self.sectionOffset(for: child)
-        case let .provider(child):
-            child.updateDelegate = nil
-            sectionOffset = self.sectionOffset(for: child)
-            sections = child.sections
-        }
-
-        let firstIndex = sectionOffset
-        let endIndex = sectionOffset + sections.count
-
-        updateDelegate?.willBeginUpdating(self)
-        children.remove(at: index)
-        updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
-        updateDelegate?.didEndUpdating(self)
-    }
-
 }
 
 // MARK:- Convenience Functions

@@ -25,27 +25,32 @@ open class ArraySection<Element>: Section, ExpressibleByArrayLiteral {
     public weak var updateDelegate: SectionUpdateDelegate?
 
     /// Represents the elements this section contains
-    public private(set) var elements: [Element]
+    public private(set) var appliedElements: [Element]
+
+    /// Represents the elements this section contains
+    public private(set) var pendingElements: [Element]
 
     public required init() {
-        elements = []
+        appliedElements = []
+        pendingElements = []
     }
 
     /// Makes an `ArraySection` containing the specified elements
     /// - Parameter elements: The elements to append
     required public init(arrayLiteral elements: Element...) {
-        self.elements = elements
+        appliedElements = elements
+        pendingElements = elements
     }
 
     /// Returns the element at the specified index
     /// - Parameter index: The position of the element to access. `index` must be greater than or equal to `startIndex` and less than `endIndex`.
     /// - Returns: If the index is valid, the element. Otherwise
     public func element(at index: Int) -> Element {
-        return elements[index]
+        return appliedElements[index]
     }
 
     public var numberOfElements: Int {
-        return elements.count
+        return appliedElements.count
     }
 
 }
@@ -55,7 +60,7 @@ extension ArraySection: Sequence {
     public typealias Iterator = Array<Element>.Iterator
 
     public func makeIterator() -> IndexingIterator<Array<Element>> {
-        return elements.makeIterator()
+        return appliedElements.makeIterator()
     }
 
 }
@@ -64,87 +69,124 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
 
     public typealias Index = Array<Element>.Index
 
-    public var isEmpty: Bool { return elements.isEmpty }
-    public var startIndex: Index { return elements.startIndex }
-    public var endIndex: Index { return elements.endIndex }
+    public var isEmpty: Bool { return appliedElements.isEmpty }
+    public var startIndex: Index { return appliedElements.startIndex }
+    public var endIndex: Index { return appliedElements.endIndex }
 
     public subscript(position: Index) -> Element {
-        get { return elements[position] }
+        get { return appliedElements[position] }
         set(newValue) {
-            updateDelegate?.willBeginUpdating(self)
-            elements[position] = newValue
-            updateDelegate?.section(self, didUpdateElementAt: position)
-            updateDelegate?.didEndUpdating(self)
+            guard let updateDelegate = updateDelegate else {
+                appliedElements[position] = newValue
+                pendingElements = appliedElements
+                return
+            }
+
+            pendingElements[position] = newValue
+            updateDelegate.section(self, didInsertElementAt: position) { [weak self] in
+                self?.appliedElements[position] = newValue
+            }
         }
     }
 
+    // MARK:- Inserting elements
+
     public func append(_ newElement: Element) {
-        updateDelegate?.willBeginUpdating(self)
-        elements.append(newElement)
-        updateDelegate?.section(self, didInsertElementAt: elements.count - 1)
-        updateDelegate?.didEndUpdating(self)
+        insert(newElement, at: pendingElements.endIndex)
     }
 
     public func append<S>(contentsOf newElements: S) where S: Sequence, Element == S.Element {
-        updateDelegate?.willBeginUpdating(self)
-        let oldCount = elements.count
-        elements.append(contentsOf: newElements)
-        let newCount = elements.count
-        (oldCount..<newCount).forEach {
-            updateDelegate?.section(self, didInsertElementAt: $0)
+        guard let updateDelegate = updateDelegate else {
+            appliedElements.append(contentsOf: newElements)
+            pendingElements = appliedElements
+            return
         }
-        updateDelegate?.didEndUpdating(self)
+
+        let countBefore = pendingElements.count
+        pendingElements.append(contentsOf: newElements)
+        let countAfter = pendingElements.count
+        let indexSet = IndexSet(countBefore ..< countAfter)
+        updateDelegate.section(self, didInsertElementsAt: indexSet) { [weak self] in
+            self?.appliedElements.append(contentsOf: newElements)
+        }
     }
 
-    public func insert(_ newElement: Element, at i: Index) {
-        updateDelegate?.willBeginUpdating(self)
-        elements.insert(newElement, at: i)
-        updateDelegate?.section(self, didInsertElementAt: i)
-        updateDelegate?.didEndUpdating(self)
+    public func insert(_ newElement: Element, at index: Index) {
+        guard let updateDelegate = updateDelegate else {
+            appliedElements.insert(newElement, at: index)
+            pendingElements = appliedElements
+            return
+        }
+
+        pendingElements.insert(newElement, at: index)
+        updateDelegate.section(self, didInsertElementAt: index) { [weak self] in
+            self?.appliedElements.insert(newElement, at: index)
+        }
     }
 
-    public func insert<C>(contentsOf newElements: C, at i: Index) where C: Collection, Element == C.Element {
-        updateDelegate?.willBeginUpdating(self)
-        let oldCount = elements.count
-        elements.insert(contentsOf: newElements, at: i)
-        let newCount = elements.count
-        (oldCount..<newCount).forEach {
-            updateDelegate?.section(self, didInsertElementAt: $0)
+    public func insert<C>(contentsOf newElements: C, at index: Index) where C: Collection, Element == C.Element {
+        guard let updateDelegate = updateDelegate else {
+            appliedElements.insert(contentsOf: newElements, at: index)
+            pendingElements = appliedElements
+            return
         }
-        updateDelegate?.didEndUpdating(self)
+
+        pendingElements.insert(contentsOf: newElements, at: index)
+        let indexSet = IndexSet(index ..< (index + newElements.count))
+        updateDelegate.section(self, didInsertElementsAt: indexSet) { [weak self] in
+            self?.appliedElements.insert(contentsOf: newElements, at: index)
+        }
     }
+
+    // MARK:- Removing elements
 
     /// Removes the last element
     /// - Returns: The element that was removed
     @discardableResult
     public func removeLast() -> Element {
-        updateDelegate?.willBeginUpdating(self)
-        let element = elements.removeLast()
-        updateDelegate?.section(self, didRemoveElementAt: elements.count)
-        updateDelegate?.didEndUpdating(self)
-        return element
+        guard let updateDelegate = updateDelegate else {
+            let removedElement = appliedElements.removeLast()
+            pendingElements = appliedElements
+            return removedElement
+        }
+
+        let removedIndex = pendingElements.endIndex - 1
+        let removedElement = pendingElements.removeLast()
+        updateDelegate.section(self, didRemoveElementAt: removedIndex) { [weak self] in
+            self?.appliedElements.removeLast()
+        }
+        return removedElement
     }
 
     /// Removes the last `k` (number of) elements
     /// - Parameter k: The number of elements to remove from the end
     public func removeLast(_ k: Int) {
-        updateDelegate?.willBeginUpdating(self)
-        let oldCount = elements.count
-        elements.removeLast(k)
-        let newCount = elements.count
-        (newCount..<oldCount).forEach {
-            updateDelegate?.section(self, didRemoveElementAt: $0)
+        guard let updateDelegate = updateDelegate else {
+            appliedElements.removeLast(1)
+            pendingElements = appliedElements
+            return
         }
-        updateDelegate?.didEndUpdating(self)
+
+        let removedIndexes = IndexSet((pendingElements.endIndex-k) ..< pendingElements.endIndex)
+        pendingElements.removeLast(k)
+        updateDelegate.section(self, didRemoveElementsAt: removedIndexes) { [weak self] in
+            self?.appliedElements.removeLast(k)
+        }
     }
 
     @discardableResult
     public func remove(at position: Index) -> Element {
-        updateDelegate?.willBeginUpdating(self)
-        let element = elements.remove(at: position)
-        updateDelegate?.section(self, didRemoveElementAt: position)
-        updateDelegate?.didEndUpdating(self)
-        return element
+        guard let updateDelegate = updateDelegate else {
+            let removedElement = appliedElements.remove(at: position)
+            pendingElements = appliedElements
+            return removedElement
+        }
+
+        let removedElement = pendingElements.remove(at: position)
+        updateDelegate.section(self, didRemoveElementAt: position) { [weak self] in
+            self?.appliedElements.remove(at: position)
+        }
+        return removedElement
     }
 
     public func commitInteractiveMove(from source: Int, to target: Index) {
@@ -152,48 +194,109 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         // as such we don't want to update the delegate since it would a duplicate move to occur.
         // We just need to update our model to match so that when the cell is reused,
         // it will have the correct element backing it.
-        elements.insert(elements.remove(at: source), at: target)
+        appliedElements.insert(appliedElements.remove(at: source), at: target)
     }
 
     /// Removes all elements from this section
     public func removeAll() {
-        updateDelegate?.willBeginUpdating(self)
-        let indexes = IndexSet(integersIn: indices)
-        indexes.forEach { updateDelegate?.section(self, didRemoveElementAt: $0) }
-        elements.removeAll()
-        updateDelegate?.didEndUpdating(self)
+        guard let updateDelegate = updateDelegate else {
+            appliedElements.removeAll()
+            pendingElements = appliedElements
+            return
+        }
+
+        let removedIndexes = IndexSet(integersIn: indices)
+        pendingElements.removeAll()
+        updateDelegate.section(self, didRemoveElementsAt: removedIndexes) { [weak self] in
+            self?.appliedElements.removeAll()
+        }
     }
 
     public func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
-        try elements.removeAll(where: shouldBeRemoved)
-        updateDelegate?.invalidateAll(self)
+        guard let updateDelegate = updateDelegate else {
+            try appliedElements.removeAll(where: shouldBeRemoved)
+            pendingElements = appliedElements
+            return
+        }
+
+        let indexesToBeRemoved = try appliedElements.reversed().enumerated().filter({ try shouldBeRemoved($0.element) }).map(\.offset)
+        indexesToBeRemoved.forEach { _ = pendingElements.remove(at: $0) }
+        updateDelegate.section(self, didRemoveElementsAt: IndexSet(indexesToBeRemoved)) { [weak self] in
+            indexesToBeRemoved.forEach { _ = self?.appliedElements.remove(at: $0) }
+        }
     }
 
 }
 
 extension ArraySection: Equatable where Element: Equatable {
     public static func == (lhs: ArraySection<Element>, rhs: ArraySection<Element>) -> Bool {
-        return lhs.elements == rhs.elements
+        return lhs.appliedElements == rhs.appliedElements
     }
 }
 
 extension ArraySection: Hashable where Element: Hashable {
     public func hash(into hasher: inout Hasher) {
-        elements.hash(into: &hasher)
+        appliedElements.hash(into: &hasher)
     }
 }
 
 extension ArraySection: RangeReplaceableCollection {
 
     public func replaceSubrange<C: Swift.Collection, R: RangeExpression>(_ subrange: R, with newElements: C) where C.Element == Element, R.Bound == Index {
-        elements.replaceSubrange(subrange, with: newElements)
-        updateDelegate?.invalidateAll(self)
+        guard let updateDelegate = updateDelegate else {
+            appliedElements.replaceSubrange(subrange, with: newElements)
+            pendingElements = appliedElements
+            return
+        }
+
+        let range = subrange.relative(to: appliedElements)
+        let diffCount = newElements.count - range.count
+
+        updateDelegate.willBeginUpdating(self)
+
+        pendingElements.replaceSubrange(subrange, with: newElements)
+
+        defer {
+            updateDelegate.didEndUpdating(self)
+        }
+
+        if diffCount == 0 {
+            updateDelegate.section(self, didUpdateElementsAt: IndexSet(range)) { [weak self] in
+                self?.appliedElements.replaceSubrange(subrange, with: newElements)
+            }
+        } else if diffCount > 0 {
+            // `diffCount` elements have been inserted
+//            if previousCount > 0 {
+//                (0 ..< previousCount).forEach { index in
+//                    updateDelegate?.section(self, didUpdateElementAt: index)
+//                }
+//            }
+//
+//            (previousCount ..< newCount).forEach { index in
+//                updateDelegate?.section(self, didInsertElementAt: index)
+//            }
+
+            fatalError("Can't reason about this without tests")
+        } else {
+            // `diffCount` elements have been removed
+//            if newCount > 0 {
+//                (0 ..< newCount).forEach { index in
+//                    updateDelegate?.section(self, didUpdateElementAt: index)
+//                }
+//            }
+//
+//            (newCount ..< previousCount).forEach { index in
+//                updateDelegate?.section(self, didRemoveElementAt: index)
+//            }
+
+            fatalError("Can't reason about this without tests")
+        }
     }
 
 }
 
 extension ArraySection: CustomStringConvertible {
     public var description: String {
-        return String(describing: elements)
+        return String(describing: appliedElements)
     }
 }
