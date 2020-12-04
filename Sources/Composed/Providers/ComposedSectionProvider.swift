@@ -55,14 +55,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
     }
 
-    public var numberOfSections: Int {
-        return children.reduce(into: 0, { result, kind in
-            switch kind {
-            case .section: result += 1
-            case let .provider(provider): result += provider.numberOfSections
-            }
-        })
-    }
+    public private(set) var numberOfSections: Int = 0
 
     public init() { }
 
@@ -165,6 +158,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         updateDelegate?.willBeginUpdating(self)
         children.insert(.section(child), at: index)
+        numberOfSections += 1
         let sectionOffset = self.sectionOffset(for: child)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
         updateDelegate?.didEndUpdating(self)
@@ -181,6 +175,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         updateDelegate?.willBeginUpdating(self)
         children.insert(.provider(child), at: index)
+        numberOfSections += child.sections.count
         let firstIndex = sectionOffset(for: child)
         let endIndex = firstIndex + child.sections.count
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
@@ -216,9 +211,11 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         case let .section(child):
             sections = [child]
             sectionOffset = self.sectionOffset(for: child)
+            numberOfSections -= 1
         case let .provider(child):
             child.updateDelegate = nil
             sectionOffset = self.sectionOffset(for: child)
+            numberOfSections -= child.sections.count
             sections = child.sections
         }
 
@@ -229,6 +226,16 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         children.remove(at: index)
         updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         updateDelegate?.didEndUpdating(self)
+    }
+
+    public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        numberOfSections += sections.count
+        updateDelegate?.provider(provider, didInsertSections: sections, at: indexes)
+    }
+
+    public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        numberOfSections -= sections.count
+        updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
     }
 
 }
