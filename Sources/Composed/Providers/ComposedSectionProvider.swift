@@ -68,6 +68,12 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
     public func sectionOffset(for provider: SectionProvider) -> Int {
         guard provider !== self else { return 0 }
+        switch children.last {
+        case .some(.provider(let lastProvider)) where lastProvider === provider:
+            return numberOfSections - provider.numberOfSections
+        default:
+            break
+        }
 
         var offset: Int = 0
 
@@ -94,6 +100,13 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     }
 
     public func sectionOffset(for section: Section) -> Int {
+        switch children.last {
+        case .some(.section(let lastSection)) where lastSection === section:
+            return numberOfSections - 1
+        default:
+            break
+        }
+
         var offset: Int = 0
 
         for child in children {
