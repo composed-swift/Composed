@@ -118,6 +118,81 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                 }
             }
         }
+
+        describe("ComposedSectionProvider.performBatchUpdates(_:)") {
+            var mockDelegate: MockSectionProviderUpdateDelegate!
+            var global: ComposedSectionProvider!
+            var child1: ComposedSectionProvider!
+            var child1a: ArraySection<String>!
+            var child1b: ArraySection<String>!
+            var child2: ComposedSectionProvider!
+            var child2a: ComposedSectionProvider!
+            var child2b: ArraySection<String>!
+            var child2c: ArraySection<String>!
+            var child2z: ComposedSectionProvider!
+            var child2d: ArraySection<String>!
+            var child2e: ComposedSectionProvider!
+            var child2f: ArraySection<String>!
+
+            beforeEach {
+                global = ComposedSectionProvider()
+                mockDelegate = MockSectionProviderUpdateDelegate()
+                global.updateDelegate = mockDelegate
+
+                child1 = ComposedSectionProvider()
+                child1a = ArraySection<String>()
+                child1b = ArraySection<String>()
+                child2 = ComposedSectionProvider()
+                child2a = ComposedSectionProvider()
+                child2b = ArraySection<String>()
+                child2c = ArraySection<String>()
+                child2z = ComposedSectionProvider()
+                child2d = ArraySection<String>()
+                child2e = ComposedSectionProvider()
+                child2f = ArraySection<String>()
+
+                global.performBatchUpdates { _ in
+                    child1.append(child1a)
+                    child1.insert(child1b, after: child1a)
+
+                    child2.append(child2a)
+                    child2a.append(child2c)
+                    child2a.insert(child2b, before: child2c)
+
+                    child2.insert(child2z, after: child2a)
+                    child2.append(child2d)
+                    child2e.append(child2f)
+                    child2.append(child2e)
+                    global.append(child1)
+                    global.append(child2)
+                }
+            }
+
+            it("should contain 2 global sections") {
+                expect(global.numberOfSections) == 6
+            }
+
+            it("cache should contain 2 providers") {
+                expect(global.providers.count) == 2
+            }
+
+            it("should return the right offsets") {
+                expect(global.sectionOffset(for: child1)) == 0
+                expect(global.sectionOffset(for: child2)) == 2
+                expect(global.sectionOffset(for: child2a)) == 2
+                expect(global.sectionOffset(for: child2z)) == 4
+                expect(global.sectionOffset(for: child2e)) == 5
+
+                expect(child2.sectionOffset(for: child2a)) == 0
+                expect(child2.sectionOffset(for: child2z)) == 2
+                expect(child2.sectionOffset(for: child2e)) == 3
+            }
+
+            it("should call the delegate will begin/did end methods once") {
+                expect(mockDelegate.willBeginUpdatingCalls.count) == 1
+                expect(mockDelegate.didEndUpdatingCalls.count) == 1
+            }
+        }
     }
 
 }

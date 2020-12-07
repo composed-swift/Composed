@@ -64,6 +64,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         })
     }
 
+    /// A flag used by `performBatchUpdates(_:)` to prevent called functions
+    /// calling `willBeginUpdating(_:)` and `didEndUpdating(_:)`.
+    private var isPerformingBatchUpdates = false
+
     public init() { }
 
     /// Returns the number of elements in the specified section
@@ -156,6 +160,27 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         insert(child, at: children.count)
     }
 
+    /// Perform multiple updates in a batch, only notifying the delegate that the section provider ended updating
+    /// when all updates have been applied.
+    ///
+    /// It is safe to call this function within a batch updates closure.
+    ///
+    /// - parameter updates: The closure that performs the updates.
+    public func performBatchUpdates(_ updates: (_ sectionProvider: ComposedSectionProvider) -> Void) {
+        if !isPerformingBatchUpdates {
+            isPerformingBatchUpdates = true
+            updateDelegate?.willBeginUpdating(self)
+
+            updates(self)
+
+            isPerformingBatchUpdates = false
+            updateDelegate?.didEndUpdating(self)
+        } else {
+            // When `isPerformingBatchUpdates` flag is set this has been called within an `updates` closure
+            updates(self)
+        }
+    }
+
     /// Inserts the specified `Section` at the given index
     /// - Parameters:
     ///   - child: The `Section` to insert
@@ -163,11 +188,17 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     public func insert(_ child: Section, at index: Int) {
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
 
-        updateDelegate?.willBeginUpdating(self)
+        if !isPerformingBatchUpdates {
+            updateDelegate?.willBeginUpdating(self)
+        }
+
         children.insert(.section(child), at: index)
         let sectionOffset = self.sectionOffset(for: child)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
-        updateDelegate?.didEndUpdating(self)
+
+        if !isPerformingBatchUpdates {
+            updateDelegate?.didEndUpdating(self)
+        }
     }
 
     /// Inserts the specified `SectionProvider` at the given index
@@ -179,12 +210,18 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         child.updateDelegate = self
 
-        updateDelegate?.willBeginUpdating(self)
+        if !isPerformingBatchUpdates {
+            updateDelegate?.willBeginUpdating(self)
+        }
+
         children.insert(.provider(child), at: index)
         let firstIndex = sectionOffset(for: child)
         let endIndex = firstIndex + child.sections.count
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
-        updateDelegate?.didEndUpdating(self)
+
+        if !isPerformingBatchUpdates {
+            updateDelegate?.didEndUpdating(self)
+        }
     }
 
     /// Removes the specified `Section`
@@ -225,10 +262,16 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         let firstIndex = sectionOffset
         let endIndex = sectionOffset + sections.count
 
-        updateDelegate?.willBeginUpdating(self)
+        if !isPerformingBatchUpdates {
+            updateDelegate?.willBeginUpdating(self)
+        }
+
         children.remove(at: index)
         updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
-        updateDelegate?.didEndUpdating(self)
+
+        if !isPerformingBatchUpdates {
+            updateDelegate?.didEndUpdating(self)
+        }
     }
 
 }
