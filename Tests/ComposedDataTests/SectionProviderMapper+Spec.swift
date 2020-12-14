@@ -2,7 +2,7 @@ import Foundation
 import Quick
 import Nimble
 
-@testable import Composed
+@testable import ComposedData
 
 final class SectionProviderMapping_Spec: QuickSpec {
 

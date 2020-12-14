@@ -2,7 +2,7 @@ import Quick
 import Nimble
 import UIKit
 
-@testable import Composed
+@testable import ComposedData
 
 final class SegmentedSectionProvider_Spec: QuickSpec {
 

@@ -1,5 +1,4 @@
 // swift-tools-version:5.2
-
 import PackageDescription
 
 let package = Package(
@@ -11,6 +10,15 @@ let package = Package(
         .library(
             name: "Composed",
             targets: ["Composed"]),
+        .library(
+            name: "ComposedData",
+            targets: ["ComposedData"]),
+        .library(
+            name: "ComposedLayouts",
+            targets: ["ComposedLayouts"]),
+        .library(
+            name: "ComposedUI",
+            targets: ["ComposedUI"]),
     ],
     dependencies: [
         .package(name: "Quick", url: "https://github.com/quick/quick", from: "2.0.0"),
@@ -19,9 +27,22 @@ let package = Package(
     targets: [
         .target(
             name: "Composed",
-            dependencies: []),
+            dependencies: ["ComposedData", "ComposedLayouts", "ComposedUI"]),
+
+        .target(name: "ComposedData"),
         .testTarget(
-            name: "ComposedTests",
-            dependencies: ["Quick", "Nimble", "Composed"]),
+            name: "ComposedDataTests",
+            dependencies: ["Quick", "Nimble", "ComposedData"]),
+
+        .target(
+            name: "ComposedLayouts",
+            dependencies: ["ComposedData", "ComposedUI"]),
+
+        .target(
+            name: "ComposedUI",
+            dependencies: ["ComposedData"]),
+        .testTarget(
+            name: "ComposedUITests",
+            dependencies: ["Quick", "Nimble", "ComposedUI"]),
     ]
 )
