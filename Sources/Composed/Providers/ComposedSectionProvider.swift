@@ -29,20 +29,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
     open weak var updateDelegate: SectionProviderUpdateDelegate?
 
-    /// Represents all of the children this provider contains
-    private var children: [Child] = []
-
     /// Returns all the sections this provider contains
-    public var sections: [Section] {
-        return children.flatMap { kind -> [Section] in
-            switch kind {
-            case let .section(section):
-                return [section]
-            case let .provider(provider):
-                return provider.sections
-            }
-        }
-    }
+    public private(set) var sections: [Section] = []
+
+    public private(set) var numberOfSections: Int = 0
 
     /// Returns all the providers this provider contains
     public var providers: [SectionProvider] {
@@ -55,7 +45,8 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
     }
 
-    public private(set) var numberOfSections: Int = 0
+    /// Represents all of the children this provider contains
+    private var children: [Child] = []
 
     public init() { }
 
@@ -173,6 +164,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         children.insert(.section(child), at: index)
         numberOfSections += 1
         let sectionOffset = self.sectionOffset(for: child)
+        sections.insert(child, at: sectionOffset)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
         updateDelegate?.didEndUpdating(self)
     }
@@ -191,6 +183,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         numberOfSections += child.sections.count
         let firstIndex = sectionOffset(for: child)
         let endIndex = firstIndex + child.sections.count
+        sections.insert(contentsOf: child.sections, at: firstIndex)
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         updateDelegate?.didEndUpdating(self)
     }
@@ -237,17 +230,38 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         updateDelegate?.willBeginUpdating(self)
         children.remove(at: index)
+        self.sections.removeSubrange(firstIndex ..< endIndex)
         updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         updateDelegate?.didEndUpdating(self)
     }
 
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        assert(sections.count == indexes.count, "Number of indexes must equal number of sections inserted")
+
         numberOfSections += sections.count
+
+        let sectionOffset = self.sectionOffset(for: provider)
+
+        indexes
+            .enumerated()
+            .map { element in
+                return (sections[element.offset], element.element + sectionOffset)
+            }
+            .forEach { element in
+                self.sections.insert(element.0, at: element.1)
+            }
+
         updateDelegate?.provider(provider, didInsertSections: sections, at: indexes)
     }
 
     public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        assert(sections.count == indexes.count, "Number of indexes must equal number of sections removed")
+
         numberOfSections -= sections.count
+
+        let sectionOffset = self.sectionOffset(for: provider)
+        indexes.map { $0 + sectionOffset }.forEach { self.sections.remove(at: $0) }
+
         updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
     }
 
