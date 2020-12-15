@@ -265,7 +265,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         numberOfSections -= sections.count
 
         let sectionOffset = self.sectionOffset(for: provider)
-        indexes.map { $0 + sectionOffset }.forEach { self.sections.remove(at: $0) }
+        indexes.map { $0 + sectionOffset }.reversed().forEach { self.sections.remove(at: $0) }
 
         updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
     }
