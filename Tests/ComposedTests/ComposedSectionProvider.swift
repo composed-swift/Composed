@@ -8,35 +8,50 @@ final class ComposedSectionProvider_Spec: QuickSpec {
 
     override func spec() {
         describe("ComposedSectionProvider") {
-            let global = ComposedSectionProvider()
+            var global: ComposedSectionProvider!
+            var child1: ComposedSectionProvider!
+                var child1a: ArraySection<String>!
+                var child1b: ArraySection<String>!
+            var child2: ComposedSectionProvider!
+                var child2a: ComposedSectionProvider!
+                    var child2b: ArraySection<String>!
+                    var child2c: ArraySection<String>!
+                var child2z: ComposedSectionProvider!
+                var child2d: ArraySection<String>!
+                var child2e: ComposedSectionProvider!
+                    var child2f: ArraySection<String>!
 
-            let child1 = ComposedSectionProvider()
-                let child1a = ArraySection<String>()
-                let child1b = ArraySection<String>()
-            let child2 = ComposedSectionProvider()
-                let child2a = ComposedSectionProvider()
-                    let child2b = ArraySection<String>()
-                    let child2c = ArraySection<String>()
-                let child2z = ComposedSectionProvider()
-                let child2d = ArraySection<String>()
-                let child2e = ComposedSectionProvider()
-                    let child2f = ArraySection<String>()
+            beforeEach {
+                global = ComposedSectionProvider()
 
-            child1.append(child1a)
-            child1.insert(child1b, after: child1a)
+                child1 = ComposedSectionProvider()
+                    child1a = ArraySection<String>()
+                    child1b = ArraySection<String>()
+                child2 = ComposedSectionProvider()
+                    child2a = ComposedSectionProvider()
+                        child2b = ArraySection<String>()
+                        child2c = ArraySection<String>()
+                    child2z = ComposedSectionProvider()
+                    child2d = ArraySection<String>()
+                    child2e = ComposedSectionProvider()
+                        child2f = ArraySection<String>()
 
-            child2.append(child2a)
-            child2a.append(child2c)
-            child2a.insert(child2b, before: child2c)
+                child1.append(child1a)
+                child1.insert(child1b, after: child1a)
 
-            child2.insert(child2z, after: child2a)
-            child2.append(child2d)
-            child2e.append(child2f)
-            child2.append(child2e)
-            global.append(child1)
-            global.append(child2)
+                child2.append(child2a)
+                child2a.append(child2c)
+                child2a.insert(child2b, before: child2c)
 
-            it("should contain 2 global sections") {
+                child2.insert(child2z, after: child2a)
+                child2.append(child2d)
+                child2e.append(child2f)
+                child2.append(child2e)
+                global.append(child1)
+                global.append(child2)
+            }
+
+            it("should contain 6 global sections") {
                 expect(global.numberOfSections) == 6
             }
 
