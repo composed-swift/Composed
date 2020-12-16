@@ -222,11 +222,9 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         case let .section(child):
             sections = [child]
             sectionOffset = self.sectionOffset(for: child)
-            numberOfSections -= 1
         case let .provider(child):
             child.updateDelegate = nil
             sectionOffset = self.sectionOffset(for: child)
-            numberOfSections -= child.sections.count
             sections = child.sections
         }
 
@@ -235,6 +233,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         updateDelegate?.willBeginUpdating(self)
         children.remove(at: index)
+        numberOfSections -= sections.count
         self.sections.removeSubrange(firstIndex ..< endIndex)
         updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         updateDelegate?.didEndUpdating(self)
