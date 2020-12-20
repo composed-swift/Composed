@@ -75,7 +75,7 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                 expect(global.sectionOffset(for: child2f)) == 5
                 expect(global.sectionOffset(for: child2g)) == 6
                 expect(global.sectionOffset(for: child2h)) == 6
-                
+
                 expect(child2.sectionOffset(for: child2a)) == 0
                 expect(child2.sectionOffset(for: child2e)) == 3
                 expect(child2.sectionOffset(for: child2g)) == 4
@@ -223,6 +223,77 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                     expect(global.sections[1]) === child1b
                     expect(global.sections[2]) === child2f
                     expect(global.sections[3]) === child2h
+                }
+            }
+
+            context("when the last section provider is a segmented section provider") {
+                var child3: SegmentedSectionProvider!
+                var child3a: ComposedSectionProvider!
+                var child3a_0: ArraySection<String>!
+                var child3b: ComposedSectionProvider!
+                // Will have 10 children
+                var child3c: ComposedSectionProvider!
+
+                beforeEach {
+                    child3 = SegmentedSectionProvider()
+                    child3a = ComposedSectionProvider()
+                    child3a_0 = ArraySection<String>()
+                    child3b = ComposedSectionProvider()
+                    child3c = ComposedSectionProvider()
+
+                    child3a.append(child3a_0)
+                    (0..<10).forEach { _ in
+                        child3b.append(ArraySection<String>())
+                    }
+
+                    global.append(child3)
+                    child3.append(child3a)
+                    child3.append(child3b)
+                    child3.append(child3c)
+                }
+
+                context("switches to a segment with more sections than the global provider contains") {
+                    var mockDelegate: MockSectionProviderUpdateDelegate!
+                    var countBefore: Int!
+                    var sectionCountBefore: Int!
+                    var sectionCountDifference: Int!
+
+                    beforeEach {
+                        mockDelegate = MockSectionProviderUpdateDelegate()
+                        global.updateDelegate = mockDelegate
+
+                        countBefore = global.numberOfSections
+
+                        sectionCountBefore = child3.numberOfSections
+                        child3.currentIndex = 1
+                        sectionCountDifference = child3.numberOfSections - sectionCountBefore
+                    }
+
+                    it("should update the number of sections") {
+                        expect(global.numberOfSections) == countBefore + sectionCountDifference
+                    }
+                }
+
+                context("switches to a segment with less sections than the global provider contains") {
+                    var mockDelegate: MockSectionProviderUpdateDelegate!
+                    var countBefore: Int!
+                    var sectionCountBefore: Int!
+                    var sectionCountDifference: Int!
+
+                    beforeEach {
+                        mockDelegate = MockSectionProviderUpdateDelegate()
+                        global.updateDelegate = mockDelegate
+
+                        countBefore = global.numberOfSections
+
+                        sectionCountBefore = child3.numberOfSections
+                        child3.currentIndex = 2
+                        sectionCountDifference = child3.numberOfSections - sectionCountBefore
+                    }
+
+                    it("should update the number of sections") {
+                        expect(global.numberOfSections) == countBefore + sectionCountDifference
+                    }
                 }
             }
         }
