@@ -23,6 +23,20 @@ open class FlatSection: Section {
         updateDelegate?.didEndUpdating(self)
     }
 
+    public func section(at index: Int) -> (section: Section, offset: Int)? {
+        var offset = 0
+
+        for child in children {
+            if index <= offset + child.numberOfElements {
+                return (child, offset)
+            }
+
+            offset += child.numberOfElements
+        }
+
+        return nil
+    }
+
     private func offset(for section: Section) -> Int? {
         var offset = 0
 
