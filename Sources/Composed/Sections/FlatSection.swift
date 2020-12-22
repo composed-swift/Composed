@@ -8,7 +8,7 @@ open class FlatSection: Section {
 
     public var updateDelegate: SectionUpdateDelegate?
 
-    open func append(_ section: Section) {
+    public func append(_ section: Section) {
         updateDelegate?.willBeginUpdating(self)
 
         let indexOfFirstChildElement = numberOfElements
