@@ -1,12 +1,22 @@
 import UIKit
 import Composed
 
-@available(*, deprecated, renamed: "UICollectionViewSection")
-public typealias CollectionSectionProvider = UICollectionViewSection
+@available(*, deprecated, renamed: "SingleUICollectionViewSection")
+public typealias CollectionSectionProvider = SingleUICollectionViewSection
 
 /// A section in a `UICollectionView`.
 public protocol UICollectionViewSection: Section {
     func collectionViewElementsProvider(with traitCollection: UITraitCollection) -> UICollectionViewSectionElementsProvider
+}
+
+public protocol SingleUICollectionViewSection: UICollectionViewSection {
+    func section(with traitCollection: UITraitCollection) -> CollectionSection
+}
+
+extension SingleUICollectionViewSection {
+    public func collectionViewElementsProvider(with traitCollection: UITraitCollection) -> UICollectionViewSectionElementsProvider {
+        return section(with: traitCollection)
+    }
 }
 
 @available(*, deprecated, renamed: "UICollectionViewSectionElementsProvider")
