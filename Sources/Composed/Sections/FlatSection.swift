@@ -24,6 +24,7 @@ open class FlatSection: Section, CustomReflectable {
 
         let indexOfFirstChildElement = numberOfElements
         children.append(section)
+        section.updateDelegate = self
 
         (0..<section.numberOfElements)
             .map { $0 + indexOfFirstChildElement }
