@@ -8,6 +8,8 @@ open class FlatSection: Section {
 
     public var updateDelegate: SectionUpdateDelegate?
 
+    public init() {}
+
     public func append(_ section: Section) {
         updateDelegate?.willBeginUpdating(self)
 
