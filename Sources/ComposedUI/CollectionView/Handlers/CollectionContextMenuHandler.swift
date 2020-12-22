@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides context menu handling for `UICollectionView`'s
 @available(iOS 13.0, *)

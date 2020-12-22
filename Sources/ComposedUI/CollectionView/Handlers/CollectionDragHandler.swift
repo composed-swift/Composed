@@ -1,6 +1,6 @@
 import UIKit
 import CoreData
-import ComposedData
+import Composed
 
 public protocol CollectionDragHandler: CollectionSectionProvider {
 
@@ -26,5 +26,5 @@ public extension CollectionDragHandler {
         return dragSession(session, dragItemsForBeginning: index)
     }
     func dragSession(previewParametersForElementAt index: Int, cell: UICollectionViewCell) -> UIDragPreviewParameters? { return nil }
-    
+
 }

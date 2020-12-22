@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Conform to this protocol to receive `TableCoordinator` events
 public protocol TableCoordinatorDelegate: class {
@@ -303,7 +303,7 @@ extension TableCoordinator: SectionProviderMappingDelegate {
     public func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         tableView.moveRow(at: sourceIndexPath, to: destinationIndexPath)
     }
-    
+
 }
 
 // MARK: - UITableViewDataSource

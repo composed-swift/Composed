@@ -2,7 +2,7 @@ import Foundation
 import Quick
 import Nimble
 
-@testable import ComposedData
+@testable import Composed
 
 final class SectionProviderDelegate_Spec: QuickSpec {
 
@@ -52,7 +52,7 @@ final class MockDelegate: SectionProviderUpdateDelegate {
     }
 
     func didEndUpdating(_ provider: SectionProvider) {
-        
+
     }
 
     func invalidateAll(_ provider: SectionProvider) {
@@ -64,7 +64,7 @@ final class MockDelegate: SectionProviderUpdateDelegate {
     }
 
     func providerDidUpdate(_ provider: SectionProvider) {
-        
+
     }
 
     var didInsertSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?

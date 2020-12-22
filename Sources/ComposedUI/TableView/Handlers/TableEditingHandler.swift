@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides edit handling for `UITableView`'s
 public protocol TableEditingHandler: TableSectionProvider, EditingHandler {

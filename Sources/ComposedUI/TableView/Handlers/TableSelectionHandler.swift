@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides selection handling for `UITableView`'s
 public protocol TableSelectionHandler: SelectionHandler {

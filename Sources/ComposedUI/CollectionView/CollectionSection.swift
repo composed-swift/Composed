@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Defines a configuration for a section in a `UICollectionView`.
 /// The section must contain a cell element, but can also optionally include a header and/or footer element.
@@ -32,11 +32,11 @@ open class CollectionSection: CollectionElementsProvider {
                                                cell: CollectionCellElement<Cell>,
                                                header: CollectionSupplementaryElement<Header>? = nil,
                                                footer: CollectionSupplementaryElement<Footer>? = nil)
-        where Header: UICollectionReusableView, Footer: UICollectionReusableView, Cell: UICollectionViewCell, Section: ComposedData.Section {
+        where Header: UICollectionReusableView, Footer: UICollectionReusableView, Cell: UICollectionViewCell, Section: Composed.Section {
             self.section = section
 
             // The code below copies the relevent elements to erase type-safety
-            
+
             let dequeueMethod: DequeueMethod<UICollectionViewCell>
             switch cell.dequeueMethod {
             case .fromClass: dequeueMethod = .fromClass(Cell.self)
@@ -89,7 +89,7 @@ open class CollectionSection: CollectionElementsProvider {
                 } else {
                     kind = footer.kind
                 }
-                
+
                 self.footer = CollectionSupplementaryElement(section: section,
                                                              dequeueMethod: dequeueMethod,
                                                              reuseIdentifier: footer.reuseIdentifier,

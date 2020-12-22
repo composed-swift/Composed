@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 open class StackSection: StackElementsProvider {
 
@@ -11,7 +11,7 @@ open class StackSection: StackElementsProvider {
 
     private weak var section: Section?
 
-    public init<Section, Cell>(section: Section, cell: StackCellElement<Cell>) where Section: ComposedData.Section, Cell: ComposedViewCell {
+    public init<Section, Cell>(section: Section, cell: StackCellElement<Cell>) where Section: Composed.Section, Cell: ComposedViewCell {
         self.section = section
 
         let loadingMethod: StackLoadingMethod<ComposedViewCell>

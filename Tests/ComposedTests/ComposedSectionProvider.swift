@@ -2,7 +2,7 @@ import Quick
 import Nimble
 import Foundation
 
-@testable import ComposedData
+@testable import Composed
 
 final class ComposedSectionProvider_Spec: QuickSpec {
 
@@ -50,7 +50,7 @@ final class ComposedSectionProvider_Spec: QuickSpec {
                 expect(global.sectionOffset(for: child2a)) == 2
                 expect(global.sectionOffset(for: child2z)) == 4
                 expect(global.sectionOffset(for: child2e)) == 5
-                
+
                 expect(child2.sectionOffset(for: child2a)) == 0
                 expect(child2.sectionOffset(for: child2z)) == 2
                 expect(child2.sectionOffset(for: child2e)) == 3

@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides a section to a collection view. Conform to this protool to use your section with a `UICollectionView`
 public protocol CollectionSectionProvider: Section {

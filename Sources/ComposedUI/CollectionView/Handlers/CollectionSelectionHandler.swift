@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides selection handling for `UICollectionView`'s
 public protocol CollectionSelectionHandler: SelectionHandler, CollectionSectionProvider {
@@ -22,7 +22,7 @@ public extension CollectionSelectionHandler {
     func didSelect(at index: Int, cell: UICollectionViewCell) {
         didSelect(at: index)
     }
-    
+
     func didDeselect(at index: Int, cell: UICollectionViewCell) {
         didSelect(at: index)
     }

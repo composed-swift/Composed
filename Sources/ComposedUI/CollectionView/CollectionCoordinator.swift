@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Conform to this protocol to receive `CollectionCoordinator` events
 public protocol CollectionCoordinatorDelegate: class {
@@ -303,7 +303,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         assert(Thread.isMainThread)
         changes.append { [weak self] in
             guard let self = self else { return }
-            
+
             var indexPathsToReload: [IndexPath] = []
             for indexPath in indexPaths {
                 guard let section = self.sectionProvider.sections[indexPath.section] as? CollectionUpdateHandler,
@@ -480,7 +480,7 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         }
         return cachedProviders[section]
     }
-    
+
 }
 
 @available(iOS 13.0, *)
@@ -691,7 +691,7 @@ extension CollectionCoordinator: UICollectionViewDropDelegate {
 
         return section.dragSession(previewParametersForElementAt: indexPath.item, cell: cell)
     }
-    
+
     public func collectionView(_ collectionView: UICollectionView, dropPreviewParametersForItemAt indexPath: IndexPath) -> UIDragPreviewParameters? {
         guard let section = sectionProvider.sections[indexPath.section] as? CollectionDropHandler,
             let cell = collectionView.cellForItem(at: indexPath) else {

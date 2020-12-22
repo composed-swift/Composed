@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// A `UICollectionView` supports different elementKind's for supplementary view, this provides a solution
 /// A collection view can provide headers and footers via custom elementKind's or it using built-in definitions, this provides a solution for specifying which option to use
@@ -56,7 +56,7 @@ public final class CollectionCellElement<View>: CollectionElement where View: UI
                          dequeueMethod: DequeueMethod<View>,
                          reuseIdentifier: String? = nil,
                          configure: @escaping (View, Int, Section) -> Void)
-        where Section: ComposedData.Section {
+        where Section: Composed.Section {
             self.reuseIdentifier = reuseIdentifier ?? View.reuseIdentifier
             self.dequeueMethod = dequeueMethod
 
@@ -84,7 +84,7 @@ public final class CollectionCellElement<View>: CollectionElement where View: UI
                          configure: @escaping (View, Int, Section) -> Void,
                          willAppear: ((View, Int, Section) -> Void)? = nil,
                          didDisappear: ((View, Int, Section) -> Void)? = nil)
-        where Section: ComposedData.Section {
+        where Section: Composed.Section {
             self.reuseIdentifier = reuseIdentifier ?? View.reuseIdentifier
             self.dequeueMethod = dequeueMethod
 
@@ -132,7 +132,7 @@ public final class CollectionSupplementaryElement<View>: CollectionElement where
                          reuseIdentifier: String? = nil,
                          kind: CollectionElementKind = .automatic,
                          configure: @escaping (View, Int, Section) -> Void)
-        where Section: ComposedData.Section {
+        where Section: Composed.Section {
             self.kind = kind
             self.reuseIdentifier = reuseIdentifier ?? View.reuseIdentifier
             self.dequeueMethod = dequeueMethod
@@ -162,7 +162,7 @@ public final class CollectionSupplementaryElement<View>: CollectionElement where
                          configure: @escaping (View, Int, Section) -> Void,
                          willAppear: ((View, Int, Section) -> Void)? = nil,
                          didDisappear: ((View, Int, Section) -> Void)? = nil)
-        where Section: ComposedData.Section {
+        where Section: Composed.Section {
             self.kind = kind
             self.reuseIdentifier = reuseIdentifier ?? View.reuseIdentifier
             self.dequeueMethod = dequeueMethod

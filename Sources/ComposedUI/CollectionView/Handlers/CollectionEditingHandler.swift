@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides edit handling for `UICollectionView`'s
 public protocol CollectionEditingHandler: EditingHandler, CollectionSectionProvider {

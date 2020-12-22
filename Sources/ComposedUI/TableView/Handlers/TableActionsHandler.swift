@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides cell action handling for `UITableView`'s
 public protocol TableActionsHandler: TableSectionProvider {

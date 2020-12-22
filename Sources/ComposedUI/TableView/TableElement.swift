@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 public final class TableElement<View> where View: UIView & ReusableCell {
 
@@ -23,7 +23,7 @@ public final class TableElement<View> where View: UIView & ReusableCell {
     ///   - dequeueMethod: The method to use for registering and dequeueing a view for this element
     ///   - reuseIdentifier: The reuseIdentifier to use for this element
     ///   - configure: A closure that will be called whenever the elements view needs to be configured
-    public init<Section>(section: Section, dequeueMethod: DequeueMethod<View>, reuseIdentifier: String? = nil, configure: @escaping (View, Int, Section) -> Void) where Section: ComposedData.Section {
+    public init<Section>(section: Section, dequeueMethod: DequeueMethod<View>, reuseIdentifier: String? = nil, configure: @escaping (View, Int, Section) -> Void) where Section: Composed.Section {
         self.reuseIdentifier = reuseIdentifier ?? View.reuseIdentifier
         self.dequeueMethod = dequeueMethod
 
@@ -51,7 +51,7 @@ public final class TableElement<View> where View: UIView & ReusableCell {
                          configure: @escaping (View, Int, Section) -> Void,
                          willAppear: ((View, Int, Section) -> Void)? = nil,
                          didDisappear: ((View, Int, Section) -> Void)? = nil)
-        where Section: ComposedData.Section {
+        where Section: Composed.Section {
             self.reuseIdentifier = reuseIdentifier ?? View.reuseIdentifier
             self.dequeueMethod = dequeueMethod
 

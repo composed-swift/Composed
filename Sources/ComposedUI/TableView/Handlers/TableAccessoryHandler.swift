@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// Provides cell accessory handling for `UITableView`'s
 public protocol TableAccessoryHandler: TableSectionProvider {

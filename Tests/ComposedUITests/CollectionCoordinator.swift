@@ -1,5 +1,5 @@
 import XCTest
-import ComposedData
+import Composed
 @testable import ComposedUI
 
 final class CollectionCoordinatorTests: XCTestCase {

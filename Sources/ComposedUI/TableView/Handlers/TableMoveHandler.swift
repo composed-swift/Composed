@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 // MARK: - Deprecations
 

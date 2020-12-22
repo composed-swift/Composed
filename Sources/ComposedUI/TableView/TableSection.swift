@@ -1,5 +1,5 @@
 import UIKit
-import ComposedData
+import Composed
 
 /// A table view can provide headers and footers via custom views or a simple string, this provides a solution for specifying which option to use
 public enum TableHeaderFooter<View> where View: UITableViewHeaderFooterView {
@@ -40,7 +40,7 @@ open class TableSection: TableElementsProvider {
                                                cell: TableElement<Cell>,
                                                header: TableHeaderFooter<Header>? = nil,
                                                footer: TableHeaderFooter<Footer>? = nil)
-        where Section: ComposedData.Section, Cell: UITableViewCell, Header: UITableViewHeaderFooterView, Footer: UITableViewHeaderFooterView {
+        where Section: Composed.Section, Cell: UITableViewCell, Header: UITableViewHeaderFooterView, Footer: UITableViewHeaderFooterView {
             self.section = section
 
             let dequeueMethod: DequeueMethod<UITableViewCell>

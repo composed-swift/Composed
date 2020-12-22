@@ -11,9 +11,6 @@ let package = Package(
             name: "Composed",
             targets: ["Composed"]),
         .library(
-            name: "ComposedData",
-            targets: ["ComposedData"]),
-        .library(
             name: "ComposedLayouts",
             targets: ["ComposedLayouts"]),
         .library(
@@ -25,22 +22,18 @@ let package = Package(
         .package(name: "Nimble", url: "https://github.com/quick/nimble", from: "8.0.0"),
     ],
     targets: [
-        .target(
-            name: "Composed",
-            dependencies: ["ComposedData", "ComposedLayouts", "ComposedUI"]),
-
-        .target(name: "ComposedData"),
+        .target(name: "Composed"),
         .testTarget(
-            name: "ComposedDataTests",
-            dependencies: ["Quick", "Nimble", "ComposedData"]),
+            name: "ComposedTests",
+            dependencies: ["Quick", "Nimble", "Composed"]),
 
         .target(
             name: "ComposedLayouts",
-            dependencies: ["ComposedData", "ComposedUI"]),
+            dependencies: ["Composed", "ComposedUI"]),
 
         .target(
             name: "ComposedUI",
-            dependencies: ["ComposedData"]),
+            dependencies: ["Composed"]),
         .testTarget(
             name: "ComposedUITests",
             dependencies: ["Quick", "Nimble", "ComposedUI"]),

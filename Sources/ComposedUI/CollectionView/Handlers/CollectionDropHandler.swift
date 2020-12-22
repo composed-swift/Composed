@@ -1,6 +1,6 @@
 import UIKit
 import CoreData
-import ComposedData
+import Composed
 
 /// Provides drag and drop handling for `UICollectionView`'s
 public protocol CollectionDropHandler: CollectionSectionProvider {
