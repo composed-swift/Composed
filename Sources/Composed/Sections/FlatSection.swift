@@ -35,6 +35,48 @@ open class FlatSection: Section, CustomReflectable {
         updateDelegate?.didEndUpdating(self)
     }
 
+    public func insert(_ section: Section, at index: Int) {
+        updateDelegate?.willBeginUpdating(self)
+
+        let sectionOffset = index > 0
+            ? offset(for: children[index - 1])!
+            : 0
+        children.insert(section, at: index)
+        section.updateDelegate = self
+
+        (0..<section.numberOfElements)
+            .map { $0 + sectionOffset }
+            .forEach { index in
+                updateDelegate?.section(self, didInsertElementAt: index)
+            }
+
+        updateDelegate?.didEndUpdating(self)
+    }
+
+    public func insert(_ section: Section, after existingSection: Section) {
+        guard let existingSectionIndex = children.firstIndex(where: { $0 === existingSection }) else { return }
+
+        insert(section, at: existingSectionIndex + 1)
+    }
+
+    public func remove(_ section: Section) {
+        guard let index = children.firstIndex(where: { $0 === section }) else { return }
+
+        updateDelegate?.willBeginUpdating(self)
+
+        let sectionOffset = offset(for: section)!
+        children.remove(at: index)
+        if section.updateDelegate === self {
+            section.updateDelegate = nil
+        }
+
+        (0..<section.numberOfElements).forEach { index in
+            updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
+        }
+
+        updateDelegate?.didEndUpdating(self)
+    }
+
     public func section(at index: Int) -> (section: Section, offset: Int)? {
         var offset = 0
 
