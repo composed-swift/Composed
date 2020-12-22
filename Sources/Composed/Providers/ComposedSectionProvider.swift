@@ -29,20 +29,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
     open weak var updateDelegate: SectionProviderUpdateDelegate?
 
-    /// Represents all of the children this provider contains
-    private var children: [Child] = []
-
     /// Returns all the sections this provider contains
-    public var sections: [Section] {
-        return children.flatMap { kind -> [Section] in
-            switch kind {
-            case let .section(section):
-                return [section]
-            case let .provider(provider):
-                return provider.sections
-            }
-        }
-    }
+    public private(set) var sections: [Section] = []
+
+    public private(set) var numberOfSections: Int = 0
 
     /// Returns all the providers this provider contains
     public var providers: [SectionProvider] {
@@ -55,14 +45,13 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
     }
 
-    public var numberOfSections: Int {
-        return children.reduce(into: 0, { result, kind in
-            switch kind {
-            case .section: result += 1
-            case let .provider(provider): result += provider.numberOfSections
-            }
-        })
-    }
+    /// Represents all of the children this provider contains
+    private var children: [Child] = []
+
+    /// A flag indicating if a child provider is currently removing sections.
+    ///
+    /// See: `sectionOffset(for:)`
+    private var isRemovingChildProviderSections = false
 
     public init() { }
 
@@ -73,8 +62,29 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         return sections[section].numberOfElements
     }
 
+    /// Calculate the offset for the first section of `provider`, relative to this section provider.
+    ///
+    /// - parameter provider: The provide to calculate the offset of.
+    /// - returns: The offset for the provider, or `-1` if it is not in the hierarchy.
     public func sectionOffset(for provider: SectionProvider) -> Int {
         guard provider !== self else { return 0 }
+
+        /// This functions provides a fast path for when the `provider` is the last provider in the list of
+        /// children. This is provided to speed up appends. However, it relies on the provider's `numberOfSections`
+        /// to be in-sync with `sections` and `numberOfSections` on `self`. If these values are not in-sync this
+        /// may return incorrect results.
+        ///
+        /// `isRemovingChildProviderSections` is used to track this and prevent the bug.
+        if !isRemovingChildProviderSections {
+            // A quick test for if this is the last child is a small optimisation, mainly
+            // beneficial when the provider has just been appended.
+            switch children.last {
+            case .some(.provider(let lastProvider)) where lastProvider === provider:
+                return numberOfSections - provider.numberOfSections
+            default:
+                break
+            }
+        }
 
         var offset: Int = 0
 
@@ -96,11 +106,20 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
             }
         }
 
-        // Provider is not in the hierachy
+        // Provider is not in the hierarchy
         return -1
     }
 
     public func sectionOffset(for section: Section) -> Int {
+        // A quick test for if this is the last child is a small optimisation, mainly
+        // beneficial when the section has just been appended.
+        switch children.last {
+        case .some(.section(let lastSection)) where lastSection === section:
+            return numberOfSections - 1
+        default:
+            break
+        }
+
         var offset: Int = 0
 
         for child in children {
@@ -165,7 +184,9 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         updateDelegate?.willBeginUpdating(self)
         children.insert(.section(child), at: index)
+        numberOfSections += 1
         let sectionOffset = self.sectionOffset(for: child)
+        sections.insert(child, at: sectionOffset)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
         updateDelegate?.didEndUpdating(self)
     }
@@ -181,8 +202,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         updateDelegate?.willBeginUpdating(self)
         children.insert(.provider(child), at: index)
+        numberOfSections += child.sections.count
         let firstIndex = sectionOffset(for: child)
         let endIndex = firstIndex + child.sections.count
+        sections.insert(contentsOf: child.sections, at: firstIndex)
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         updateDelegate?.didEndUpdating(self)
     }
@@ -227,10 +250,46 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         updateDelegate?.willBeginUpdating(self)
         children.remove(at: index)
+        numberOfSections -= sections.count
+        self.sections.removeSubrange(firstIndex ..< endIndex)
         updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         updateDelegate?.didEndUpdating(self)
     }
 
+    public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        assert(sections.count == indexes.count, "Number of indexes must equal number of sections inserted")
+
+        numberOfSections += sections.count
+
+        let sectionOffset = self.sectionOffset(for: provider)
+
+        indexes
+            .enumerated()
+            .map { element in
+                return (sections[element.offset], element.element + sectionOffset)
+            }
+            .forEach { element in
+                self.sections.insert(element.0, at: element.1)
+            }
+
+        updateDelegate?.provider(provider, didInsertSections: sections, at: indexes)
+    }
+
+    public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        assert(sections.count == indexes.count, "Number of indexes must equal number of sections removed")
+
+        isRemovingChildProviderSections = true
+
+        defer {
+            isRemovingChildProviderSections = false
+        }
+
+        numberOfSections -= sections.count
+        let sectionOffset = self.sectionOffset(for: provider)
+        indexes.map { $0 + sectionOffset }.reversed().forEach { self.sections.remove(at: $0) }
+
+        updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
+    }
 }
 
 // MARK:- Convenience Functions
