@@ -162,7 +162,7 @@ open class CollectionCoordinator: NSObject {
             }
 
             let elementsProvider = section.collectionViewElementsProvider(with: collectionView.traitCollection)
-            let cells = (0..<section.numberOfElements).reduce(into: [CollectionCellElement<UICollectionViewCell>](), { cells, index in
+            let cells = (0..<section.numberOfElements).reduce(into: [CollectionCellElement](), { cells, index in
                 let cell = elementsProvider.cell(for: index)
 
                 guard !cells.contains(where: { $0.reuseIdentifier == cell.reuseIdentifier }) else { return }
@@ -171,7 +171,7 @@ open class CollectionCoordinator: NSObject {
             })
 
             for cell in cells {
-                switch cell.dequeueMethod {
+                switch cell.dequeueMethod.method {
                 case let .fromNib(type):
                     let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
                     collectionView.register(nib, forCellWithReuseIdentifier: cell.reuseIdentifier)
@@ -183,7 +183,7 @@ open class CollectionCoordinator: NSObject {
             }
 
             [elementsProvider.header, elementsProvider.footer].compactMap { $0 }.forEach {
-                switch $0.dequeueMethod {
+                switch $0.dequeueMethod.method {
                 case let .fromNib(type):
                     let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
                     collectionView.register(nib, forSupplementaryViewOfKind: $0.kind.rawValue, withReuseIdentifier: $0.reuseIdentifier)

@@ -23,11 +23,11 @@ extension SingleUICollectionViewSection {
 public typealias CollectionElementsProvider = UICollectionViewSectionElementsProvider
 
 public protocol UICollectionViewSectionElementsProvider {
-    var header: CollectionSupplementaryElement<UICollectionReusableView>? { get }
-    var footer: CollectionSupplementaryElement<UICollectionReusableView>? { get }
+    var header: CollectionSupplementaryElement? { get }
+    var footer: CollectionSupplementaryElement? { get }
     var numberOfElements: Int { get }
 
-    func cell(for index: Int) -> CollectionCellElement<UICollectionViewCell>
+    func cell(for index: Int) -> CollectionCellElement
 }
 
 extension UICollectionViewSectionElementsProvider {
@@ -35,11 +35,11 @@ extension UICollectionViewSectionElementsProvider {
 }
 
 public protocol SingleUICollectionViewSectionElementsProvider: UICollectionViewSectionElementsProvider {
-    var cell: CollectionCellElement<UICollectionViewCell> { get }
+    var cell: CollectionCellElement { get }
 }
 
 extension SingleUICollectionViewSectionElementsProvider {
-    public func cell(for index: Int) -> CollectionCellElement<UICollectionViewCell> {
+    public func cell(for index: Int) -> CollectionCellElement {
         return cell
     }
 }
