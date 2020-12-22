@@ -1,5 +1,5 @@
 /// A section that flattens each of its children in to a single section.
-open class FlatSection: Section {
+open class FlatSection: Section, CustomReflectable {
     open private(set) var children: [Section] = []
 
     public var numberOfElements: Int {
@@ -7,6 +7,15 @@ open class FlatSection: Section {
     }
 
     public var updateDelegate: SectionUpdateDelegate?
+
+    public var customMirror: Mirror {
+        Mirror(
+            self,
+            children: [
+                "children": children,
+            ]
+        )
+    }
 
     public init() {}
 
