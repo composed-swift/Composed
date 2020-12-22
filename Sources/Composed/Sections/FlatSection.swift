@@ -29,7 +29,9 @@ open class FlatSection: Section {
         var offset = 0
 
         for child in children {
-            if index <= offset + child.numberOfElements {
+            if offset == index {
+                return (child, offset)
+            } else if index < offset + child.numberOfElements {
                 return (child, offset)
             }
 
