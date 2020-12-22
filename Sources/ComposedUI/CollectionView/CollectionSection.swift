@@ -3,7 +3,7 @@ import Composed
 
 /// Defines a configuration for a section in a `UICollectionView`.
 /// The section must contain a cell element, but can also optionally include a header and/or footer element.
-open class CollectionSection: CollectionElementsProvider {
+open class CollectionSection: SingleUICollectionViewSectionElementsProvider {
 
     /// The cell configuration element
     public let cell: CollectionCellElement<UICollectionViewCell>
@@ -36,7 +36,7 @@ open class CollectionSection: CollectionElementsProvider {
             self.section = section
 
             // The code below copies the relevent elements to erase type-safety
-
+            
             let dequeueMethod: DequeueMethod<UICollectionViewCell>
             switch cell.dequeueMethod {
             case .fromClass: dequeueMethod = .fromClass(Cell.self)
@@ -89,7 +89,7 @@ open class CollectionSection: CollectionElementsProvider {
                 } else {
                     kind = footer.kind
                 }
-
+                
                 self.footer = CollectionSupplementaryElement(section: section,
                                                              dequeueMethod: dequeueMethod,
                                                              reuseIdentifier: footer.reuseIdentifier,

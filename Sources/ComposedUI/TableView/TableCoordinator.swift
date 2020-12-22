@@ -303,7 +303,7 @@ extension TableCoordinator: SectionProviderMappingDelegate {
     public func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         tableView.moveRow(at: sourceIndexPath, to: destinationIndexPath)
     }
-
+    
 }
 
 // MARK: - UITableViewDataSource

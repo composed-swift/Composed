@@ -59,7 +59,7 @@ open class CollectionCoordinator: NSObject {
     private weak var originalDropDelegate: UICollectionViewDropDelegate?
     private var dropDelegateObserver: NSKeyValueObservation?
 
-    private var cachedProviders: [CollectionElementsProvider] = []
+    private var cachedElementsProviders: [UICollectionViewSectionElementsProvider] = []
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
     /// - Parameters:
@@ -147,31 +147,42 @@ open class CollectionCoordinator: NSObject {
     open func invalidateVisibleCells() {
         for (indexPath, cell) in zip(collectionView.indexPathsForVisibleItems, collectionView.visibleCells) {
             let elements = elementsProvider(for: indexPath.section)
-            elements.cell.configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
+            elements.cell(for: indexPath.item).configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
         }
     }
 
     // Prepares and caches the section to improve performance
     private func prepareSections() {
-        cachedProviders.removeAll()
+        cachedElementsProviders.removeAll()
         mapper.delegate = self
 
         for index in 0..<mapper.numberOfSections {
-            guard let section = (mapper.provider.sections[index] as? CollectionSectionProvider)?.section(with: collectionView.traitCollection) else {
+            guard let section = mapper.provider.sections[index] as? UICollectionViewSection else {
                 fatalError("No provider available for section: \(index), or it does not conform to CollectionSectionProvider")
             }
 
-            switch section.cell.dequeueMethod {
-            case let .fromNib(type):
-                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
-                collectionView.register(nib, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
-            case let .fromClass(type):
-                collectionView.register(type, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
-            case .fromStoryboard:
-                break
+            let elementsProvider = section.collectionViewElementsProvider(with: collectionView.traitCollection)
+            let cells = (0..<section.numberOfElements).reduce(into: [CollectionCellElement<UICollectionViewCell>](), { cells, index in
+                let cell = elementsProvider.cell(for: index)
+
+                guard !cells.contains(where: { $0.reuseIdentifier == cell.reuseIdentifier }) else { return }
+
+                cells.append(cell)
+            })
+
+            for cell in cells {
+                switch cell.dequeueMethod {
+                case let .fromNib(type):
+                    let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                    collectionView.register(nib, forCellWithReuseIdentifier: cell.reuseIdentifier)
+                case let .fromClass(type):
+                    collectionView.register(type, forCellWithReuseIdentifier: cell.reuseIdentifier)
+                case .fromStoryboard:
+                    break
+                }
             }
 
-            [section.header, section.footer].compactMap { $0 }.forEach {
+            [elementsProvider.header, elementsProvider.footer].compactMap { $0 }.forEach {
                 switch $0.dequeueMethod {
                 case let .fromNib(type):
                     let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
@@ -183,7 +194,7 @@ open class CollectionCoordinator: NSObject {
                 }
             }
 
-            cachedProviders.append(section)
+            cachedElementsProviders.append(elementsProvider)
         }
 
         collectionView.allowsMultipleSelection = true
@@ -303,7 +314,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         assert(Thread.isMainThread)
         changes.append { [weak self] in
             guard let self = self else { return }
-
+            
             var indexPathsToReload: [IndexPath] = []
             for indexPath in indexPaths {
                 guard let section = self.sectionProvider.sections[indexPath.section] as? CollectionUpdateHandler,
@@ -313,7 +324,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
                         continue
                 }
 
-                self.cachedProviders[indexPath.section].cell.configure(cell, indexPath.item, self.mapper.provider.sections[indexPath.section])
+                self.cachedElementsProviders[indexPath.section].cell(for: indexPath.item).configure(cell, indexPath.item, self.mapper.provider.sections[indexPath.section])
             }
 
             guard !indexPathsToReload.isEmpty else { return }
@@ -380,7 +391,7 @@ extension CollectionCoordinator: UICollectionViewDataSource {
 
         let elements = elementsProvider(for: indexPath.section)
         let section = mapper.provider.sections[indexPath.section]
-        elements.cell.willAppear(cell, indexPath.item, section)
+        elements.cell(for: indexPath.item).willAppear?(cell, indexPath.item, section)
     }
 
     public func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -392,13 +403,13 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         guard indexPath.section < sectionProvider.numberOfSections else { return }
         let elements = elementsProvider(for: indexPath.section)
         let section = mapper.provider.sections[indexPath.section]
-        elements.cell.didDisappear(cell, indexPath.item, section)
+        elements.cell(for: indexPath.item).didDisappear?(cell, indexPath.item, section)
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         assert(Thread.isMainThread)
         let elements = elementsProvider(for: indexPath.section)
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: elements.cell.reuseIdentifier, for: indexPath)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: elements.cell(for: indexPath.item).reuseIdentifier, for: indexPath)
 
         if let handler = sectionProvider.sections[indexPath.section] as? EditingHandler {
             if let handler = sectionProvider.sections[indexPath.section] as? CollectionEditingHandler {
@@ -408,7 +419,7 @@ extension CollectionCoordinator: UICollectionViewDataSource {
             }
         }
 
-        elements.cell.configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
+        elements.cell(for: indexPath.item).configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
         return cell
     }
 
@@ -474,13 +485,13 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         }
     }
 
-    private func elementsProvider(for section: Int) -> CollectionElementsProvider {
-        guard cachedProviders.indices.contains(section) else {
+    private func elementsProvider(for section: Int) -> UICollectionViewSectionElementsProvider {
+        guard cachedElementsProviders.indices.contains(section) else {
             fatalError("No UI configuration available for section \(section)")
         }
-        return cachedProviders[section]
+        return cachedElementsProviders[section]
     }
-
+    
 }
 
 @available(iOS 13.0, *)
@@ -691,7 +702,7 @@ extension CollectionCoordinator: UICollectionViewDropDelegate {
 
         return section.dragSession(previewParametersForElementAt: indexPath.item, cell: cell)
     }
-
+    
     public func collectionView(_ collectionView: UICollectionView, dropPreviewParametersForItemAt indexPath: IndexPath) -> UIDragPreviewParameters? {
         guard let section = sectionProvider.sections[indexPath.section] as? CollectionDropHandler,
             let cell = collectionView.cellForItem(at: indexPath) else {
