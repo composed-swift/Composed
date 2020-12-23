@@ -153,7 +153,6 @@ open class TableCoordinator: NSObject {
 // MARK: - SectionProviderMappingDelegate
 
 extension TableCoordinator: SectionProviderMappingDelegate {
-
     private func reset() {
         removes.removeAll()
         inserts.removeAll()
@@ -302,6 +301,10 @@ extension TableCoordinator: SectionProviderMappingDelegate {
 
     public func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         tableView.moveRow(at: sourceIndexPath, to: destinationIndexPath)
+    }
+
+    public func mappingDidInvalidateHeader(at sectionIndex: Int) {
+        // TODO: Reload header
     }
     
 }

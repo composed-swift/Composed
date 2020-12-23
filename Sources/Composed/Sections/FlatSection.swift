@@ -169,4 +169,8 @@ extension FlatSection: SectionUpdateDelegate {
         guard let sectionOffset = offset(for: section) else { return }
         updateDelegate?.section(self, move: sourceIndex + sectionOffset, to: destinationIndex + sectionOffset)
     }
+
+    public func sectionDidInvalidateHeader(_ section: Section) {
+        // Headers of children are currently ignored.
+    }
 }
