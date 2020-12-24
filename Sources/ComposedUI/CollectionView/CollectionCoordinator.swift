@@ -61,6 +61,7 @@ open class CollectionCoordinator: NSObject {
 
     private var cachedProviders: [CollectionElementsProvider] = []
     private var cellSectionMap = [UICollectionViewCell:Section]()
+    private var registeredNibNames = Set<String>()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
     /// - Parameters:
@@ -164,8 +165,13 @@ open class CollectionCoordinator: NSObject {
 
             switch section.cell.dequeueMethod {
             case let .fromNib(type):
-                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                let nibName = String(describing: type)
+                guard !registeredNibNames.contains(nibName) else { break }
+                // For some reason, large amount of call to `UINib(nibName:bundle:)` will significantly impact performance when App just
+                // started up, but fine later on. Avoid calling if nib has already been registered
+                let nib = UINib(nibName: nibName, bundle: Bundle(for: type))
                 collectionView.register(nib, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
+                registeredNibNames.insert(nibName)
             case let .fromClass(type):
                 collectionView.register(type, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
             case .fromStoryboard:
