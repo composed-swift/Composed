@@ -60,6 +60,7 @@ open class CollectionCoordinator: NSObject {
     private var dropDelegateObserver: NSKeyValueObservation?
 
     private var cachedProviders: [CollectionElementsProvider] = []
+    private var cellSectionMap = [UICollectionViewCell:Section]()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
     /// - Parameters:
@@ -388,11 +389,12 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         defer {
             originalDelegate?.collectionView?(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
         }
-
-        guard indexPath.section < sectionProvider.numberOfSections else { return }
-        let elements = elementsProvider(for: indexPath.section)
-        let section = mapper.provider.sections[indexPath.section]
-        elements.cell.didDisappear(cell, indexPath.item, section)
+        if let section = cellSectionMap[cell] {
+        	if let elements = (section as? CollectionSectionProvider)?.section(with: collectionView.traitCollection) {
+		        elements.cell.didDisappear(cell, indexPath.item, section)
+        	}
+	        cellSectionMap.removeValue(forKey: cell)
+        }
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -408,7 +410,9 @@ extension CollectionCoordinator: UICollectionViewDataSource {
             }
         }
 
-        elements.cell.configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
+		let section = mapper.provider.sections[indexPath.section]
+		cellSectionMap[cell] =  section
+        elements.cell.configure(cell, indexPath.item, section)
         return cell
     }
 
