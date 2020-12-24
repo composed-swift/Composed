@@ -60,6 +60,8 @@ open class CollectionCoordinator: NSObject {
     private var dropDelegateObserver: NSKeyValueObservation?
 
     private var cachedProviders: [CollectionElementsProvider] = []
+    private var cellSectionMap = [UICollectionViewCell:Section]()
+    private var registeredNibNames = Set<String>()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
     /// - Parameters:
@@ -163,8 +165,13 @@ open class CollectionCoordinator: NSObject {
 
             switch section.cell.dequeueMethod {
             case let .fromNib(type):
-                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                let nibName = String(describing: type)
+                guard !registeredNibNames.contains(nibName) else { break }
+                // For some reason, large amount of call to `UINib(nibName:bundle:)` will significantly impact performance when App just
+                // started up, but fine later on. Avoid calling if nib has already been registered
+                let nib = UINib(nibName: nibName, bundle: Bundle(for: type))
                 collectionView.register(nib, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
+                registeredNibNames.insert(nibName)
             case let .fromClass(type):
                 collectionView.register(type, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
             case .fromStoryboard:
@@ -388,11 +395,12 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         defer {
             originalDelegate?.collectionView?(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
         }
-
-        guard indexPath.section < sectionProvider.numberOfSections else { return }
-        let elements = elementsProvider(for: indexPath.section)
-        let section = mapper.provider.sections[indexPath.section]
-        elements.cell.didDisappear(cell, indexPath.item, section)
+        if let section = cellSectionMap[cell] {
+        	if let elements = (section as? CollectionSectionProvider)?.section(with: collectionView.traitCollection) {
+		        elements.cell.didDisappear(cell, indexPath.item, section)
+        	}
+	        cellSectionMap.removeValue(forKey: cell)
+        }
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -408,7 +416,9 @@ extension CollectionCoordinator: UICollectionViewDataSource {
             }
         }
 
-        elements.cell.configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
+		let section = mapper.provider.sections[indexPath.section]
+		cellSectionMap[cell] =  section
+        elements.cell.configure(cell, indexPath.item, section)
         return cell
     }
 
