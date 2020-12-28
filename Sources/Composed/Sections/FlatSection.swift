@@ -93,7 +93,7 @@ open class FlatSection: Section, CustomReflectable {
         return nil
     }
 
-    private func offset(for section: Section) -> Int? {
+    public final func offset(for section: Section) -> Int? {
         var offset = 0
 
         for child in children {
@@ -107,7 +107,7 @@ open class FlatSection: Section, CustomReflectable {
         return nil
     }
 
-    private func indexesRange(for section: Section) -> Range<Int>? {
+    public final func indexesRange(for section: Section) -> Range<Int>? {
         guard let sectionOffset = offset(for: section) else { return nil }
         return (sectionOffset..<sectionOffset + section.numberOfElements)
     }
