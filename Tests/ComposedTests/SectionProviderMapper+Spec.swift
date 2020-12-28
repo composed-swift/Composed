@@ -110,7 +110,6 @@ final class SectionProviderMapping_Spec: QuickSpec {
 }
 
 final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
-
     var didInsertSections: (mapping: SectionProviderMapping, sections: IndexSet)?
     var didInsertElements: (section: SectionProviderMapping, indexPaths: [IndexPath])?
 
@@ -167,4 +166,5 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     func mappingDidInvalidate(_ mapping: SectionProviderMapping) {}
     func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {}
 
+    func mappingDidInvalidateHeader(at sectionIndex: Int) {}
 }
