@@ -60,7 +60,7 @@ open class CollectionCoordinator: NSObject {
     private var dropDelegateObserver: NSKeyValueObservation?
 
     private var cachedElementsProviders: [UICollectionViewSectionElementsProvider] = []
-    private var cellSectionMap = [UICollectionViewCell:Section]()
+    private var cellSectionMap = [UICollectionViewCell: (CollectionCellElement, Section)]()
     private var registeredNibNames = Set<String>()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
@@ -421,10 +421,8 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         defer {
             originalDelegate?.collectionView?(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
         }
-        if let section = cellSectionMap[cell] {
-        	if let elements = (section as? UICollectionViewSection)?.collectionViewElementsProvider(with: collectionView.traitCollection) {
-		        elements.cell(for: indexPath.item).didDisappear?(cell, indexPath.item, section)
-        	}
+        if let (cellElement, section) = cellSectionMap[cell] {
+            cellElement.didDisappear?(cell, indexPath.item, section)
 	        cellSectionMap.removeValue(forKey: cell)
         }
     }
@@ -443,8 +441,9 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         }
 
         let section = mapper.provider.sections[indexPath.section]
-        cellSectionMap[cell] = section
-        elements.cell(for: indexPath.item).configure(cell, indexPath.item, section)
+        let cellElement = elements.cell(for: indexPath.item)
+        cellSectionMap[cell] = (cellElement, section)
+        cellElement.configure(cell, indexPath.item, section)
         return cell
     }
 
