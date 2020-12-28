@@ -60,6 +60,8 @@ open class CollectionCoordinator: NSObject {
     private var dropDelegateObserver: NSKeyValueObservation?
 
     private var cachedElementsProviders: [UICollectionViewSectionElementsProvider] = []
+    private var cellSectionMap = [UICollectionViewCell:Section]()
+    private var registeredNibNames = Set<String>()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
     /// - Parameters:
@@ -173,8 +175,13 @@ open class CollectionCoordinator: NSObject {
             for cell in cells {
                 switch cell.dequeueMethod.method {
                 case let .fromNib(type):
-                    let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                    let nibName = String(describing: type)
+                    guard !registeredNibNames.contains(nibName) else { break }
+                    // For some reason, large amount of call to `UINib(nibName:bundle:)` will significantly impact performance when App just
+                    // started up, but fine later on. Avoid calling if nib has already been registered
+                    let nib = UINib(nibName: nibName, bundle: Bundle(for: type))
                     collectionView.register(nib, forCellWithReuseIdentifier: cell.reuseIdentifier)
+                    registeredNibNames.insert(nibName)
                 case let .fromClass(type):
                     collectionView.register(type, forCellWithReuseIdentifier: cell.reuseIdentifier)
                 case .fromStoryboard:
@@ -314,7 +321,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         assert(Thread.isMainThread)
         changes.append { [weak self] in
             guard let self = self else { return }
-            
+
             var indexPathsToReload: [IndexPath] = []
             for indexPath in indexPaths {
                 guard let section = self.sectionProvider.sections[indexPath.section] as? CollectionUpdateHandler,
@@ -414,11 +421,12 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         defer {
             originalDelegate?.collectionView?(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
         }
-
-        guard indexPath.section < sectionProvider.numberOfSections else { return }
-        let elements = elementsProvider(for: indexPath.section)
-        let section = mapper.provider.sections[indexPath.section]
-        elements.cell(for: indexPath.item).didDisappear?(cell, indexPath.item, section)
+        if let section = cellSectionMap[cell] {
+        	if let elements = (section as? UICollectionViewSection)?.collectionViewElementsProvider(with: collectionView.traitCollection) {
+		        elements.cell(for: indexPath.item).didDisappear?(cell, indexPath.item, section)
+        	}
+	        cellSectionMap.removeValue(forKey: cell)
+        }
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -434,7 +442,9 @@ extension CollectionCoordinator: UICollectionViewDataSource {
             }
         }
 
-        elements.cell(for: indexPath.item).configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
+        let section = mapper.provider.sections[indexPath.section]
+        cellSectionMap[cell] = section
+        elements.cell(for: indexPath.item).configure(cell, indexPath.item, section)
         return cell
     }
 
@@ -506,7 +516,7 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         }
         return cachedElementsProviders[section]
     }
-    
+
 }
 
 @available(iOS 13.0, *)
@@ -717,7 +727,7 @@ extension CollectionCoordinator: UICollectionViewDropDelegate {
 
         return section.dragSession(previewParametersForElementAt: indexPath.item, cell: cell)
     }
-    
+
     public func collectionView(_ collectionView: UICollectionView, dropPreviewParametersForItemAt indexPath: IndexPath) -> UIDragPreviewParameters? {
         guard let section = sectionProvider.sections[indexPath.section] as? CollectionDropHandler,
             let cell = collectionView.cellForItem(at: indexPath) else {
