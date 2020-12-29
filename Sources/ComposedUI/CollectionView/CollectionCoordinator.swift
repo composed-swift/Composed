@@ -430,7 +430,8 @@ extension CollectionCoordinator: UICollectionViewDataSource {
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         assert(Thread.isMainThread)
         let elements = elementsProvider(for: indexPath.section)
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: elements.cell(for: indexPath.item).reuseIdentifier, for: indexPath)
+        let cellElement = elements.cell(for: indexPath.item)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellElement.reuseIdentifier, for: indexPath)
 
         if let handler = sectionProvider.sections[indexPath.section] as? EditingHandler {
             if let handler = sectionProvider.sections[indexPath.section] as? CollectionEditingHandler {
@@ -441,7 +442,6 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         }
 
         let section = mapper.provider.sections[indexPath.section]
-        let cellElement = elements.cell(for: indexPath.item)
         cellSectionMap[cell] = (cellElement, section)
         cellElement.configure(cell, indexPath.item, section)
         return cell

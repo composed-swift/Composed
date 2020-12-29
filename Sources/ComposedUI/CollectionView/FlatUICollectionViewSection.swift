@@ -29,7 +29,7 @@ open class FlatUICollectionViewSection: FlatSection, UICollectionViewSection {
 
 extension FlatUICollectionViewSection: CollectionSelectionHandler {
     open func didSelect(at index: Int, cell: UICollectionViewCell) {
-        guard let sectionMeta = self.section(at: index) else { return }
+        guard let sectionMeta = self.sectionForElementIndex(index) else { return }
 
         let sectionIndex = index - sectionMeta.offset
 
@@ -41,7 +41,7 @@ extension FlatUICollectionViewSection: CollectionSelectionHandler {
     }
 
     open func didDeselect(at index: Int, cell: UICollectionViewCell) {
-        guard let sectionMeta = self.section(at: index) else { return }
+        guard let sectionMeta = self.sectionForElementIndex(index) else { return }
 
         let sectionIndex = index - sectionMeta.offset
 

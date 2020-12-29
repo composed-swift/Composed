@@ -71,7 +71,7 @@ open class FlatUICollectionViewSectionElementsProvider: UICollectionViewSectionE
     }
 
     open func cell(for index: Int) -> CollectionCellElement {
-        guard let (section, offset) = flatSection?.section(at: index) else {
+        guard let (section, offset) = flatSection?.sectionForElementIndex(index) else {
             fatalError("No section for index \(index) exists")
         }
 
@@ -91,22 +91,19 @@ private final class FlattenedCollectionCellElement: CollectionCellElement {
         super.init(
             dequeueMethod: element.dequeueMethod,
             reuseIdentifier: element.reuseIdentifier,
-            configure: { [weak element, weak section] cell, index in
-                guard let element = element else { return }
+            configure: { [weak section] cell, index in
                 guard let section = section else { return }
 
                 let sectionIndex = index - sectionOffset
                 element.configure(cell, sectionIndex, section)
             },
-            willAppear: { [weak element, weak section] cell, index in
-                guard let element = element else { return }
+            willAppear: { [weak section] cell, index in
                 guard let section = section else { return }
 
                 let sectionIndex = index - sectionOffset
                 element.willAppear?(cell, sectionIndex, section)
             },
-            didDisappear: { [weak element, weak section] cell, index in
-                guard let element = element else { return }
+            didDisappear: { [weak section] cell, index in
                 guard let section = section else { return }
 
                 let sectionIndex = index - sectionOffset
