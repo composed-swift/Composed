@@ -5,7 +5,7 @@ import UIKit
 open class FlatUICollectionViewSection: FlatSection, UICollectionViewSection {
     public var header: CollectionSupplementaryElement? {
         didSet {
-            // TODO: Notify delegate
+            updateDelegate?.sectionDidInvalidateHeader(self)
         }
     }
 

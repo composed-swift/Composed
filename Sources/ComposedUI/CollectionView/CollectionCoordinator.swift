@@ -377,16 +377,29 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {
+        let elementsProvider = self.elementsProvider(for: sectionIndex)
+
+        if let header = elementsProvider.header {
+            switch header.dequeueMethod.method {
+            case let .fromNib(type):
+                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                collectionView.register(nib, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
+            case let .fromClass(type):
+                collectionView.register(type, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
+            case .fromStoryboard:
+                break
+            }
+        }
+
         let context = UICollectionViewFlowLayoutInvalidationContext()
         context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
         invalidateLayout(with: context)
 
         guard let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
 
-        let elements = elementsProvider(for: sectionIndex)
         let section = mapper.provider.sections[sectionIndex]
 
-        if let header = elements.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
+        if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
             header.configure(headerView, sectionIndex, section)
         }
     }
