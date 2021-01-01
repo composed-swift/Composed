@@ -22,6 +22,11 @@ public extension CollectionCoordinatorDelegate {
 
 /// The coordinator that provides the 'glue' between a section provider and a `UICollectionView`
 open class CollectionCoordinator: NSObject {
+    private struct NIBRegistration: Hashable {
+        let nibName: String
+        let bundle: Bundle
+        let reuseIdentifier: String
+    }
 
     /// Get/set the delegate for this coordinator
     public weak var delegate: CollectionCoordinatorDelegate? {
@@ -61,7 +66,7 @@ open class CollectionCoordinator: NSObject {
 
     private var cachedElementsProviders: [UICollectionViewSectionElementsProvider] = []
     private var cellSectionMap = [UICollectionViewCell: (CollectionCellElement, Section)]()
-    private var registeredNibNames = Set<String>()
+    private var nibRegistrations = Set<NIBRegistration>()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
     /// - Parameters:
@@ -175,13 +180,20 @@ open class CollectionCoordinator: NSObject {
             for cell in cells {
                 switch cell.dequeueMethod.method {
                 case let .fromNib(type):
+                    // `UINib(nibName:bundle:)` is an expensive call because it reads the NIB from the
+                    // disk, which can have a large impact on performance when this is called multiple times.
+                    //
+                    // Each registration is cached to ensure that the same nib is not registered multiple times.
+
                     let nibName = String(describing: type)
-                    guard !registeredNibNames.contains(nibName) else { break }
-                    // For some reason, large amount of call to `UINib(nibName:bundle:)` will significantly impact performance when App just
-                    // started up, but fine later on. Avoid calling if nib has already been registered
-                    let nib = UINib(nibName: nibName, bundle: Bundle(for: type))
+                    let nibBundle = Bundle(for: type)
+                    let nibRegistration = NIBRegistration(nibName: nibName, bundle: nibBundle, reuseIdentifier: cell.reuseIdentifier)
+
+                    guard !nibRegistrations.contains(nibRegistration) else { break }
+
+                    let nib = UINib(nibName: nibName, bundle: nibBundle)
                     collectionView.register(nib, forCellWithReuseIdentifier: cell.reuseIdentifier)
-                    registeredNibNames.insert(nibName)
+                    nibRegistrations.insert(nibRegistration)
                 case let .fromClass(type):
                     collectionView.register(type, forCellWithReuseIdentifier: cell.reuseIdentifier)
                 case .fromStoryboard:
