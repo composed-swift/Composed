@@ -397,10 +397,6 @@ extension FlatSection: SectionProviderUpdateDelegate {
 
         updateDelegate?.willBeginUpdating(self)
 
-        defer {
-            updateDelegate?.didEndUpdating(self)
-        }
-
         for (section, index) in zip(sections, indexes) {
             let sectionIndex = index + providerSectionIndex
             self.sections.insert(section, at: sectionIndex)
@@ -410,6 +406,8 @@ extension FlatSection: SectionProviderUpdateDelegate {
                 updateDelegate?.section(self, didInsertElementAt: elementIndex)
             }
         }
+
+        updateDelegate?.didEndUpdating(self)
     }
 
     public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
@@ -419,10 +417,6 @@ extension FlatSection: SectionProviderUpdateDelegate {
         }
 
         updateDelegate?.willBeginUpdating(self)
-
-        defer {
-            updateDelegate?.didEndUpdating(self)
-        }
 
         let providerElementsOffset = indexForFirstElement(for: provider)!
 
@@ -436,5 +430,7 @@ extension FlatSection: SectionProviderUpdateDelegate {
                 updateDelegate?.section(self, didRemoveElementAt: elementIndex)
             }
         }
+
+        updateDelegate?.didEndUpdating(self)
     }
 }
