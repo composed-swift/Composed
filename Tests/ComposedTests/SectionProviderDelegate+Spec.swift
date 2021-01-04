@@ -52,7 +52,7 @@ final class MockDelegate: SectionProviderUpdateDelegate {
     }
 
     func didEndUpdating(_ provider: SectionProvider) {
-        
+
     }
 
     func invalidateAll(_ provider: SectionProvider) {
@@ -64,7 +64,7 @@ final class MockDelegate: SectionProviderUpdateDelegate {
     }
 
     func providerDidUpdate(_ provider: SectionProvider) {
-        
+
     }
 
     var didInsertSections: (provider: SectionProvider, sections: [Section], indexes: IndexSet)?

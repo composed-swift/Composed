@@ -11,6 +11,7 @@ final class SegmentedSectionProvider_Spec: QuickSpec {
         var child1: ComposedSectionProvider!
         var child2: ArraySection<String>!
         var mapping: SectionProviderMapping!
+        _ = mapping
 
         describe("SegmentedSectionProvider") {
             beforeEach {
