@@ -182,7 +182,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         updateDelegate?.willBeginUpdating(self)
         children.insert(.section(child), at: index)
         numberOfSections += 1
-        let sectionOffset = self.sectionOffset(for: child)
+        let sectionOffset = self.sectionOffset(for: child)!
         sections.insert(child, at: sectionOffset)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
         updateDelegate?.didEndUpdating(self)
@@ -235,7 +235,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         switch child {
         case let .section(child):
             sections = [child]
-            sectionOffset = self.sectionOffset(for: child)
+            sectionOffset = self.sectionOffset(for: child)!
         case let .provider(child):
             child.updateDelegate = nil
             sectionOffset = self.sectionOffset(for: child)!
