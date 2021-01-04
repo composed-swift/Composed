@@ -129,7 +129,9 @@ open class FlatSection: Section, CustomReflectable {
 
         var sectionOffset = indexForFirstElement(for: sectionProvider)!
         children.remove(at: index)
-        sections = sections.filter { $0 !== sectionProvider }
+        sections = sections.filter { existingSection in
+            !sectionProvider.sections.contains(where: { $0 === existingSection}) 
+        }
 
         if sectionProvider.updateDelegate === self {
             sectionProvider.updateDelegate = nil
