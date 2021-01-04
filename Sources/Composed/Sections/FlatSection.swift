@@ -154,7 +154,7 @@ open class FlatSection: Section, CustomReflectable {
         for child in children {
             switch child {
             case .section(let section):
-                if offset == index {
+                if !section.isEmpty, offset == index {
                     return (section, offset)
                 } else if index < offset + section.numberOfElements {
                     return (section, offset)
@@ -163,7 +163,7 @@ open class FlatSection: Section, CustomReflectable {
                 offset += section.numberOfElements
             case .sectionProvider(let sectionProvider):
                 for section in sectionProvider.sections {
-                    if offset == index {
+                    if !section.isEmpty, offset == index {
                         return (section, offset)
                     } else if index < offset + section.numberOfElements {
                         return (section, offset)
