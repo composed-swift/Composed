@@ -478,14 +478,15 @@ extension CollectionCoordinator: UICollectionViewDataSource {
             originalDelegate?.collectionView?(collectionView, willDisplaySupplementaryView: view, forElementKind: elementKind, at: indexPath)
         }
 
-        guard indexPath.section > sectionProvider.numberOfSections else { return }
+        guard indexPath.section < sectionProvider.numberOfSections else { return }
+
         let elements = elementsProvider(for: indexPath.section)
         let section = mapper.provider.sections[indexPath.section]
 
         if let header = elements.header, header.kind.rawValue == elementKind {
-            elements.header?.willAppear?(view, indexPath.section, section)
+            header.willAppear?(view, indexPath.section, section)
         } else if let footer = elements.footer, footer.kind.rawValue == elementKind {
-            elements.footer?.willAppear?(view, indexPath.section, section)
+            footer.willAppear?(view, indexPath.section, section)
         } else {
             // the original delegate can handle this
         }
