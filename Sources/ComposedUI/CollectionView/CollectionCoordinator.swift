@@ -485,8 +485,10 @@ extension CollectionCoordinator: UICollectionViewDataSource {
 
         if let header = elements.header, header.kind.rawValue == elementKind {
             header.willAppear?(view, indexPath.section, section)
+            header.configure(view, indexPath.section, section)
         } else if let footer = elements.footer, footer.kind.rawValue == elementKind {
             footer.willAppear?(view, indexPath.section, section)
+            footer.configure(view, indexPath.section, section)
         } else {
             // the original delegate can handle this
         }
