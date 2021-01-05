@@ -284,6 +284,10 @@ open class FlatSection: Section, CustomReflectable {
         return nil
     }
 
+    /// The index of the first section of `sectionProvider` in the `sections` array.
+    ///
+    /// - parameter sectionProvider: The section provider to calculate the section index of.
+    /// - returns: The index of the first section of `sectionProvider` in the `sections` array, or `nil` if it is not in the hierarchy.
     private func sectionIndex(of sectionProvider: SectionProvider) -> Int? {
         var index = 0
 
