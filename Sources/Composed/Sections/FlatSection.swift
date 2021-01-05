@@ -399,6 +399,7 @@ extension FlatSection: SectionProviderUpdateDelegate {
 
         for (section, index) in zip(sections, indexes) {
             let sectionIndex = index + providerSectionIndex
+            section.updateDelegate = self
             self.sections.insert(section, at: sectionIndex)
             let firstSectionIndex = self.indexForFirstElement(for: section)!
 
