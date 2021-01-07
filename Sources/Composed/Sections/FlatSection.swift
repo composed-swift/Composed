@@ -71,9 +71,16 @@ open class FlatSection: Section, CustomReflectable {
     public func insert(_ section: Section, at index: Int) {
         updateDelegate?.willBeginUpdating(self)
 
-        let sectionOffset = index > 0
-            ? indexForFirstElement(of: children[index - 1])!
-            : 0
+        let elementOffset: Int = {
+            if index == 0 {
+                return 0
+            } else if index == children.count {
+                return self.numberOfElements
+            } else {
+                let childAtInsertedSection = children[index]
+                return indexForFirstElement(of: childAtInsertedSection)!
+            }
+        }()
 
         let indexInSectionArray = (0..<index).map { children[$0] }.reduce(into: 0) { index, child in
             switch child {
@@ -89,7 +96,7 @@ open class FlatSection: Section, CustomReflectable {
         section.updateDelegate = self
 
         (0..<section.numberOfElements)
-            .map { $0 + sectionOffset }
+            .map { $0 + elementOffset }
             .forEach { index in
                 updateDelegate?.section(self, didInsertElementAt: index)
             }
