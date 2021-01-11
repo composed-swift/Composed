@@ -434,7 +434,7 @@ extension FlatSection: SectionProviderUpdateDelegate {
 
         for (section, index) in zip(sections, indexes.reversed()) {
             let sectionIndex = index + providerSectionIndex
-            let firstSectionIndex = (0..<index).map { $0 + providerElementsOffset }.map { self.sections[$0].numberOfElements }.reduce(0, +) + providerElementsOffset
+            let firstSectionIndex = (0..<index).map { $0 + providerSectionIndex }.map { self.sections[$0].numberOfElements }.reduce(0, +) + providerElementsOffset
 
             self.sections.remove(at: sectionIndex)
 
