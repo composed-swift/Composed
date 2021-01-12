@@ -18,7 +18,7 @@ extension FlatSection: SelectionHandler {
     open var selectedIndexes: [Int] {
         return sections.flatMap { section -> [Int] in
             guard let section = section as? SelectionHandler else { return [] }
-            let offset = self.indexForFirstElement(for: section)!
+            let offset = self.indexForFirstElement(of: section)!
             return section.selectedIndexes.map { $0 + offset }
         }
     }
