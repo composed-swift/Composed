@@ -408,10 +408,6 @@ extension FlatSection: SectionProviderUpdateDelegate {
             let localSectionIndex = sectionIndexInProvider + providerSectionIndex
             let sectionFirstElementIndex = self.indexForFirstElement(of: section)!
 
-            if section.updateDelegate === self {
-                section.updateDelegate = nil
-            }
-
             self.sections.remove(at: localSectionIndex)
 
             (sectionFirstElementIndex..<sectionFirstElementIndex + section.numberOfElements).reversed().forEach { elementIndex in
