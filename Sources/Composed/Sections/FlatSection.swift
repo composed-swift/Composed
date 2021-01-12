@@ -2,7 +2,7 @@ import Foundation
 
 /// A section that flattens each of its children in to a single section.
 open class FlatSection: Section, CustomReflectable {
-    public enum Child {
+    private enum Child {
         /// A single section.
         case section(Section)
 
@@ -219,15 +219,6 @@ open class FlatSection: Section, CustomReflectable {
         return (sectionOffset..<sectionOffset + section.numberOfElements)
     }
 
-    public final func index(of child: Child) -> Int? {
-        switch child {
-        case .section(let childSection):
-            return childIndex(of: childSection)
-        case .sectionProvider(let sectionProvider):
-            return childIndex(of: sectionProvider)
-        }
-    }
-
     public final func childIndex(of section: Section) -> Int? {
         var index = 0
 
@@ -247,16 +238,7 @@ open class FlatSection: Section, CustomReflectable {
         return nil
     }
 
-    private func indexForFirstElement(of child: Child) -> Int? {
-        switch child {
-        case .section(let childSection):
-            return indexForFirstElement(of: childSection)
-        case .sectionProvider(let sectionProvider):
-            return indexForFirstElement(of: sectionProvider)
-        }
-    }
-
-    private func childIndex(of sectionProvider: SectionProvider) -> Int? {
+    public final func childIndex(of sectionProvider: SectionProvider) -> Int? {
         var index = 0
 
         for child in children {
@@ -273,6 +255,15 @@ open class FlatSection: Section, CustomReflectable {
         }
 
         return nil
+    }
+
+    private func indexForFirstElement(of child: Child) -> Int? {
+        switch child {
+        case .section(let childSection):
+            return indexForFirstElement(of: childSection)
+        case .sectionProvider(let sectionProvider):
+            return indexForFirstElement(of: sectionProvider)
+        }
     }
 
     /// The index of the first section of `sectionProvider` in the `sections` array.
