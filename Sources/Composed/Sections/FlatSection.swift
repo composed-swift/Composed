@@ -16,7 +16,7 @@ open class FlatSection: Section, CustomReflectable {
         sections.map(\.numberOfElements).reduce(0, +)
     }
 
-    public var updateDelegate: SectionUpdateDelegate?
+    public weak var updateDelegate: SectionUpdateDelegate?
 
     public var customMirror: Mirror {
         Mirror(
