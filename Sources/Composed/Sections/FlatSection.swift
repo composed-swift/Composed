@@ -139,9 +139,6 @@ open class FlatSection: Section, CustomReflectable {
         sectionProvider.sections.reversed().forEach { section in
             let sectionOffset = indexForFirstElement(of: section)!
             sections = sections.filter { $0 !== section }
-            if section.updateDelegate === self {
-                section.updateDelegate = nil
-            }
 
             (0..<section.numberOfElements).reversed().forEach { index in
                 updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
