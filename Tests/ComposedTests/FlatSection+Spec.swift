@@ -231,7 +231,7 @@ final class FlatSection_Spec: QuickSpec {
                 }
             }
 
-            context("after a section has been insert") {
+            context("after a section has been inserted after a child") {
                 var mockDelegate: MockSectionUpdateDelegate!
                 var newSection: ArraySection<String>!
 
@@ -317,6 +317,445 @@ final class FlatSection_Spec: QuickSpec {
                     expect(mockDelegate.didInsertElementCalls[0].index) == 18
                     expect(mockDelegate.didInsertElementCalls[1].section) === global
                     expect(mockDelegate.didInsertElementCalls[1].index) == 19
+                }
+            }
+
+            context("after a section has been inserted at a set index") {
+                var mockDelegate: MockSectionUpdateDelegate!
+                var newSection: ArraySection<String>!
+
+                beforeEach {
+                    mockDelegate = MockSectionUpdateDelegate()
+                    global.updateDelegate = mockDelegate
+
+                    newSection = ArraySection(["new section index 0", "new section index 1"])
+
+                    global.insert(newSection, at: 3)
+                }
+
+                it("should contain 22 elements") {
+                    expect(global.numberOfElements) == 22
+                }
+
+                it("should return the correct first element indexes") {
+                    expect(global.indexForFirstElement(of: child1)) == 0
+                    expect(global.indexForFirstElement(of: child1a)) == 0
+                    expect(global.indexForFirstElement(of: child1b)) == 2
+                    expect(global.indexForFirstElement(of: child2)) == 5
+                    expect(global.indexForFirstElement(of: child2a)) == 5
+                    expect(global.indexForFirstElement(of: child2b)) == 5
+                    expect(global.indexForFirstElement(of: child2c)) == 6
+                    expect(global.indexForFirstElement(of: child2d)) == 6
+                    expect(global.indexForFirstElement(of: child2e)) == 9
+                    expect(global.indexForFirstElement(of: child2f)) == 9
+                    expect(global.indexForFirstElement(of: child2g)) == 12
+                    expect(global.indexForFirstElement(of: child2h)) == 12
+                    expect(global.indexForFirstElement(of: child3)) == 15
+                    expect(global.indexForFirstElement(of: newSection)) == 18
+                    expect(global.indexForFirstElement(of: child4)) == 20
+                    expect(global.indexForFirstElement(of: child5)) == 22
+                }
+
+                it("should return the correct section for element index") {
+                    expect(global.sectionForElementIndex(0)?.section) === child1a
+                    expect(global.sectionForElementIndex(1)?.section) === child1a
+                    expect(global.sectionForElementIndex(2)?.section) === child1b
+                    expect(global.sectionForElementIndex(3)?.section) === child1b
+                    expect(global.sectionForElementIndex(4)?.section) === child1b
+                    expect(global.sectionForElementIndex(5)?.section) === child2b
+                    expect(global.sectionForElementIndex(6)?.section) === child2d
+                    expect(global.sectionForElementIndex(7)?.section) === child2d
+                    expect(global.sectionForElementIndex(8)?.section) === child2d
+                    expect(global.sectionForElementIndex(9)?.section) === child2f
+                    expect(global.sectionForElementIndex(10)?.section) === child2f
+                    expect(global.sectionForElementIndex(11)?.section) === child2f
+                    expect(global.sectionForElementIndex(12)?.section) === child2h
+                    expect(global.sectionForElementIndex(13)?.section) === child2h
+                    expect(global.sectionForElementIndex(14)?.section) === child2h
+                    expect(global.sectionForElementIndex(15)?.section) === child3
+                    expect(global.sectionForElementIndex(16)?.section) === child3
+                    expect(global.sectionForElementIndex(17)?.section) === child3
+                    expect(global.sectionForElementIndex(18)?.section) === newSection
+                    expect(global.sectionForElementIndex(19)?.section) === newSection
+                    expect(global.sectionForElementIndex(20)?.section) === child4
+                    expect(global.sectionForElementIndex(21)?.section) === child4
+                }
+
+                it("should return the correct child indexes") {
+                    expect(global.childIndex(of: child1)) == 0
+                    expect(global.childIndex(of: child1a)).to(beNil())
+                    expect(global.childIndex(of: child1b)).to(beNil())
+                    expect(global.childIndex(of: child2)) == 1
+                    expect(global.childIndex(of: child2a)).to(beNil())
+                    expect(global.childIndex(of: child2b)).to(beNil())
+                    expect(global.childIndex(of: child2c)).to(beNil())
+                    expect(global.childIndex(of: child2d)).to(beNil())
+                    expect(global.childIndex(of: child2e)).to(beNil())
+                    expect(global.childIndex(of: child2f)).to(beNil())
+                    expect(global.childIndex(of: child2g)).to(beNil())
+                    expect(global.childIndex(of: child2h)).to(beNil())
+                    expect(global.childIndex(of: child3)) == 2
+                    expect(global.childIndex(of: newSection)) == 3
+                    expect(global.childIndex(of: child4)) == 4
+                    expect(global.childIndex(of: child5)) == 5
+                }
+
+                it("should make correct delegate calls") {
+                    expect(mockDelegate.didInsertElementCalls.count) == 2
+                    expect(mockDelegate.didInsertElementCalls[0].section) === global
+                    expect(mockDelegate.didInsertElementCalls[0].index) == 18
+                    expect(mockDelegate.didInsertElementCalls[1].section) === global
+                    expect(mockDelegate.didInsertElementCalls[1].index) == 19
+                }
+            }
+
+            context("after a section has been inserted at index 0") {
+                var mockDelegate: MockSectionUpdateDelegate!
+                var newSection: ArraySection<String>!
+
+                beforeEach {
+                    mockDelegate = MockSectionUpdateDelegate()
+                    global.updateDelegate = mockDelegate
+
+                    newSection = ArraySection(["new section index 0", "new section index 1"])
+
+                    global.insert(newSection, at: 0)
+                }
+
+                it("should contain 22 elements") {
+                    expect(global.numberOfElements) == 22
+                }
+
+                it("should return the correct first element indexes") {
+                    expect(global.indexForFirstElement(of: newSection)) == 0
+                    expect(global.indexForFirstElement(of: child1)) == 2
+                    expect(global.indexForFirstElement(of: child1a)) == 2
+                    expect(global.indexForFirstElement(of: child1b)) == 4
+                    expect(global.indexForFirstElement(of: child2)) == 7
+                    expect(global.indexForFirstElement(of: child2a)) == 7
+                    expect(global.indexForFirstElement(of: child2b)) == 7
+                    expect(global.indexForFirstElement(of: child2c)) == 8
+                    expect(global.indexForFirstElement(of: child2d)) == 8
+                    expect(global.indexForFirstElement(of: child2e)) == 11
+                    expect(global.indexForFirstElement(of: child2f)) == 11
+                    expect(global.indexForFirstElement(of: child2g)) == 14
+                    expect(global.indexForFirstElement(of: child2h)) == 14
+                    expect(global.indexForFirstElement(of: child3)) == 17
+                    expect(global.indexForFirstElement(of: child4)) == 20
+                    expect(global.indexForFirstElement(of: child5)) == 22
+                }
+
+                it("should return the correct section for element index") {
+                    expect(global.sectionForElementIndex(0)?.section) === newSection
+                    expect(global.sectionForElementIndex(1)?.section) === newSection
+                    expect(global.sectionForElementIndex(2)?.section) === child1a
+                    expect(global.sectionForElementIndex(3)?.section) === child1a
+                    expect(global.sectionForElementIndex(4)?.section) === child1b
+                    expect(global.sectionForElementIndex(5)?.section) === child1b
+                    expect(global.sectionForElementIndex(6)?.section) === child1b
+                    expect(global.sectionForElementIndex(7)?.section) === child2b
+                    expect(global.sectionForElementIndex(8)?.section) === child2d
+                    expect(global.sectionForElementIndex(9)?.section) === child2d
+                    expect(global.sectionForElementIndex(10)?.section) === child2d
+                    expect(global.sectionForElementIndex(11)?.section) === child2f
+                    expect(global.sectionForElementIndex(12)?.section) === child2f
+                    expect(global.sectionForElementIndex(13)?.section) === child2f
+                    expect(global.sectionForElementIndex(14)?.section) === child2h
+                    expect(global.sectionForElementIndex(15)?.section) === child2h
+                    expect(global.sectionForElementIndex(16)?.section) === child2h
+                    expect(global.sectionForElementIndex(17)?.section) === child3
+                    expect(global.sectionForElementIndex(18)?.section) === child3
+                    expect(global.sectionForElementIndex(19)?.section) === child3
+                    expect(global.sectionForElementIndex(20)?.section) === child4
+                    expect(global.sectionForElementIndex(21)?.section) === child4
+                }
+
+                it("should return the correct child indexes") {
+                    expect(global.childIndex(of: newSection)) == 0
+                    expect(global.childIndex(of: child1)) == 1
+                    expect(global.childIndex(of: child1a)).to(beNil())
+                    expect(global.childIndex(of: child1b)).to(beNil())
+                    expect(global.childIndex(of: child2)) == 2
+                    expect(global.childIndex(of: child2a)).to(beNil())
+                    expect(global.childIndex(of: child2b)).to(beNil())
+                    expect(global.childIndex(of: child2c)).to(beNil())
+                    expect(global.childIndex(of: child2d)).to(beNil())
+                    expect(global.childIndex(of: child2e)).to(beNil())
+                    expect(global.childIndex(of: child2f)).to(beNil())
+                    expect(global.childIndex(of: child2g)).to(beNil())
+                    expect(global.childIndex(of: child2h)).to(beNil())
+                    expect(global.childIndex(of: child3)) == 3
+                    expect(global.childIndex(of: child4)) == 4
+                    expect(global.childIndex(of: child5)) == 5
+                }
+
+                it("should make correct delegate calls") {
+                    expect(mockDelegate.didInsertElementCalls.count) == 2
+                    expect(mockDelegate.didInsertElementCalls[0].section) === global
+                    expect(mockDelegate.didInsertElementCalls[0].index) == 0
+                    expect(mockDelegate.didInsertElementCalls[1].section) === global
+                    expect(mockDelegate.didInsertElementCalls[1].index) == 1
+                }
+            }
+
+            context("after a section has been inserted at a final index") {
+                var mockDelegate: MockSectionUpdateDelegate!
+                var newSection: ArraySection<String>!
+
+                beforeEach {
+                    mockDelegate = MockSectionUpdateDelegate()
+                    global.updateDelegate = mockDelegate
+
+                    newSection = ArraySection(["new section index 0", "new section index 1"])
+
+                    global.insert(newSection, at: 5)
+                }
+
+                it("should contain 22 elements") {
+                    expect(global.numberOfElements) == 22
+                }
+
+                it("should return the correct first element indexes") {
+                    expect(global.indexForFirstElement(of: child1)) == 0
+                    expect(global.indexForFirstElement(of: child1a)) == 0
+                    expect(global.indexForFirstElement(of: child1b)) == 2
+                    expect(global.indexForFirstElement(of: child2)) == 5
+                    expect(global.indexForFirstElement(of: child2a)) == 5
+                    expect(global.indexForFirstElement(of: child2b)) == 5
+                    expect(global.indexForFirstElement(of: child2c)) == 6
+                    expect(global.indexForFirstElement(of: child2d)) == 6
+                    expect(global.indexForFirstElement(of: child2e)) == 9
+                    expect(global.indexForFirstElement(of: child2f)) == 9
+                    expect(global.indexForFirstElement(of: child2g)) == 12
+                    expect(global.indexForFirstElement(of: child2h)) == 12
+                    expect(global.indexForFirstElement(of: child3)) == 15
+                    expect(global.indexForFirstElement(of: child4)) == 18
+                    expect(global.indexForFirstElement(of: child5)) == 20
+                    expect(global.indexForFirstElement(of: newSection)) == 20
+                }
+
+                it("should return the correct section for element index") {
+                    expect(global.sectionForElementIndex(0)?.section) === child1a
+                    expect(global.sectionForElementIndex(1)?.section) === child1a
+                    expect(global.sectionForElementIndex(2)?.section) === child1b
+                    expect(global.sectionForElementIndex(3)?.section) === child1b
+                    expect(global.sectionForElementIndex(4)?.section) === child1b
+                    expect(global.sectionForElementIndex(5)?.section) === child2b
+                    expect(global.sectionForElementIndex(6)?.section) === child2d
+                    expect(global.sectionForElementIndex(7)?.section) === child2d
+                    expect(global.sectionForElementIndex(8)?.section) === child2d
+                    expect(global.sectionForElementIndex(9)?.section) === child2f
+                    expect(global.sectionForElementIndex(10)?.section) === child2f
+                    expect(global.sectionForElementIndex(11)?.section) === child2f
+                    expect(global.sectionForElementIndex(12)?.section) === child2h
+                    expect(global.sectionForElementIndex(13)?.section) === child2h
+                    expect(global.sectionForElementIndex(14)?.section) === child2h
+                    expect(global.sectionForElementIndex(15)?.section) === child3
+                    expect(global.sectionForElementIndex(16)?.section) === child3
+                    expect(global.sectionForElementIndex(17)?.section) === child3
+                    expect(global.sectionForElementIndex(18)?.section) === child4
+                    expect(global.sectionForElementIndex(19)?.section) === child4
+                    expect(global.sectionForElementIndex(20)?.section) === newSection
+                    expect(global.sectionForElementIndex(21)?.section) === newSection
+                }
+
+                it("should return the correct child indexes") {
+                    expect(global.childIndex(of: child1)) == 0
+                    expect(global.childIndex(of: child1a)).to(beNil())
+                    expect(global.childIndex(of: child1b)).to(beNil())
+                    expect(global.childIndex(of: child2)) == 1
+                    expect(global.childIndex(of: child2a)).to(beNil())
+                    expect(global.childIndex(of: child2b)).to(beNil())
+                    expect(global.childIndex(of: child2c)).to(beNil())
+                    expect(global.childIndex(of: child2d)).to(beNil())
+                    expect(global.childIndex(of: child2e)).to(beNil())
+                    expect(global.childIndex(of: child2f)).to(beNil())
+                    expect(global.childIndex(of: child2g)).to(beNil())
+                    expect(global.childIndex(of: child2h)).to(beNil())
+                    expect(global.childIndex(of: child3)) == 2
+                    expect(global.childIndex(of: child4)) == 3
+                    expect(global.childIndex(of: child5)) == 4
+                    expect(global.childIndex(of: newSection)) == 5
+                }
+
+                it("should make correct delegate calls") {
+                    expect(mockDelegate.didInsertElementCalls.count) == 2
+                    expect(mockDelegate.didInsertElementCalls[0].section) === global
+                    expect(mockDelegate.didInsertElementCalls[0].index) == 20
+                    expect(mockDelegate.didInsertElementCalls[1].section) === global
+                    expect(mockDelegate.didInsertElementCalls[1].index) == 21
+                }
+            }
+
+            context("after a section has been inserted in a child section provider") {
+                var mockDelegate: MockSectionUpdateDelegate!
+                var newSection: ArraySection<String>!
+
+                beforeEach {
+                    mockDelegate = MockSectionUpdateDelegate()
+                    global.updateDelegate = mockDelegate
+
+                    newSection = ArraySection(["new section index 0", "new section index 1"])
+
+                    child1.insert(newSection, at: 1)
+                }
+
+                it("should contain 22 elements") {
+                    expect(global.numberOfElements) == 22
+                }
+
+                it("should return the correct first element indexes") {
+                    expect(global.indexForFirstElement(of: child1)) == 0
+                    expect(global.indexForFirstElement(of: child1a)) == 0
+                    expect(global.indexForFirstElement(of: newSection)) == 2
+                    expect(global.indexForFirstElement(of: child1b)) == 4
+                    expect(global.indexForFirstElement(of: child2)) == 7
+                    expect(global.indexForFirstElement(of: child2a)) == 7
+                    expect(global.indexForFirstElement(of: child2b)) == 7
+                    expect(global.indexForFirstElement(of: child2c)) == 8
+                    expect(global.indexForFirstElement(of: child2d)) == 8
+                    expect(global.indexForFirstElement(of: child2e)) == 11
+                    expect(global.indexForFirstElement(of: child2f)) == 11
+                    expect(global.indexForFirstElement(of: child2g)) == 14
+                    expect(global.indexForFirstElement(of: child2h)) == 14
+                    expect(global.indexForFirstElement(of: child3)) == 17
+                    expect(global.indexForFirstElement(of: child4)) == 20
+                    expect(global.indexForFirstElement(of: child5)) == 22
+                }
+
+                it("should return the correct section for element index") {
+                    expect(global.sectionForElementIndex(0)?.section) === child1a
+                    expect(global.sectionForElementIndex(1)?.section) === child1a
+                    expect(global.sectionForElementIndex(2)?.section) === newSection
+                    expect(global.sectionForElementIndex(3)?.section) === newSection
+                    expect(global.sectionForElementIndex(4)?.section) === child1b
+                    expect(global.sectionForElementIndex(5)?.section) === child1b
+                    expect(global.sectionForElementIndex(6)?.section) === child1b
+                    expect(global.sectionForElementIndex(7)?.section) === child2b
+                    expect(global.sectionForElementIndex(8)?.section) === child2d
+                    expect(global.sectionForElementIndex(9)?.section) === child2d
+                    expect(global.sectionForElementIndex(10)?.section) === child2d
+                    expect(global.sectionForElementIndex(11)?.section) === child2f
+                    expect(global.sectionForElementIndex(12)?.section) === child2f
+                    expect(global.sectionForElementIndex(13)?.section) === child2f
+                    expect(global.sectionForElementIndex(14)?.section) === child2h
+                    expect(global.sectionForElementIndex(15)?.section) === child2h
+                    expect(global.sectionForElementIndex(16)?.section) === child2h
+                    expect(global.sectionForElementIndex(17)?.section) === child3
+                    expect(global.sectionForElementIndex(18)?.section) === child3
+                    expect(global.sectionForElementIndex(19)?.section) === child3
+                    expect(global.sectionForElementIndex(20)?.section) === child4
+                    expect(global.sectionForElementIndex(21)?.section) === child4
+                }
+
+                it("should return the correct child indexes") {
+                    expect(global.childIndex(of: child1)) == 0
+                    expect(global.childIndex(of: child1a)).to(beNil())
+                    expect(global.childIndex(of: newSection)).to(beNil())
+                    expect(global.childIndex(of: child1b)).to(beNil())
+                    expect(global.childIndex(of: child2)) == 1
+                    expect(global.childIndex(of: child2a)).to(beNil())
+                    expect(global.childIndex(of: child2b)).to(beNil())
+                    expect(global.childIndex(of: child2c)).to(beNil())
+                    expect(global.childIndex(of: child2d)).to(beNil())
+                    expect(global.childIndex(of: child2e)).to(beNil())
+                    expect(global.childIndex(of: child2f)).to(beNil())
+                    expect(global.childIndex(of: child2g)).to(beNil())
+                    expect(global.childIndex(of: child2h)).to(beNil())
+                    expect(global.childIndex(of: child3)) == 2
+                    expect(global.childIndex(of: child4)) == 3
+                    expect(global.childIndex(of: child5)) == 4
+                }
+
+                it("should make correct delegate calls") {
+                    expect(mockDelegate.didInsertElementCalls.count) == 2
+                    expect(mockDelegate.didInsertElementCalls[0].section) === global
+                    expect(mockDelegate.didInsertElementCalls[0].index) == 2
+                    expect(mockDelegate.didInsertElementCalls[1].section) === global
+                    expect(mockDelegate.didInsertElementCalls[1].index) == 3
+                }
+            }
+
+            context("after a section has been removed from a child section provider") {
+                var mockDelegate: MockSectionUpdateDelegate!
+                var removedSection: ArraySection<String>!
+
+                beforeEach {
+                    mockDelegate = MockSectionUpdateDelegate()
+                    global.updateDelegate = mockDelegate
+
+                    removedSection = child1a
+
+                    child1.remove(removedSection)
+                }
+
+                it("should contain 18 elements") {
+                    expect(global.numberOfElements) == 18
+                }
+
+                it("should return the correct first element indexes") {
+                    expect(global.indexForFirstElement(of: child1)) == 0
+                    expect(global.indexForFirstElement(of: removedSection)).to(beNil())
+                    expect(global.indexForFirstElement(of: child1b)) == 0
+                    expect(global.indexForFirstElement(of: child2)) == 3
+                    expect(global.indexForFirstElement(of: child2a)) == 3
+                    expect(global.indexForFirstElement(of: child2b)) == 3
+                    expect(global.indexForFirstElement(of: child2c)) == 4
+                    expect(global.indexForFirstElement(of: child2d)) == 4
+                    expect(global.indexForFirstElement(of: child2e)) == 7
+                    expect(global.indexForFirstElement(of: child2f)) == 7
+                    expect(global.indexForFirstElement(of: child2g)) == 10
+                    expect(global.indexForFirstElement(of: child2h)) == 10
+                    expect(global.indexForFirstElement(of: child3)) == 13
+                    expect(global.indexForFirstElement(of: child4)) == 16
+                    expect(global.indexForFirstElement(of: child5)) == 18
+                }
+
+                it("should return the correct section for element index") {
+                    expect(global.sectionForElementIndex(0)?.section) === child1b
+                    expect(global.sectionForElementIndex(1)?.section) === child1b
+                    expect(global.sectionForElementIndex(2)?.section) === child1b
+                    expect(global.sectionForElementIndex(3)?.section) === child2b
+                    expect(global.sectionForElementIndex(4)?.section) === child2d
+                    expect(global.sectionForElementIndex(5)?.section) === child2d
+                    expect(global.sectionForElementIndex(6)?.section) === child2d
+                    expect(global.sectionForElementIndex(7)?.section) === child2f
+                    expect(global.sectionForElementIndex(8)?.section) === child2f
+                    expect(global.sectionForElementIndex(9)?.section) === child2f
+                    expect(global.sectionForElementIndex(10)?.section) === child2h
+                    expect(global.sectionForElementIndex(11)?.section) === child2h
+                    expect(global.sectionForElementIndex(12)?.section) === child2h
+                    expect(global.sectionForElementIndex(13)?.section) === child3
+                    expect(global.sectionForElementIndex(14)?.section) === child3
+                    expect(global.sectionForElementIndex(15)?.section) === child3
+                    expect(global.sectionForElementIndex(16)?.section) === child4
+                    expect(global.sectionForElementIndex(17)?.section) === child4
+                }
+
+                it("should return the correct child indexes") {
+                    expect(global.childIndex(of: child1)) == 0
+                    expect(global.childIndex(of: removedSection)).to(beNil())
+                    expect(global.childIndex(of: child1b)).to(beNil())
+                    expect(global.childIndex(of: child2)) == 1
+                    expect(global.childIndex(of: child2a)).to(beNil())
+                    expect(global.childIndex(of: child2b)).to(beNil())
+                    expect(global.childIndex(of: child2c)).to(beNil())
+                    expect(global.childIndex(of: child2d)).to(beNil())
+                    expect(global.childIndex(of: child2e)).to(beNil())
+                    expect(global.childIndex(of: child2f)).to(beNil())
+                    expect(global.childIndex(of: child2g)).to(beNil())
+                    expect(global.childIndex(of: child2h)).to(beNil())
+                    expect(global.childIndex(of: child3)) == 2
+                    expect(global.childIndex(of: child4)) == 3
+                    expect(global.childIndex(of: child5)) == 4
+                }
+
+                it("should make correct delegate calls") {
+                    expect(mockDelegate.didRemoveElementCalls.count) == 2
+                    expect(mockDelegate.didRemoveElementCalls[0].section) === global
+                    expect(mockDelegate.didRemoveElementCalls[0].index) == 1
+                    expect(mockDelegate.didRemoveElementCalls[1].section) === global
+                    expect(mockDelegate.didRemoveElementCalls[1].index) == 0
                 }
             }
         }
