@@ -674,6 +674,36 @@ final class FlatSection_Spec: QuickSpec {
                     expect(mockDelegate.didInsertElementCalls[1].section) === global
                     expect(mockDelegate.didInsertElementCalls[1].index) == 3
                 }
+
+                context("elements inserted in that child should be propagated") {
+                    beforeEach {
+                        mockDelegate = MockSectionUpdateDelegate()
+                        global.updateDelegate = mockDelegate
+
+                        newSection.append("new section index 2")
+                    }
+
+                    it("should make correct delegate calls") {
+                        expect(mockDelegate.didInsertElementCalls.count) == 1
+                        expect(mockDelegate.didInsertElementCalls[0].section) === global
+                        expect(mockDelegate.didInsertElementCalls[0].index) == 4
+                    }
+                }
+
+                context("elements removed from that child should be propagated") {
+                    beforeEach {
+                        mockDelegate = MockSectionUpdateDelegate()
+                        global.updateDelegate = mockDelegate
+
+                        newSection.removeLast()
+                    }
+
+                    it("should make correct delegate calls") {
+                        expect(mockDelegate.didRemoveElementCalls.count) == 1
+                        expect(mockDelegate.didRemoveElementCalls[0].section) === global
+                        expect(mockDelegate.didRemoveElementCalls[0].index) == 3
+                    }
+                }
             }
 
             context("after a section has been removed from a child section provider") {

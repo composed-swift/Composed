@@ -57,6 +57,8 @@ open class FlatSection: Section, CustomReflectable {
         sections.append(contentsOf: sectionProvider.sections)
 
         sectionProvider.sections.forEach { section in
+            section.updateDelegate = self
+
             (0..<section.numberOfElements)
                 .map { $0 + indexOfFirstSectionElement }
                 .forEach { index in
@@ -137,6 +139,8 @@ open class FlatSection: Section, CustomReflectable {
 
         updateDelegate?.willBeginUpdating(self)
         sectionProvider.sections.reversed().forEach { section in
+            section.updateDelegate = nil
+
             let sectionOffset = indexForFirstElement(of: section)!
             sections = sections.filter { $0 !== section }
 
@@ -384,6 +388,8 @@ extension FlatSection: SectionProviderUpdateDelegate {
         updateDelegate?.willBeginUpdating(self)
 
         for (section, index) in zip(sections, indexes) {
+            section.updateDelegate = self
+
             let sectionIndex = index + providerSectionIndex
             self.sections.insert(section, at: sectionIndex)
             let firstSectionIndex = self.indexForFirstElement(of: section)!
