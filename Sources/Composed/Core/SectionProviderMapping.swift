@@ -82,6 +82,11 @@ public protocol SectionProviderMappingDelegate: class {
     ///   - destinationIndexPath: The final indexPath
     func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath)
 
+    /// Notifies the delegate that the section invalidated its header.
+    /// - Parameters:
+    ///   - sectionIndex: The index of the section that invalidated its header.
+    func mappingDidInvalidateHeader(at sectionIndex: Int)
+
 }
 
 /// An object that encapsulates the logic required to map `SectionProvider`s to a global context,
@@ -229,6 +234,11 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mapping(self, didMoveElementsAt: [(source, destination)])
     }
 
+    public func sectionDidInvalidateHeader(_ section: Section) {
+        guard let sectionOffset = self.sectionOffset(of: section) else { return }
+        delegate?.mappingDidInvalidateHeader(at: sectionOffset)
+    }
+
     // Rebuilds the cached providers to improve lookup performance.
     // This is generally only required when a sections are either inserted or removed, so it should be fairly efficient.
     private func rebuildSectionOffsets() {
@@ -242,10 +252,8 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
         func addOffsets(forChildrenOf aggregate: AggregateSectionProvider, offset: Int = 0) {
             for child in aggregate.providers {
-                let aggregateSectionOffset = aggregate.sectionOffset(for: child)
-
-                guard aggregateSectionOffset > -1 else {
-                    assertionFailure("AggregateSectionProvider should return a value > -1 fo.r section offset of child \(child)")
+                guard let aggregateSectionOffset = aggregate.sectionOffset(for: child) else {
+                    assertionFailure("AggregateSectionProvider should return a non-nil value for section offset of child \(child)")
                     continue
                 }
 

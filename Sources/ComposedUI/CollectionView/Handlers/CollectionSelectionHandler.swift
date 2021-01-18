@@ -2,7 +2,7 @@ import UIKit
 import Composed
 
 /// Provides selection handling for `UICollectionView`'s
-public protocol CollectionSelectionHandler: SelectionHandler, CollectionSectionProvider {
+public protocol CollectionSelectionHandler: SelectionHandler, UICollectionViewSection {
 
     /// When a selection occurs, this method will be called to notify the section
     /// - Parameters:
@@ -22,7 +22,7 @@ public extension CollectionSelectionHandler {
     func didSelect(at index: Int, cell: UICollectionViewCell) {
         didSelect(at: index)
     }
-
+    
     func didDeselect(at index: Int, cell: UICollectionViewCell) {
         didSelect(at: index)
     }
