@@ -199,18 +199,6 @@ internal struct ChangesReducer {
                 return batchedRowUpdate
             })
 
-            changeset.elementsRemoved = Set(changeset.elementsRemoved.compactMap { removedIndexPath in
-                guard removedIndexPath.section != removedGroup else { return nil }
-
-                var batchedRowRemoval = removedIndexPath
-
-                if batchedRowRemoval.section > removedGroup {
-                    batchedRowRemoval.section -= 1
-                }
-
-                return batchedRowRemoval
-            })
-
             changeset.elementsMoved = Set(changeset.elementsMoved.compactMap { move in
                 guard move.to.section != removedGroup else { return nil }
 
@@ -235,6 +223,26 @@ internal struct ChangesReducer {
 
     internal mutating func removeElements(at indexPaths: [IndexPath]) {
         indexPaths.forEach { removedIndexPath in
+            var removedIndexPath = removedIndexPath
+            let sectionsRemovedBefore = changeset.groupsRemoved.filter { $0 <= removedIndexPath.section }.count
+            removedIndexPath.section += sectionsRemovedBefore
+
+            if let removedMoveIndex = changeset.elementsMoved.firstIndex(where: { $0.from == removedIndexPath || $0.to == removedIndexPath }) {
+                let move = changeset.elementsMoved.remove(at: removedMoveIndex)
+
+                if move.from == removedIndexPath {
+                    changeset.elementsInserted.insert(move.to)
+                    changeset.elementsRemoved.insert(move.to)
+                } else {
+                    changeset.elementsInserted.insert(move.from)
+                    changeset.elementsRemoved.insert(move.from)
+                }
+
+                changeset.elementsRemoved.insert(removedIndexPath) 
+
+                return
+            }
+
             if changeset.elementsUpdated.remove(removedIndexPath) == nil, changeset.elementsInserted.remove(removedIndexPath) == nil {
                 changeset.elementsRemoved.insert(removedIndexPath)
             }

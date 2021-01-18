@@ -262,7 +262,11 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         guard let changeset = changesReducer.endUpdating() else { return }
 
         /**
-         Deletes are processed before inserts in batch operations. This means the indexes for the deletions are processed relative to the indexes of the collection view’s state before the batch operation, and the indexes for the insertions are processed relative to the indexes of the state after all the deletions in the batch operation.
+         _Item_ deletes are processed first, with indexes relative to the state at the start of `performBatchUpdates`.
+
+         _Section_ are processed next, with indexes relative to the state at the start of `performBatchUpdates` (since section indexes are not changed by item deletes).
+
+         All other updates are processed relative to the indexes **after** these deletes have occurred.
          */
         debugLog("Performing batch updates")
         collectionView.performBatchUpdates({
