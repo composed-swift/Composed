@@ -1,6 +1,5 @@
 import XCTest
-import Composed
-@testable import ComposedUI
+@testable import Composed
 
 final class SingleElementSectionTests: XCTestCase {
     func testNumberOfElementsWithOptional() {
