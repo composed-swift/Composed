@@ -25,7 +25,7 @@ final class ChangesReducerTests: XCTestCase {
         var changesReducer = ChangesReducer()
         changesReducer.beginUpdating()
         changesReducer.removeGroups(IndexSet([0, 2]))
-        changesReducer.removeGroups(IndexSet(integer: 1))
+        changesReducer.removeGroups(IndexSet(integer: 0))
         let changeset = changesReducer.endUpdating()
 
         XCTAssertNotNil(changeset)
@@ -39,26 +39,36 @@ final class ChangesReducerTests: XCTestCase {
         XCTAssertTrue(changeset!.elementsMoved.isEmpty)
     }
 
-    func testRemovingAGroupInsertedInTheSameBatch() {
+    func testGroupAndElementRemoves() {
+        /**
+         Because element removals are processed before group removals, any element removals that are
+         performed after a group removal should have their section increased.
+         */
         var changesReducer = ChangesReducer()
         changesReducer.beginUpdating()
-
-        changesReducer.insertGroups([0])
-        changesReducer.removeGroups([0])
-        changesReducer.insertGroups([0, 1, 2, 3, 4])
-        changesReducer.removeGroups([2])
-
+        changesReducer.removeGroups(IndexSet([0, 1]))
+        changesReducer.removeElements(at: [IndexPath(item: 1, section: 2)])
+        changesReducer.removeGroups(IndexSet(integer: 0))
         let changeset = changesReducer.endUpdating()
 
         XCTAssertNotNil(changeset)
 
-        XCTAssertEqual(changeset!.groupsInserted, [0, 1, 2, 3])
-        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
+        XCTAssertEqual(changeset!.groupsRemoved, [0, 1, 2])
+        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
         XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
-        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
+        XCTAssertEqual(changeset!.elementsRemoved, [IndexPath(row: 1, section: 4)])
         XCTAssertTrue(changeset!.elementsInserted.isEmpty)
         XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
         XCTAssertTrue(changeset!.elementsMoved.isEmpty)
+    }
+
+    func testRemoveSectionThenRemoveElementThenRemoveSection() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        changesReducer.removeGroups([1])
+        changesReducer.removeElements(at: [IndexPath(row: 1, section: 2)])
+        changesReducer.removeGroups([1])
     }
 
     func testMoveElement() {
@@ -138,7 +148,7 @@ final class ChangesReducerTests: XCTestCase {
         XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
     }
 
-    func testRemoveAMovedIndex() {
+    func testRemoveAnIndexPathWithAMoveTo() {
         var changesReducer = ChangesReducer()
         changesReducer.beginUpdating()
 
@@ -162,40 +172,94 @@ final class ChangesReducerTests: XCTestCase {
 
          `UICollectionView` does not support deleting an index path and moving to the same index path, so this should produce:
 
-         - Delete 0
          - Delete 1
          - Delete 2
-         - Insert 0
-         - Insert 2
+         - Insert 1
          */
 
         changesReducer.moveElements([(from: IndexPath(row: 1, section: 0), to: IndexPath(row: 2, section: 0))])
-        changesReducer.removeElements(at: [IndexPath(row: 1, section: 0)])
+        changesReducer.removeElements(at: [IndexPath(row: 2, section: 0)])
 
-        let changeset = changesReducer.endUpdating()
-
-        XCTAssertNotNil(changeset)
+        guard let changeset = changesReducer.endUpdating() else {
+            XCTFail("Changeset should not be `nil`")
+            return
+        }
 
         XCTAssertEqual(
-            changeset!.elementsRemoved,
+            changeset.elementsRemoved,
             [
-                IndexPath(row: 0, section: 0),
                 IndexPath(row: 1, section: 0),
                 IndexPath(row: 2, section: 0),
             ]
         )
         XCTAssertEqual(
-            changeset!.elementsInserted,
+            changeset.elementsInserted,
             [
-                IndexPath(row: 0, section: 0),
                 IndexPath(row: 1, section: 0),
             ]
         )
-        XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
-        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
-        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-        XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
+        XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+        XCTAssertTrue(changeset.elementsMoved.isEmpty)
+        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+        XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+    }
+
+    func testRemoveAnIndexPathWithAMoveFrom() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        /**
+         This is testing:
+
+         - A
+         - B
+         - C
+
+         # Swap B and C
+
+         - A
+         - C
+         - B
+
+         # Delete B
+
+         - A
+         - C
+
+         `UICollectionView` does not support deleting an index path and moving to the same index path, so this should produce:
+
+         - Delete 1
+         - Delete 2
+         - Insert 1
+         */
+
+        changesReducer.moveElements([(from: IndexPath(row: 2, section: 0), to: IndexPath(row: 1, section: 0))])
+        changesReducer.removeElements(at: [IndexPath(row: 2, section: 0)])
+
+        guard let changeset = changesReducer.endUpdating() else {
+            XCTFail("Changeset should not be `nil`")
+            return
+        }
+
+        XCTAssertEqual(
+            changeset.elementsRemoved,
+            [
+                IndexPath(row: 1, section: 0),
+                IndexPath(row: 2, section: 0),
+            ]
+        )
+        XCTAssertEqual(
+            changeset.elementsInserted,
+            [
+                IndexPath(row: 1, section: 0),
+            ]
+        )
+        XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+        XCTAssertTrue(changeset.elementsMoved.isEmpty)
+        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+        XCTAssertTrue(changeset.groupsUpdated.isEmpty)
     }
 
     func testMoveElementAtSameIndexAsRemove() {
@@ -221,11 +285,9 @@ final class ChangesReducerTests: XCTestCase {
 
          `UICollectionView` does not support deleting an index path and moving to the same index path, so this should produce:
 
-         - Delete 0
-         - Delete 1
+         - Update 0
+         - Update 1
          - Delete 2
-         - Insert 0
-         - Insert 2
          */
 
         changesReducer.removeElements(at: [IndexPath(row: 1, section: 0)])
@@ -238,19 +300,17 @@ final class ChangesReducerTests: XCTestCase {
         XCTAssertEqual(
             changeset!.elementsRemoved,
             [
-                IndexPath(row: 0, section: 0),
-                IndexPath(row: 1, section: 0),
                 IndexPath(row: 2, section: 0),
             ]
         )
+        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
         XCTAssertEqual(
-            changeset!.elementsInserted,
+            changeset!.elementsUpdated,
             [
                 IndexPath(row: 0, section: 0),
                 IndexPath(row: 1, section: 0),
             ]
         )
-        XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
         XCTAssertTrue(changeset!.elementsMoved.isEmpty)
         XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
         XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
