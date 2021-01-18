@@ -1,5 +1,6 @@
 import UIKit
 import Composed
+import os.log
 
 /// Conform to this protocol to receive `CollectionCoordinator` events
 public protocol CollectionCoordinatorDelegate: class {
@@ -38,17 +39,13 @@ open class CollectionCoordinator: NSObject {
         return mapper.provider
     }
 
+    internal var changesReducer = ChangesReducer()
+
     private var mapper: SectionProviderMapping
 
-    private var defersUpdate: Bool = false
-    private var sectionRemoves: [() -> Void] = []
-    private var sectionInserts: [() -> Void] = []
-    private var sectionUpdates: [() -> Void] = []
-
-    private var removes: [() -> Void] = []
-    private var inserts: [() -> Void] = []
-    private var changes: [() -> Void] = []
-    private var moves: [() -> Void] = []
+    private var isPerformingBatchedUpdates: Bool {
+        changesReducer.hasActiveUpdates
+    }
 
     private let collectionView: UICollectionView
 
@@ -160,6 +157,8 @@ open class CollectionCoordinator: NSObject {
 
     // Prepares and caches the section to improve performance
     private func prepareSections() {
+        debugLog("Preparing sections")
+
         cachedElementsProviders.removeAll()
         mapper.delegate = self
 
@@ -222,31 +221,30 @@ open class CollectionCoordinator: NSObject {
         delegate?.coordinatorDidUpdate(self)
     }
 
+    fileprivate func debugLog(_ message: String) {
+        if #available(iOS 12, *) {
+            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
+        }
+    }
 }
 
 // MARK: - SectionProviderMappingDelegate
 
 extension CollectionCoordinator: SectionProviderMappingDelegate {
-
-    private func reset() {
-        removes.removeAll()
-        inserts.removeAll()
-        changes.removeAll()
-        moves.removeAll()
-        sectionInserts.removeAll()
-        sectionRemoves.removeAll()
-    }
-
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
         assert(Thread.isMainThread)
-        reset()
+
+        debugLog(#function)
+        changesReducer = ChangesReducer()
         prepareSections()
         collectionView.reloadData()
     }
 
     public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
-        reset()
-        defersUpdate = true
+        debugLog(#function)
+        assert(Thread.isMainThread)
+
+        changesReducer.beginUpdating()
 
         // This is called here to ensure that the collection view's internal state is in-sync with the state of the
         // data in hierarchy of sections. If this is not done it can cause various crashes when `performBatchUpdates` is called
@@ -258,81 +256,110 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mappingDidEndUpdating(_ mapping: SectionProviderMapping) {
+        debugLog(#function)
         assert(Thread.isMainThread)
+
+        guard let changeset = changesReducer.endUpdating() else { return }
+
+        /**
+         Deletes are processed before inserts in batch operations. This means the indexes for the deletions are processed relative to the indexes of the collection view’s state before the batch operation, and the indexes for the insertions are processed relative to the indexes of the state after all the deletions in the batch operation.
+         */
+        debugLog("Performing batch updates")
         collectionView.performBatchUpdates({
-            if defersUpdate {
-                prepareSections()
+            prepareSections()
+
+            debugLog("Deleting \(changeset.groupsRemoved)")
+            collectionView.deleteItems(at: Array(changeset.elementsRemoved))
+
+            debugLog("Inserting \(changeset.groupsInserted)")
+            collectionView.insertItems(at: Array(changeset.elementsInserted))
+
+            // TODO: Account for `section.prefersReload`
+            debugLog("Updating \(changeset.groupsUpdated)")
+            collectionView.reloadItems(at: Array(changeset.elementsUpdated))
+
+            changeset.elementsMoved.forEach { move in
+                debugLog("Moving \(move.from) to \(move.to)")
+                collectionView.moveItem(at: move.from, to: move.to)
             }
 
-            removes.forEach { $0() }
-            inserts.forEach { $0() }
-            changes.forEach { $0() }
-            moves.forEach { $0() }
-            sectionRemoves.forEach { $0() }
-            sectionInserts.forEach { $0() }
-            sectionUpdates.forEach { $0() }
-            reset()
-            defersUpdate = false
+            debugLog("Deleting \(changeset.groupsRemoved)")
+            collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
+
+            debugLog("Inserting \(changeset.groupsInserted)")
+            collectionView.insertSections(IndexSet(changeset.groupsInserted))
+
+            debugLog("Updating \(changeset.groupsUpdated)")
+            collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
+            // TODO: Implement Moves
         })
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) {
         assert(Thread.isMainThread)
-        sectionUpdates.append { [weak self] in
-            guard let self = self else { return }
-            if !self.defersUpdate { self.prepareSections() }
-            self.collectionView.reloadSections(sections)
+
+        guard isPerformingBatchedUpdates else {
+            prepareSections()
+            collectionView.reloadSections(sections)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.updateGroups(sections)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
         assert(Thread.isMainThread)
-        sectionInserts.append { [weak self] in
-            guard let self = self else { return }
-            if !self.defersUpdate { self.prepareSections() }
-            self.collectionView.insertSections(sections)
+
+        guard isPerformingBatchedUpdates else {
+            prepareSections()
+            collectionView.insertSections(sections)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.insertGroups(sections)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet) {
         assert(Thread.isMainThread)
-        sectionRemoves.append { [weak self] in
-            guard let self = self else { return }
-            if !self.defersUpdate { self.prepareSections() }
-            self.collectionView.deleteSections(sections)
+
+        guard isPerformingBatchedUpdates else {
+            prepareSections()
+            collectionView.deleteSections(sections)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.removeGroups(sections)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
-        inserts.append { [weak self] in
-            guard let self = self else { return }
-            self.collectionView.insertItems(at: indexPaths)
+
+        guard isPerformingBatchedUpdates else {
+            prepareSections()
+            collectionView.insertItems(at: indexPaths)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.insertElements(at: indexPaths)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
-        removes.append { [weak self] in
-            guard let self = self else { return }
-            self.collectionView.deleteItems(at: indexPaths)
+
+        guard isPerformingBatchedUpdates else {
+            prepareSections()
+            collectionView.deleteItems(at: indexPaths)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.removeElements(at: indexPaths)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
-        changes.append { [weak self] in
-            guard let self = self else { return }
+
+        guard isPerformingBatchedUpdates else {
+            prepareSections()
 
             var indexPathsToReload: [IndexPath] = []
             for indexPath in indexPaths {
@@ -353,19 +380,22 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             self.collectionView.reloadItems(at: indexPathsToReload)
             CATransaction.setDisableActions(false)
             CATransaction.commit()
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.updateElements(at: indexPaths)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)]) {
         assert(Thread.isMainThread)
-        self.moves.append { [weak self] in
-            guard let self = self else { return }
-            moves.forEach { self.collectionView.moveItem(at: $0.0, to: $0.1) }
+
+        guard isPerformingBatchedUpdates else {
+            prepareSections()
+            moves.forEach { collectionView.moveItem(at: $0.0, to: $0.1) }
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.moveElements(moves)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int] {
@@ -385,7 +415,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        collectionView.moveItem(at: sourceIndexPath, to: destinationIndexPath)
+        // TODO: Check `isPerformingBatchedUpdates`
+        self.mapping(mapping, didMoveElementsAt: [(sourceIndexPath, destinationIndexPath)])
     }
 
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {
