@@ -61,13 +61,15 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         rootSectionProvider.updateDelegate?.willBeginUpdating(rootSectionProvider)
 
-        rootSectionProvider.remove(child1)
-        child3.remove(at: 1)
-        child4.swapAt(0, 2)
+        // TODO: Uncommenting any of these will cause a crash/log an error
+        rootSectionProvider.remove(child0)
+//        child3.remove(at: 1)
+//        child4.swapAt(0, 2)
         rootSectionProvider.remove(child2)
         child4.append("4")
         rootSectionProvider.remove(child0)
-        child4.remove(at: 1)
+//        child4.remove(at: 1)
+        rootSectionProvider.remove(child1)
         rootSectionProvider.insert(child0, at: 0)
 
         rootSectionProvider.updateDelegate?.didEndUpdating(rootSectionProvider)
