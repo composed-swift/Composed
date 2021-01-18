@@ -10,6 +10,8 @@ final class CollectionCoordinatorTests: XCTestCase {
     ///
     /// One way for these tests to fail is by `UICollectionView` throwing a `NSInternalInconsistencyException', reason: 'Invalid update...'`
     /// error, which would likely indicate an error in `ChangesReducer`.
+    ///
+    /// It may also fail without throwing an exception, instead logging: `Invalid update: invalid ... - will perform reloadData`.
     func testBatchUpdates() {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         let rootSectionProvider = ComposedSectionProvider()
