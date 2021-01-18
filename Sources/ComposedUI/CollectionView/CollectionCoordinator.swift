@@ -272,14 +272,14 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         collectionView.performBatchUpdates({
             prepareSections()
 
-            debugLog("Deleting \(changeset.groupsRemoved)")
+            debugLog("Deleting items \(changeset.elementsRemoved)")
             collectionView.deleteItems(at: Array(changeset.elementsRemoved))
 
-            debugLog("Inserting \(changeset.groupsInserted)")
+            debugLog("Inserting items \(changeset.elementsInserted)")
             collectionView.insertItems(at: Array(changeset.elementsInserted))
 
             // TODO: Account for `section.prefersReload`
-            debugLog("Updating \(changeset.groupsUpdated)")
+            debugLog("Reloading items \(changeset.elementsUpdated)")
             collectionView.reloadItems(at: Array(changeset.elementsUpdated))
 
             changeset.elementsMoved.forEach { move in
@@ -287,13 +287,13 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
                 collectionView.moveItem(at: move.from, to: move.to)
             }
 
-            debugLog("Deleting \(changeset.groupsRemoved)")
+            debugLog("Deleting sections \(changeset.groupsRemoved)")
             collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
 
-            debugLog("Inserting \(changeset.groupsInserted)")
+            debugLog("Inserting sections \(changeset.groupsInserted)")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
 
-            debugLog("Updating \(changeset.groupsUpdated)")
+            debugLog("Reloading sections \(changeset.groupsUpdated)")
             collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
             // TODO: Implement Moves
         })
