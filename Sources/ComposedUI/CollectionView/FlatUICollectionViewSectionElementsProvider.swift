@@ -3,10 +3,44 @@ import Composed
 
 open class FlatUICollectionViewSectionElementsProvider: UICollectionViewSectionElementsProvider {
     /// The header configuration element
-    public let header: CollectionSupplementaryElement?
+    public var header: CollectionSupplementaryElement? {
+        guard let flatSection = flatSection else { return nil }
+        guard let header = flatSection.header else { return nil }
+        let kind: CollectionElementKind
+        if case .automatic = header.kind {
+            kind = .custom(kind: UICollectionView.elementKindSectionHeader)
+        } else {
+            kind = header.kind
+        }
+
+        return CollectionSupplementaryElement(
+            section: flatSection,
+            dequeueMethod: header.dequeueMethod,
+            reuseIdentifier: header.reuseIdentifier,
+            kind: kind,
+            configure: header.configure
+        )
+    }
 
     /// The footer configuration element
-    public let footer: CollectionSupplementaryElement?
+    public var footer: CollectionSupplementaryElement? {
+        guard let flatSection = flatSection else { return nil }
+        guard let footer = flatSection.footer else { return nil }
+        let kind: CollectionElementKind
+        if case .automatic = footer.kind {
+            kind = .custom(kind: UICollectionView.elementKindSectionFooter)
+        } else {
+            kind = footer.kind
+        }
+
+        return CollectionSupplementaryElement(
+            section: flatSection,
+            dequeueMethod: footer.dequeueMethod,
+            reuseIdentifier: footer.reuseIdentifier,
+            kind: kind,
+            configure: footer.configure
+        )
+    }
 
     /// The number of elements in this section
     open var numberOfElements: Int {
@@ -14,7 +48,7 @@ open class FlatUICollectionViewSectionElementsProvider: UICollectionViewSectionE
     }
 
     // The underlying section associated with this section
-    private weak var flatSection: FlatSection?
+    private weak var flatSection: FlatUICollectionViewSection?
 
     private let traitCollection: UITraitCollection
 
@@ -25,49 +59,11 @@ open class FlatUICollectionViewSectionElementsProvider: UICollectionViewSectionE
     ///   - header: The header configuration element
     ///   - footer: The footer configuration element
     public init(
-        section: FlatSection,
-        traitCollection: UITraitCollection,
-        header: CollectionSupplementaryElement? = nil,
-        footer: CollectionSupplementaryElement? = nil
+        section: FlatUICollectionViewSection,
+        traitCollection: UITraitCollection
     ) {
         self.flatSection = section
         self.traitCollection = traitCollection
-
-        // The code below copies the relevent elements to erase type-safety
-
-        if let header = header {
-            let kind: CollectionElementKind
-            if case .automatic = header.kind {
-                kind = .custom(kind: UICollectionView.elementKindSectionHeader)
-            } else {
-                kind = header.kind
-            }
-
-            self.header = CollectionSupplementaryElement(section: section,
-                                                         dequeueMethod: header.dequeueMethod,
-                                                         reuseIdentifier: header.reuseIdentifier,
-                                                         kind: kind,
-                                                         configure: header.configure)
-        } else {
-            self.header = nil
-        }
-
-        if let footer = footer {
-            let kind: CollectionElementKind
-            if case .automatic = footer.kind {
-                kind = .custom(kind: UICollectionView.elementKindSectionFooter)
-            } else {
-                kind = footer.kind
-            }
-
-            self.footer = CollectionSupplementaryElement(section: section,
-                                                         dequeueMethod: footer.dequeueMethod,
-                                                         reuseIdentifier: footer.reuseIdentifier,
-                                                         kind: kind,
-                                                         configure: footer.configure)
-        } else {
-            self.footer = nil
-        }
     }
 
     open func cell(for index: Int) -> CollectionCellElement {

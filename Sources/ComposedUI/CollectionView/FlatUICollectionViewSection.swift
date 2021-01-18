@@ -23,7 +23,7 @@ open class FlatUICollectionViewSection: FlatSection, UICollectionViewSection {
     }
 
     open func collectionViewElementsProvider(with traitCollection: UITraitCollection) -> UICollectionViewSectionElementsProvider {
-        FlatUICollectionViewSectionElementsProvider(section: self, traitCollection: traitCollection, header: header, footer: footer)
+        FlatUICollectionViewSectionElementsProvider(section: self, traitCollection: traitCollection)
     }
 }
 
