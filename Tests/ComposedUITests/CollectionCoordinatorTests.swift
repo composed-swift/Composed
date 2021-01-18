@@ -16,7 +16,7 @@ final class CollectionCoordinatorTests: XCTestCase {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         let rootSectionProvider = ComposedSectionProvider()
         let collectionCoordinator = CollectionCoordinator(collectionView: collectionView, sectionProvider: rootSectionProvider)
-        _ = collectionCoordinator
+        collectionCoordinator.enableLogs = true
 
         let child0 = MockCollectionArraySection(["1", "2", "3"])
         let child1 = MockCollectionArraySection(["1", "2", "3"])

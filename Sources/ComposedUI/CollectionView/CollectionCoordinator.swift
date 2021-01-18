@@ -39,6 +39,9 @@ open class CollectionCoordinator: NSObject {
         return mapper.provider
     }
 
+    /// If `true` this `CollectionCoordinator` instance will log changes to the system log.
+    public var enableLogs: Bool = false
+
     internal var changesReducer = ChangesReducer()
 
     private var mapper: SectionProviderMapping
@@ -222,7 +225,7 @@ open class CollectionCoordinator: NSObject {
     }
 
     fileprivate func debugLog(_ message: String) {
-        if #available(iOS 12, *) {
+        if #available(iOS 12, *), enableLogs {
             os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
         }
     }
