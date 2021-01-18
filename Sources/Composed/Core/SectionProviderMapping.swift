@@ -242,10 +242,8 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
         func addOffsets(forChildrenOf aggregate: AggregateSectionProvider, offset: Int = 0) {
             for child in aggregate.providers {
-                let aggregateSectionOffset = aggregate.sectionOffset(for: child)
-
-                guard aggregateSectionOffset > -1 else {
-                    assertionFailure("AggregateSectionProvider should return a value > -1 fo.r section offset of child \(child)")
+                guard let aggregateSectionOffset = aggregate.sectionOffset(for: child) else {
+                    assertionFailure("AggregateSectionProvider should return a non-nil value for section offset of child \(child)")
                     continue
                 }
 

@@ -65,8 +65,8 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     /// Calculate the offset for the first section of `provider`, relative to this section provider.
     ///
     /// - parameter provider: The provide to calculate the offset of.
-    /// - returns: The offset for the provider, or `-1` if it is not in the hierarchy.
-    public func sectionOffset(for provider: SectionProvider) -> Int {
+    /// - returns: The offset for the provider, or `nil` if it is not in the hierarchy.
+    public func sectionOffset(for provider: SectionProvider) -> Int? {
         guard provider !== self else { return 0 }
 
         /// This functions provides a fast path for when the `provider` is the last provider in the list of
@@ -95,11 +95,8 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
             case .provider(let childProvider):
                 if childProvider === provider {
                     return offset
-                } else if let childProvider = childProvider as? AggregateSectionProvider {
-                    let sectionOffset = childProvider.sectionOffset(for: provider)
-                    if sectionOffset != -1 {
-                        return offset + sectionOffset
-                    }
+                } else if let childProvider = childProvider as? AggregateSectionProvider,  let sectionOffset = childProvider.sectionOffset(for: provider) {
+                    return offset + sectionOffset
                 }
 
                 offset += childProvider.numberOfSections
@@ -107,10 +104,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
 
         // Provider is not in the hierarchy
-        return -1
+        return nil
     }
 
-    public func sectionOffset(for section: Section) -> Int {
+    public func sectionOffset(for section: Section) -> Int? {
         // A quick test for if this is the last child is a small optimisation, mainly
         // beneficial when the section has just been appended.
         switch children.last {
@@ -142,7 +139,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
 
         // Provider is not in the hierachy
-        return -1
+        return nil
     }
 
     /// Returns the first index of the `section`, or `nil` if the section is not a child of this
@@ -185,7 +182,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         updateDelegate?.willBeginUpdating(self)
         children.insert(.section(child), at: index)
         numberOfSections += 1
-        let sectionOffset = self.sectionOffset(for: child)
+        let sectionOffset = self.sectionOffset(for: child)!
         sections.insert(child, at: sectionOffset)
         updateDelegate?.provider(self, didInsertSections: [child], at: IndexSet(integer: sectionOffset))
         updateDelegate?.didEndUpdating(self)
@@ -203,7 +200,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         updateDelegate?.willBeginUpdating(self)
         children.insert(.provider(child), at: index)
         numberOfSections += child.sections.count
-        let firstIndex = sectionOffset(for: child)
+        let firstIndex = sectionOffset(for: child)!
         let endIndex = firstIndex + child.sections.count
         sections.insert(contentsOf: child.sections, at: firstIndex)
         updateDelegate?.provider(self, didInsertSections: child.sections, at: IndexSet(integersIn: firstIndex..<endIndex))
@@ -238,10 +235,10 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         switch child {
         case let .section(child):
             sections = [child]
-            sectionOffset = self.sectionOffset(for: child)
+            sectionOffset = self.sectionOffset(for: child)!
         case let .provider(child):
             child.updateDelegate = nil
-            sectionOffset = self.sectionOffset(for: child)
+            sectionOffset = self.sectionOffset(for: child)!
             sections = child.sections
         }
 
@@ -261,7 +258,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         numberOfSections += sections.count
 
-        let sectionOffset = self.sectionOffset(for: provider)
+        let sectionOffset = self.sectionOffset(for: provider)!
 
         indexes
             .enumerated()
@@ -285,7 +282,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
 
         numberOfSections -= sections.count
-        let sectionOffset = self.sectionOffset(for: provider)
+        let sectionOffset = self.sectionOffset(for: provider)!
         indexes.map { $0 + sectionOffset }.reversed().forEach { self.sections.remove(at: $0) }
 
         updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)
