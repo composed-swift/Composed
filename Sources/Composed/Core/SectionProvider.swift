@@ -37,10 +37,10 @@ public protocol AggregateSectionProvider: SectionProvider {
      context of the callee
 
      - parameter provider: The provider to calculate the section offset of
-     - returns: The section offset of the provided section provider, or -1 if
+     - returns: The section offset of the provided section provider, or `nil` if
      the section provider is not in the hierachy
      */
-    func sectionOffset(for provider: SectionProvider) -> Int
+    func sectionOffset(for provider: SectionProvider) -> Int?
 
 }
 

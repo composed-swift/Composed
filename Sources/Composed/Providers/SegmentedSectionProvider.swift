@@ -106,7 +106,7 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         return sections[section].numberOfElements
     }
 
-    public func sectionOffset(for provider: SectionProvider) -> Int {
+    public func sectionOffset(for provider: SectionProvider) -> Int? {
         guard provider !== self else { return 0 }
 
         var offset: Int = 0
@@ -117,11 +117,8 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         case .provider(let childProvider):
             if childProvider === provider {
                 return offset
-            } else if let childProvider = childProvider as? AggregateSectionProvider {
-                let sectionOffset = childProvider.sectionOffset(for: provider)
-                if sectionOffset != -1 {
-                    return offset + sectionOffset
-                }
+            } else if let childProvider = childProvider as? AggregateSectionProvider, let sectionOffset = childProvider.sectionOffset(for: provider) {
+                return offset + sectionOffset
             }
 
             offset += childProvider.numberOfSections
@@ -129,7 +126,7 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
             break
         }
 
-        return -1
+        return nil
     }
 
     /// Appends the specified `SectionProvider` to the provider
