@@ -364,10 +364,10 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             var indexPathsToReload: [IndexPath] = []
             for indexPath in indexPaths {
                 guard let section = self.sectionProvider.sections[indexPath.section] as? CollectionUpdateHandler,
-                    !section.prefersReload(forElementAt: indexPath.item),
-                    let cell = self.collectionView.cellForItem(at: indexPath) else {
-                        indexPathsToReload.append(indexPath)
-                        continue
+                      !section.prefersReload(forElementAt: indexPath.item),
+                      let cell = self.collectionView.cellForItem(at: indexPath) else {
+                    indexPathsToReload.append(indexPath)
+                    continue
                 }
 
                 self.cachedElementsProviders[indexPath.section].cell(for: indexPath.item).configure(cell, indexPath.item, self.mapper.provider.sections[indexPath.section])
@@ -584,8 +584,8 @@ extension CollectionCoordinator {
 
     public func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         guard let provider = mapper.provider.sections[indexPath.section] as? CollectionContextMenuHandler,
-            provider.allowsContextMenu(forElementAt: indexPath.item),
-            let cell = collectionView.cellForItem(at: indexPath) else { return nil }
+              provider.allowsContextMenu(forElementAt: indexPath.item),
+              let cell = collectionView.cellForItem(at: indexPath) else { return nil }
         let preview = provider.contextMenu(previewForElementAt: indexPath.item, cell: cell)
         return UIContextMenuConfiguration(identifier: indexPath.string, previewProvider: preview) { suggestedElements in
             return provider.contextMenu(forElementAt: indexPath.item, cell: cell, suggestedActions: suggestedElements)
@@ -595,21 +595,21 @@ extension CollectionCoordinator {
     public func collectionView(_ collectionView: UICollectionView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
         guard let identifier = configuration.identifier as? String, let indexPath = IndexPath(string: identifier) else { return nil }
         guard let cell = collectionView.cellForItem(at: indexPath),
-            let provider = mapper.provider.sections[indexPath.section] as? CollectionContextMenuHandler else { return nil }
+              let provider = mapper.provider.sections[indexPath.section] as? CollectionContextMenuHandler else { return nil }
         return provider.contextMenu(previewForHighlightingElementAt: indexPath.item, cell: cell)
     }
 
     public func collectionView(_ collectionView: UICollectionView, previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
         guard let identifier = configuration.identifier as? String, let indexPath = IndexPath(string: identifier) else { return nil }
         guard let cell = collectionView.cellForItem(at: indexPath),
-            let provider = mapper.provider.sections[indexPath.section] as? CollectionContextMenuHandler else { return nil }
+              let provider = mapper.provider.sections[indexPath.section] as? CollectionContextMenuHandler else { return nil }
         return provider.contextMenu(previewForDismissingElementAt: indexPath.item, cell: cell)
     }
 
     public func collectionView(_ collectionView: UICollectionView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: UIContextMenuInteractionCommitAnimating) {
         guard let identifier = configuration.identifier as? String, let indexPath = IndexPath(string: identifier) else { return }
         guard let cell = collectionView.cellForItem(at: indexPath),
-            let provider = mapper.provider.sections[indexPath.section] as? CollectionContextMenuHandler else { return }
+              let provider = mapper.provider.sections[indexPath.section] as? CollectionContextMenuHandler else { return }
         provider.contextMenu(willPerformPreviewActionForElementAt: indexPath.item, cell: cell, animator: animator)
     }
 
@@ -779,8 +779,8 @@ extension CollectionCoordinator: UICollectionViewDropDelegate {
         guard !indexPath.isEmpty else { return nil }
 
         guard let section = sectionProvider.sections[indexPath.section] as? CollectionDragHandler,
-            let cell = collectionView.cellForItem(at: indexPath) else {
-                return originalDragDelegate?.collectionView?(collectionView, dragPreviewParametersForItemAt: indexPath)
+              let cell = collectionView.cellForItem(at: indexPath) else {
+            return originalDragDelegate?.collectionView?(collectionView, dragPreviewParametersForItemAt: indexPath)
         }
 
         return section.dragSession(previewParametersForElementAt: indexPath.item, cell: cell)
@@ -788,7 +788,7 @@ extension CollectionCoordinator: UICollectionViewDropDelegate {
 
     public func collectionView(_ collectionView: UICollectionView, dropPreviewParametersForItemAt indexPath: IndexPath) -> UIDragPreviewParameters? {
         guard let section = sectionProvider.sections[indexPath.section] as? CollectionDropHandler,
-            let cell = collectionView.cellForItem(at: indexPath) else {
+              let cell = collectionView.cellForItem(at: indexPath) else {
             return originalDropDelegate?
                 .collectionView?(collectionView, dropPreviewParametersForItemAt: indexPath)
         }
@@ -826,8 +826,8 @@ extension CollectionCoordinator: UICollectionViewDropDelegate {
         let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: 0, section: 0)
 
         guard coordinator.proposal.operation == .move,
-            let section = sectionProvider.sections[destinationIndexPath.section] as? MoveHandler else {
-                return
+              let section = sectionProvider.sections[destinationIndexPath.section] as? MoveHandler else {
+            return
         }
 
         let item = coordinator.items.lazy
