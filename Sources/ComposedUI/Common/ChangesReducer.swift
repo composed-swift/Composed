@@ -120,7 +120,6 @@ internal struct ChangesReducer {
             let removedGroup = removedGroup - changeset.groupsInserted.filter { $0 < removedGroup }.count + changeset.groupsRemoved.filter { $0 <= removedGroup }.count
 
             if changeset.groupsInserted.remove(removedGroup) == nil {
-                // TODO: This can probably be removed
                 changeset.groupsRemoved = Set(changeset.groupsRemoved
                     .sorted(by: <)
                     .reduce(into: (previous: Int?.none, groupsRemoved: [Int]()), { (result, groupsRemoved) in
@@ -129,6 +128,7 @@ internal struct ChangesReducer {
                             result.groupsRemoved.append(groupsRemoved + 1)
                             result.previous = groupsRemoved + 1
                         } else if let previous = result.previous, groupsRemoved == previous {
+                            // TODO: Test this
                             result.groupsRemoved.append(groupsRemoved + 1)
                             result.previous = groupsRemoved + 1
                         } else {
@@ -220,6 +220,8 @@ internal struct ChangesReducer {
                         // This insert is really a reload (delete and insert)
                         return existingInsertedIndexPath
                     }
+                    // TODO: Test this
+
                     guard existingInsertedIndexPath != removedIndexPath else { return existingInsertedIndexPath }
 
                     var existingInsertedIndexPath = existingInsertedIndexPath
