@@ -19,17 +19,17 @@ open class SingleElementSection<Element>: Section {
     public private(set) var element: Element
 
     /// Generally returns 1, however if `element == Optional<Element>.none` returns 0
-    public var numberOfElements: Int {
-        switch element as Any {
-        case Optional<Any>.none: return 0
-        default: return 1
-        }
-    }
+    public private(set) var numberOfElements: Int
 
     /// Makes a `SingleElementSection` with the specified element
     /// - Parameter element: The element
     public init(element: Element) {
         self.element = element
+
+        switch element as Any {
+        case Optional<Any>.none: numberOfElements = 0
+        default: numberOfElements = 1
+        }
     }
 
     /// Replaces the element with the specified element
@@ -38,6 +38,11 @@ open class SingleElementSection<Element>: Section {
         updateDelegate?.willBeginUpdating(self)
         let wasEmpty = isEmpty
         self.element = element
+
+        switch element as Any {
+        case Optional<Any>.none: numberOfElements = 0
+        default: numberOfElements = 1
+        }
 
         switch (wasEmpty, isEmpty) {
         case (true, true):
@@ -51,5 +56,4 @@ open class SingleElementSection<Element>: Section {
         }
         updateDelegate?.didEndUpdating(self)
     }
-
 }
