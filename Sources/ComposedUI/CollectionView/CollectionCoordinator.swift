@@ -183,7 +183,7 @@ open class CollectionCoordinator: NSObject {
                     // `UINib(nibName:bundle:)` is an expensive call because it reads the NIB from the
                     // disk, which can have a large impact on performance when this is called multiple times.
                     //
-                    // Each registration is cached to ensure that the same nib is not registered multiple times.
+                    // Each registration is cached to ensure that the same nib is not read from disk multiple times.
 
                     let nibName = String(describing: type)
                     let nibBundle = Bundle(for: type)
