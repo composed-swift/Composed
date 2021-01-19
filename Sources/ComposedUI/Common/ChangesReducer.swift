@@ -9,6 +9,13 @@ import Foundation
 
  `ChangesReducer` uses the generalised terms "group" and "element", which can be mapped directly
  to "section" and "row" for `UITableView`s and "section" and "item" for `UICollectionView`.
+
+ Final updates are applied in the order:
+
+ - Element removals
+ - Group removals
+ - Group inserts
+ - Element inserts
  */
 internal struct ChangesReducer {
     internal var hasActiveUpdates: Bool {
@@ -96,7 +103,7 @@ internal struct ChangesReducer {
             changeset.elementsInserted = Set(changeset.elementsInserted.map { insertedIndexPath in
                 var insertedIndexPath = insertedIndexPath
 
-                if insertedIndexPath.section > insertedGroup {
+                if insertedIndexPath.section >= insertedGroup {
                     insertedIndexPath.section += 1
                 }
 

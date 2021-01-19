@@ -18,11 +18,11 @@ final class CollectionCoordinatorTests: XCTestCase {
         let collectionCoordinator = CollectionCoordinator(collectionView: collectionView, sectionProvider: rootSectionProvider)
         collectionCoordinator.enableLogs = true
 
-        let child0 = MockCollectionArraySection(["1", "2", "3"])
-        let child1 = MockCollectionArraySection(["1", "2", "3"])
-        let child2 = MockCollectionArraySection(["1", "2", "3"])
-        let child3 = MockCollectionArraySection(["1", "2", "3"])
-        var child4 = MockCollectionArraySection(["1", "2", "3"])
+        let child0 = MockCollectionArraySection([])
+        let child1 = MockCollectionArraySection(["1"])
+        let child2 = MockCollectionArraySection(["1", "2"])
+        let child3 = MockCollectionArraySection(["1", "2", "3", "4"])
+        var child4 = MockCollectionArraySection(["1", "2", "3", "4", "5"])
 
         rootSectionProvider.updateDelegate?.willBeginUpdating(rootSectionProvider)
 
@@ -57,7 +57,13 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         rootSectionProvider.updateDelegate?.didEndUpdating(rootSectionProvider)
 
+        rootSectionProvider.updateDelegate?.willBeginUpdating(rootSectionProvider)
+
+        child3.append("5")
         rootSectionProvider.insert(child2, after: child1)
+        child3.append("6")
+
+        rootSectionProvider.updateDelegate?.didEndUpdating(rootSectionProvider)
 
         rootSectionProvider.updateDelegate?.willBeginUpdating(rootSectionProvider)
 
@@ -66,7 +72,7 @@ final class CollectionCoordinatorTests: XCTestCase {
 //        child3.remove(at: 1)
 //        child4.swapAt(0, 2)
         rootSectionProvider.remove(child2)
-        child4.append("4")
+        child4.append("6")
         rootSectionProvider.remove(child0)
 //        child4.remove(at: 1)
         rootSectionProvider.remove(child1)
