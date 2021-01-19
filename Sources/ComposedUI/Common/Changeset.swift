@@ -13,6 +13,5 @@ internal struct Changeset {
     internal var groupsRemoved: Set<Int> = []
     internal var elementsRemoved: Set<IndexPath> = []
     internal var elementsInserted: Set<IndexPath> = []
-    internal var elementsUpdated: Set<IndexPath> = []
     internal var elementsMoved: Set<Move> = []
 }

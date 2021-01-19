@@ -13,9 +13,22 @@ import Foundation
  Final updates are applied in the order:
 
  - Element removals
+   - Using original index paths
  - Group removals
+   - Using original index paths
+ - Element moves
+   - Decomposed in to delete and insert
+   - Delete post-element removals, but pre-group removals?
+
+ To confirm:
  - Group inserts
+   - Using index paths after removals
  - Element inserts
+   - Using index paths after removals
+ - Group reloads
+   - Using index paths after removals and inserts
+ - Element reloads
+   - Using index paths after removals and inserts
  */
 internal struct ChangesReducer {
     internal var hasActiveUpdates: Bool {
@@ -56,51 +69,21 @@ internal struct ChangesReducer {
         return changeset
     }
 
-
-    internal mutating func insertGroups(_ groups: [Int]) {
-        insertGroups(IndexSet(groups))
-    }
-
     internal mutating func insertGroups(_ groups: IndexSet) {
         groups.forEach { insertedGroup in
-            if changeset.groupsRemoved.remove(insertedGroup) != nil {
-                changeset.groupsUpdated.insert(insertedGroup)
+            changeset.groupsInserted = Set(changeset.groupsInserted.map { existingInsertedGroup in
+                if existingInsertedGroup >= insertedGroup {
+                    return existingInsertedGroup + 1
+                }
+
+                return existingInsertedGroup
+            })
+
+            if changeset.groupsRemoved.contains(insertedGroup) {
+                changeset.groupsInserted.insert(insertedGroup)
             } else {
-                changeset.groupsRemoved = Set(changeset.groupsRemoved.map { removedGroup in
-                    if removedGroup > insertedGroup {
-                        return removedGroup + 1
-                    } else {
-                        return removedGroup
-                    }
-                })
                 changeset.groupsInserted.insert(insertedGroup)
             }
-
-            changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
-                if insertedGroup > insertedGroup {
-                    return insertedGroup + 1
-                } else {
-                    return insertedGroup
-                }
-            })
-
-            changeset.groupsUpdated = Set(changeset.groupsUpdated.map { updatedGroup in
-                if updatedGroup > insertedGroup {
-                    return updatedGroup + 1
-                } else {
-                    return updatedGroup
-                }
-            })
-
-            changeset.elementsRemoved = Set(changeset.elementsRemoved.map { removedIndexPath in
-                var removedIndexPath = removedIndexPath
-
-                if removedIndexPath.section > insertedGroup {
-                    removedIndexPath.section += 1
-                }
-
-                return removedIndexPath
-            })
 
             changeset.elementsInserted = Set(changeset.elementsInserted.map { insertedIndexPath in
                 var insertedIndexPath = insertedIndexPath
@@ -110,16 +93,6 @@ internal struct ChangesReducer {
                 }
 
                 return insertedIndexPath
-            })
-
-            changeset.elementsUpdated = Set(changeset.elementsUpdated.map { updatedIndexPath in
-                var updatedIndexPath = updatedIndexPath
-
-                if updatedIndexPath.section > insertedGroup {
-                    updatedIndexPath.section += 1
-                }
-
-                return updatedIndexPath
             })
 
             changeset.elementsMoved = Set(changeset.elementsMoved.map { move in
@@ -144,7 +117,10 @@ internal struct ChangesReducer {
 
     internal mutating func removeGroups(_ groups: IndexSet) {
         groups.forEach { removedGroup in
+            let removedGroup = removedGroup - changeset.groupsInserted.filter { $0 < removedGroup }.count + changeset.groupsRemoved.filter { $0 <= removedGroup }.count
+
             if changeset.groupsInserted.remove(removedGroup) == nil {
+                // TODO: This can probably be removed
                 changeset.groupsRemoved = Set(changeset.groupsRemoved
                     .sorted(by: <)
                     .reduce(into: (previous: Int?.none, groupsRemoved: [Int]()), { (result, groupsRemoved) in
@@ -171,17 +147,9 @@ internal struct ChangesReducer {
             changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
                 if insertedGroup > removedGroup {
                     return insertedGroup - 1
-                } else {
-                    return insertedGroup
                 }
-            })
 
-            changeset.groupsUpdated = Set(changeset.groupsUpdated.map { updatedGroup in
-                if updatedGroup > removedGroup {
-                    return updatedGroup - 1
-                } else {
-                    return updatedGroup
-                }
+                return insertedGroup
             })
 
             changeset.elementsInserted = Set(changeset.elementsInserted.compactMap { insertedIndexPath in
@@ -194,18 +162,6 @@ internal struct ChangesReducer {
                 }
 
                 return batchedRowInsert
-            })
-
-            changeset.elementsUpdated = Set(changeset.elementsUpdated.compactMap { updatedIndexPath in
-                guard updatedIndexPath.section != removedGroup else { return nil }
-
-                var batchedRowUpdate = updatedIndexPath
-
-                if batchedRowUpdate.section > removedGroup {
-                    batchedRowUpdate.section -= 1
-                }
-
-                return batchedRowUpdate
             })
 
             changeset.elementsMoved = Set(changeset.elementsMoved.compactMap { move in
@@ -227,81 +183,63 @@ internal struct ChangesReducer {
     }
 
     internal mutating func insertElements(at indexPaths: [IndexPath]) {
-        changeset.elementsInserted.formUnion(indexPaths)
+        indexPaths.forEach { insertedIndexPath in
+            changeset.elementsInserted.insert(insertedIndexPath)
+        }
     }
 
     internal mutating func removeElements(at indexPaths: [IndexPath]) {
+        /**
+         Element removals are handled before all other updates.
+         */
+        print("-----")
+        print(#function, indexPaths)
         indexPaths.forEach { removedIndexPath in
-            var removedIndexPath = removedIndexPath
-            let sectionsRemovedBefore = changeset.groupsRemoved.filter { $0 <= removedIndexPath.section }.count
-            removedIndexPath.section += sectionsRemovedBefore
-
-            if let removedMoveIndex = changeset.elementsMoved.firstIndex(where: { $0.from == removedIndexPath || $0.to == removedIndexPath }) {
-                let move = changeset.elementsMoved.remove(at: removedMoveIndex)
-
-                if move.from == removedIndexPath {
-                    changeset.elementsInserted.insert(move.to)
-                    changeset.elementsRemoved.insert(move.to)
-                } else {
-                    changeset.elementsInserted.insert(move.from)
-                    changeset.elementsRemoved.insert(move.from)
+            print("changeset.groupsRemoved", changeset.groupsRemoved)
+            print("changeset.groupsInserted", changeset.groupsInserted)
+            let sectionsRemovedBefore = changeset
+                .groupsRemoved
+                .sorted(by: <)
+                .enumerated()
+                .map { element in
+                    element.element - element.offset
                 }
+                .filter { $0 <= removedIndexPath.section }
+                .count
 
-                changeset.elementsRemoved.insert(removedIndexPath) 
+            let sectionsInsertedBefore = changeset.groupsInserted.filter { $0 <= removedIndexPath.section }.count
 
-                return
-            }
+            print("sectionsRemovedBefore", sectionsRemovedBefore)
+            print("sectionsInsertedBefore", sectionsInsertedBefore)
 
-            if changeset.elementsUpdated.remove(removedIndexPath) == nil, changeset.elementsInserted.remove(removedIndexPath) == nil {
-                changeset.elementsRemoved.insert(removedIndexPath)
-            }
+            var removedIndexPath = removedIndexPath
+            removedIndexPath.section += sectionsRemovedBefore
+            removedIndexPath.section -= sectionsInsertedBefore
 
-            changeset.elementsUpdated = Set(changeset.elementsUpdated.compactMap { updatedIndexPath in
-                guard updatedIndexPath.section == removedIndexPath.section else { return updatedIndexPath }
+            if !changeset.groupsInserted.contains(removedIndexPath.section) {
+                changeset.elementsInserted = Set(changeset.elementsInserted.map { existingRemovedIndexPath in
+                    guard existingRemovedIndexPath.section == removedIndexPath.section else { return existingRemovedIndexPath }
 
-                if updatedIndexPath.item > removedIndexPath.item {
-                    if updatedIndexPath.item == removedIndexPath.item + 1 {
-                        // Triggering an update to row with the same index path as one that's been removed
-                        // will trigger "attempt to delete and reload the same index path"
-                        changeset.elementsRemoved.insert(updatedIndexPath)
-                        changeset.elementsInserted.insert(updatedIndexPath)
-                        return nil
+                    var existingRemovedIndexPath = existingRemovedIndexPath
+
+                    if existingRemovedIndexPath.item > removedIndexPath.item {
+                        existingRemovedIndexPath.item -= 1
                     }
 
-                    return IndexPath(item: updatedIndexPath.item - 1, section: updatedIndexPath.section)
-                } else {
-                    return updatedIndexPath
-                }
-            })
+                    return existingRemovedIndexPath
+                })
 
-            changeset.elementsInserted = Set(changeset.elementsInserted.map { insertedIndexPath in
-                guard insertedIndexPath.section == removedIndexPath.section else { return insertedIndexPath }
-
-                if insertedIndexPath.item > removedIndexPath.item {
-                    return IndexPath(item: insertedIndexPath.item - 1, section: insertedIndexPath.section)
-                } else {
-                    return insertedIndexPath
-                }
-            })
-
-            changeset.elementsMoved = Set(changeset.elementsMoved.map { move in
-                var move = move
-
-                if move.from.section == removedIndexPath.section, move.from.item > removedIndexPath.item {
-                    move.from.item -= 1
-                }
-
-                if move.to.section == removedIndexPath.section, move.to.item > removedIndexPath.item {
-                    move.to.item -= 1
-                }
-
-                return move
-            })
+                changeset.elementsRemoved.insert(removedIndexPath)
+            }
         }
     }
 
     internal mutating func updateElements(at indexPaths: [IndexPath]) {
-        changeset.elementsUpdated.formUnion(indexPaths)
+        indexPaths.sorted(by: { $0.item > $1.item }).forEach { updatedElement in
+            // Reloads are decomposed in to a delete and insert
+            removeElements(at: [updatedElement])
+            insertElements(at: [updatedElement])
+        }
     }
 
     internal mutating func moveElements(_ moves: [Changeset.Move]) {
@@ -309,6 +247,6 @@ internal struct ChangesReducer {
     }
 
     internal mutating func moveElements(_ moves: [(from: IndexPath, to: IndexPath)]) {
-        changeset.elementsMoved.formUnion(moves.map { Changeset.Move(from: $0.from, to: $0.to) })
+        moveElements(moves.map { Changeset.Move(from: $0.from, to: $0.to) })
     }
 }

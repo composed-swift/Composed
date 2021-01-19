@@ -281,10 +281,6 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             debugLog("Inserting items \(changeset.elementsInserted)")
             collectionView.insertItems(at: Array(changeset.elementsInserted))
 
-            // TODO: Account for `section.prefersReload`
-            debugLog("Reloading items \(changeset.elementsUpdated)")
-            collectionView.reloadItems(at: Array(changeset.elementsUpdated))
-
             changeset.elementsMoved.forEach { move in
                 debugLog("Moving \(move.from) to \(move.to)")
                 collectionView.moveItem(at: move.from, to: move.to)
