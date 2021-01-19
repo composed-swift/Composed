@@ -416,6 +416,34 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         }
     }
 
+    public func mappingDidInvalidateFooter(at sectionIndex: Int) {
+        let elementsProvider = self.elementsProvider(for: sectionIndex)
+
+        if let footer = elementsProvider.footer {
+            switch footer.dequeueMethod.method {
+            case let .fromNib(type):
+                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                collectionView.register(nib, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
+            case let .fromClass(type):
+                collectionView.register(type, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
+            case .fromStoryboard:
+                break
+            }
+        }
+
+        let context = UICollectionViewFlowLayoutInvalidationContext()
+        context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: sectionIndex)])
+        invalidateLayout(with: context)
+
+        guard let footerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) else { return }
+
+        let section = mapper.provider.sections[sectionIndex]
+
+        if let footer = elementsProvider.footer, footer.kind.rawValue == UICollectionView.elementKindSectionFooter {
+            footer.configure(footerView, sectionIndex, section)
+        }
+    }
+
 }
 
 // MARK: - UICollectionViewDataSource

@@ -356,6 +356,10 @@ extension FlatSection: SectionUpdateDelegate {
     public func sectionDidInvalidateHeader(_ section: Section) {
         // Headers of children are currently ignored.
     }
+
+    public func sectionDidInvalidateFooter(_ section: Section) {
+        // Footers of children are currently ignored.
+    }
 }
 
 extension FlatSection: SectionProviderUpdateDelegate {

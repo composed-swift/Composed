@@ -136,6 +136,7 @@ extension StackCoordinator: SectionProviderMappingDelegate {
     public func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath) { }
     public func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) { }
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {}
+    public func mappingDidInvalidateFooter(at sectionIndex: Int) {}
 
 }
 
