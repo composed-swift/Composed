@@ -145,8 +145,6 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
         didRemoveElements = (mapping, indexPaths)
     }
 
-    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) { }
-
     func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath]) {
         didUpdateElements = (mapping, indexPaths)
     }

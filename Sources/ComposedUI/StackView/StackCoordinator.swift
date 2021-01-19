@@ -129,7 +129,6 @@ extension StackCoordinator: SectionProviderMappingDelegate {
 
     public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) { }
     public func mappingDidEndUpdating(_ mapping: SectionProviderMapping) { }
-    public func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) { }
     public func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)]) { }
     public func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int] { return [] }
     public func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath) { }

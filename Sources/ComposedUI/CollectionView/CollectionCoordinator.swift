@@ -295,23 +295,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
             debugLog("Inserting sections \(changeset.groupsInserted)")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
-
-            debugLog("Reloading sections \(changeset.groupsUpdated)")
-            collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
-            // TODO: Implement Moves
         })
-    }
-
-    public func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) {
-        assert(Thread.isMainThread)
-
-        guard isPerformingBatchedUpdates else {
-            prepareSections()
-            collectionView.reloadSections(sections)
-            return
-        }
-
-        changesReducer.updateGroups(sections)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {

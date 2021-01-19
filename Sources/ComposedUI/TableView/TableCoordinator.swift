@@ -194,17 +194,6 @@ extension TableCoordinator: SectionProviderMappingDelegate {
         })
     }
 
-    public func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) {
-        assert(Thread.isMainThread)
-        sectionUpdates.append { [weak self] in
-            guard let self = self else { return }
-            if !self.defersUpdate { self.prepareSections() }
-            self.tableView.reloadSections(sections, with: .fade)
-        }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
-    }
-
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
         assert(Thread.isMainThread)
         sectionInserts.append { [weak self] in

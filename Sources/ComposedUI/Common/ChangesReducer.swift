@@ -56,9 +56,6 @@ internal struct ChangesReducer {
         return changeset
     }
 
-    internal mutating func updateGroups(_ groups: IndexSet) {
-        changeset.groupsUpdated.formUnion(groups)
-    }
 
     internal mutating func insertGroups(_ groups: [Int]) {
         insertGroups(IndexSet(groups))
