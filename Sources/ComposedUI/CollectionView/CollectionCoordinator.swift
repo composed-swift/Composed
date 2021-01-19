@@ -238,7 +238,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         assert(Thread.isMainThread)
 
         debugLog(#function)
-        changesReducer = ChangesReducer()
+        changesReducer.clearUpdates()
         prepareSections()
         collectionView.reloadData()
     }

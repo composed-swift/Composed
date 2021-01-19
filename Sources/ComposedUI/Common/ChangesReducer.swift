@@ -26,6 +26,11 @@ internal struct ChangesReducer {
 
     private var changeset: Changeset = Changeset()
 
+    /// Clears existing updates, keeping active updates count.
+    internal mutating func clearUpdates() {
+        changeset = Changeset()
+    }
+
     /// Begin performing updates. This must be called prior to making updates.
     ///
     /// It is possible to call this function multiple times to build up a batch of changes.
