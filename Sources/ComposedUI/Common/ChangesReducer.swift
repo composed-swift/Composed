@@ -192,11 +192,7 @@ internal struct ChangesReducer {
         /**
          Element removals are handled before all other updates.
          */
-        print("-----")
-        print(#function, indexPaths)
         indexPaths.forEach { removedIndexPath in
-            print("changeset.groupsRemoved", changeset.groupsRemoved)
-            print("changeset.groupsInserted", changeset.groupsInserted)
             let sectionsRemovedBefore = changeset
                 .groupsRemoved
                 .sorted(by: <)
@@ -209,24 +205,30 @@ internal struct ChangesReducer {
 
             let sectionsInsertedBefore = changeset.groupsInserted.filter { $0 <= removedIndexPath.section }.count
 
-            print("sectionsRemovedBefore", sectionsRemovedBefore)
-            print("sectionsInsertedBefore", sectionsInsertedBefore)
-
             var removedIndexPath = removedIndexPath
             removedIndexPath.section += sectionsRemovedBefore
             removedIndexPath.section -= sectionsInsertedBefore
 
             if !changeset.groupsInserted.contains(removedIndexPath.section) {
-                changeset.elementsInserted = Set(changeset.elementsInserted.map { existingRemovedIndexPath in
-                    guard existingRemovedIndexPath.section == removedIndexPath.section else { return existingRemovedIndexPath }
-
-                    var existingRemovedIndexPath = existingRemovedIndexPath
-
-                    if existingRemovedIndexPath.item > removedIndexPath.item {
-                        existingRemovedIndexPath.item -= 1
+                changeset.elementsInserted = Set(changeset.elementsInserted.map { existingInsertedIndexPath in
+                    guard existingInsertedIndexPath.section == removedIndexPath.section else {
+                        // Different section; don't modify
+                        return existingInsertedIndexPath
                     }
 
-                    return existingRemovedIndexPath
+                    guard !changeset.elementsRemoved.contains(existingInsertedIndexPath) else {
+                        // This insert is really a reload (delete and insert)
+                        return existingInsertedIndexPath
+                    }
+                    guard existingInsertedIndexPath != removedIndexPath else { return existingInsertedIndexPath }
+
+                    var existingInsertedIndexPath = existingInsertedIndexPath
+
+                    if existingInsertedIndexPath.item > removedIndexPath.item {
+                        existingInsertedIndexPath.item -= 1
+                    }
+
+                    return existingInsertedIndexPath
                 })
 
                 changeset.elementsRemoved.insert(removedIndexPath)

@@ -64,9 +64,9 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.child2[2] = "new-2"
         }
 
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.remove(sections.child3)
-//        }
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child3)
+        }
 
         /**
          - Child 0
@@ -74,142 +74,142 @@ final class CollectionCoordinatorTests: XCTestCase {
          - Child 2
          */
 
-//        tester.applyUpdate { sections in
-//            sections.child2.append("appended")
-//        }
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.insert(sections.child4, at: 1)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 4
-//         - Child 1
-//         - Child 2
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.append(sections.child6)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 4
-//         - Child 1
-//         - Child 2
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.insert(sections.child5, before: sections.child6)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 4
-//         - Child 1
-//         - Child 2
-//         - Child 5
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.remove(sections.child4)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 1
-//         - Child 2
-//         - Child 5
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.insert(sections.child4, before: sections.child5)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 1
-//         - Child 2
-//         - Child 4
-//         - Child 5
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.insert(sections.child3, before: sections.child4)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 1
-//         - Child 2
-//         - Child 3
-//         - Child 4
-//         - Child 5
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.child3.remove(at: 2)
-//        }
-//
-//        tester.applyUpdate { sections in
-//            sections.child3.insert("new-2", at: 2)
-//        }
-//
-//        tester.applyUpdate { sections in
-//            sections.child3.insert("new-3", at: 3)
-//        }
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.remove(sections.child2)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 1
-//         - Child 3
-//         - Child 4
-//         - Child 5
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.remove(sections.child3)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 1
-//         - Child 4
-//         - Child 5
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.rootSectionProvider.insert(sections.child2, at: 2)
-//        }
-//
-//        /**
-//         - Child 0
-//         - Child 1
-//         - Child 2
-//         - Child 4
-//         - Child 5
-//         - Child 6
-//         */
-//
-//        tester.applyUpdate { sections in
-//            sections.child5.swapAt(0, 8)
-//        }
-//
-//        tester.applyUpdate { sections in
-//            sections.child2.swapAt(0, 3)
-//        }
+        tester.applyUpdate { sections in
+            sections.child2.append("appended")
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.insert(sections.child4, at: 1)
+        }
+
+        /**
+         - Child 0
+         - Child 4
+         - Child 1
+         - Child 2
+         */
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child6)
+        }
+
+        /**
+         - Child 0
+         - Child 4
+         - Child 1
+         - Child 2
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.insert(sections.child5, before: sections.child6)
+        }
+
+        /**
+         - Child 0
+         - Child 4
+         - Child 1
+         - Child 2
+         - Child 5
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child4)
+        }
+
+        /**
+         - Child 0
+         - Child 1
+         - Child 2
+         - Child 5
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.insert(sections.child4, before: sections.child5)
+        }
+
+        /**
+         - Child 0
+         - Child 1
+         - Child 2
+         - Child 4
+         - Child 5
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.insert(sections.child3, before: sections.child4)
+        }
+
+        /**
+         - Child 0
+         - Child 1
+         - Child 2
+         - Child 3
+         - Child 4
+         - Child 5
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.child3.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child3.insert("new-2", at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child3.insert("new-3", at: 3)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child2)
+        }
+
+        /**
+         - Child 0
+         - Child 1
+         - Child 3
+         - Child 4
+         - Child 5
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child3)
+        }
+
+        /**
+         - Child 0
+         - Child 1
+         - Child 4
+         - Child 5
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.insert(sections.child2, at: 2)
+        }
+
+        /**
+         - Child 0
+         - Child 1
+         - Child 2
+         - Child 4
+         - Child 5
+         - Child 6
+         */
+
+        tester.applyUpdate { sections in
+            sections.child5.swapAt(0, 8)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child2.swapAt(0, 3)
+        }
     }
 
     func testBatchedSectionRemovals() {
