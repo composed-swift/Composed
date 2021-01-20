@@ -221,6 +221,173 @@ final class ChangesReducerTests: XCTestCase {
             })
     }
 
+    func testInsertAndRemovalInSameSection() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        /**
+         - Element A
+         - Element B
+         - Element C
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [IndexPath(item: 3, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [IndexPath(item: 3, section: 0)]
+                )
+            })
+
+        /**
+         - Element A
+         - Element B
+         - Element C
+         - Element D
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 0, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [IndexPath(item: 2, section: 0)]
+                )
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 0),
+                    ]
+                )
+            })
+
+        /**
+         - Element B
+         - Element C
+         - Element D
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [IndexPath(item: 0, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 0, section: 0),
+                        IndexPath(item: 2, section: 0),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 0),
+                    ]
+                )
+            })
+
+        /**
+         - New Element
+         - Element B
+         - Element C
+         - Element D
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 2, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 0, section: 0),
+                        IndexPath(item: 1, section: 0),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 0),
+                        IndexPath(item: 2, section: 0),
+                    ]
+                )
+            })
+
+        /**
+         - New Element
+         - Element B
+         - Element D
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 0, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 1, section: 0),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 0),
+                        IndexPath(item: 2, section: 0),
+                    ]
+                )
+            })
+
+        /**
+         - Element B
+         - Element D
+         */
+    }
+
 //    func testGroupInserts() {
 //        var changesReducer = ChangesReducer()
 //        changesReducer.beginUpdating()
