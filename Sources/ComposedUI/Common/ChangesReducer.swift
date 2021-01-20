@@ -192,7 +192,7 @@ internal struct ChangesReducer {
         /**
          Element removals are handled before all other updates.
          */
-        indexPaths.forEach { removedIndexPath in
+        indexPaths.sorted(by: { $0.item > $1.item }).forEach { removedIndexPath in
             let sectionsRemovedBefore = changeset
                 .groupsRemoved
                 .sorted(by: <)
@@ -233,6 +233,19 @@ internal struct ChangesReducer {
                     return existingInsertedIndexPath
                 })
 
+                let itemRemovalsInSection = changeset
+                    .elementsRemoved
+                    .filter { $0.section == removedIndexPath.section }
+                    .map(\.item)
+
+                let availableSpaces = (0..<Int.max)
+                    .lazy
+                    .filter { !itemRemovalsInSection.contains($0) }
+
+                let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: removedIndexPath.item)
+
+                var removedIndexPath = removedIndexPath
+                removedIndexPath.item = availableSpaces[availableSpaceIndex]
                 changeset.elementsRemoved.insert(removedIndexPath)
             }
         }
