@@ -39,6 +39,9 @@ open class CollectionCoordinator: NSObject {
         return mapper.provider
     }
 
+    /// If `true` this `CollectionCoordinator` instance will log changes to the system log.
+    public var enableLogs: Bool = false
+
     internal var changesReducer = ChangesReducer()
 
     private var mapper: SectionProviderMapping
@@ -198,7 +201,7 @@ open class CollectionCoordinator: NSObject {
     }
 
     fileprivate func debugLog(_ message: String) {
-        if #available(iOS 12, *) {
+        if #available(iOS 12, *), enableLogs {
             os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
         }
     }
@@ -238,49 +241,33 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         guard let changeset = changesReducer.endUpdating() else { return }
 
         /**
-         Deletes are processed before inserts in batch operations. This means the indexes for the deletions are processed relative to the indexes of the collection view’s state before the batch operation, and the indexes for the insertions are processed relative to the indexes of the state after all the deletions in the batch operation.
+         _Item_ deletes are processed first, with indexes relative to the state at the start of `performBatchUpdates`.
+
+         _Section_ are processed next, with indexes relative to the state at the start of `performBatchUpdates` (since section indexes are not changed by item deletes).
+
+         All other updates are processed relative to the indexes **after** these deletes have occurred.
          */
         debugLog("Performing batch updates")
         collectionView.performBatchUpdates({
             prepareSections()
 
-            debugLog("Deleting \(changeset.groupsRemoved)")
+            debugLog("Deleting items \(changeset.elementsRemoved)")
             collectionView.deleteItems(at: Array(changeset.elementsRemoved))
 
-            debugLog("Inserting \(changeset.groupsInserted)")
+            debugLog("Inserting items \(changeset.elementsInserted)")
             collectionView.insertItems(at: Array(changeset.elementsInserted))
-
-            // TODO: Account for `section.prefersReload`
-            debugLog("Updating \(changeset.groupsUpdated)")
-            collectionView.reloadItems(at: Array(changeset.elementsUpdated))
 
             changeset.elementsMoved.forEach { move in
                 debugLog("Moving \(move.from) to \(move.to)")
                 collectionView.moveItem(at: move.from, to: move.to)
             }
 
-            debugLog("Deleting \(changeset.groupsRemoved)")
+            debugLog("Deleting sections \(changeset.groupsRemoved)")
             collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
 
-            debugLog("Inserting \(changeset.groupsInserted)")
+            debugLog("Inserting sections \(changeset.groupsInserted)")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
-
-            debugLog("Updating \(changeset.groupsUpdated)")
-            collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
-            // TODO: Implement Moves
         })
-    }
-
-    public func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet) {
-        assert(Thread.isMainThread)
-
-        guard isPerformingBatchedUpdates else {
-            prepareSections()
-            collectionView.reloadSections(sections)
-            return
-        }
-
-        changesReducer.updateGroups(sections)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
@@ -391,6 +378,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        // TODO: Check `isPerformingBatchedUpdates`
         self.mapping(mapping, didMoveElementsAt: [(sourceIndexPath, destinationIndexPath)])
     }
 
