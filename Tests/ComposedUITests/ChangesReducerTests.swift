@@ -376,8 +376,8 @@ final class ChangesReducerTests: XCTestCase {
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
-                        IndexPath(item: 0, section: 0),
                         IndexPath(item: 2, section: 0),
+                        IndexPath(item: 0, section: 0),
                     ]
                 )
             })

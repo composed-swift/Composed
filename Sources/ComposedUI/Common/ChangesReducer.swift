@@ -210,6 +210,11 @@ internal struct ChangesReducer {
             removedIndexPath.section -= sectionsInsertedBefore
 
             if !changeset.groupsInserted.contains(removedIndexPath.section) {
+                let itemInsertsInSection = changeset
+                    .elementsInserted
+                    .filter { $0.section == removedIndexPath.section }
+                    .map(\.item)
+
                 changeset.elementsInserted = Set(changeset.elementsInserted.map { existingInsertedIndexPath in
                     guard existingInsertedIndexPath.section == removedIndexPath.section else {
                         // Different section; don't modify
@@ -220,13 +225,12 @@ internal struct ChangesReducer {
                         // This insert is really a reload (delete and insert)
                         return existingInsertedIndexPath
                     }
-                    // TODO: Test this
-
-                    guard existingInsertedIndexPath != removedIndexPath else { return existingInsertedIndexPath }
 
                     var existingInsertedIndexPath = existingInsertedIndexPath
 
                     if existingInsertedIndexPath.item > removedIndexPath.item {
+                        existingInsertedIndexPath.item -= 1
+                    } else if existingInsertedIndexPath.item == removedIndexPath.item && !changeset.elementsRemoved.contains(existingInsertedIndexPath) {
                         existingInsertedIndexPath.item -= 1
                     }
 
@@ -240,12 +244,12 @@ internal struct ChangesReducer {
 
                 let availableSpaces = (0..<Int.max)
                     .lazy
-                    .filter { !itemRemovalsInSection.contains($0) }
+                    .filter { !itemRemovalsInSection.contains($0) || itemInsertsInSection.contains($0) }
 
                 let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: removedIndexPath.item)
 
-                var removedIndexPath = removedIndexPath
                 removedIndexPath.item = availableSpaces[availableSpaceIndex]
+
                 changeset.elementsRemoved.insert(removedIndexPath)
             }
         }

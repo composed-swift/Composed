@@ -37,9 +37,9 @@ final class CollectionCoordinatorTests: XCTestCase {
          - Child 3
          */
 
-        tester.applyUpdate { sections in
-            sections.child2.swapAt(0, 3)
-        }
+//        tester.applyUpdate { sections in
+//            sections.child2.swapAt(0, 3)
+//        }
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.insert(sections.child0, at: 0)
@@ -203,13 +203,13 @@ final class CollectionCoordinatorTests: XCTestCase {
          - Child 6
          */
 
-        tester.applyUpdate { sections in
-            sections.child5.swapAt(0, 8)
-        }
+//        tester.applyUpdate { sections in
+//            sections.child5.swapAt(0, 8)
+//        }
 
-        tester.applyUpdate { sections in
-            sections.child2.swapAt(0, 3)
-        }
+//        tester.applyUpdate { sections in
+//            sections.child2.swapAt(0, 3)
+//        }
     }
 
     func testBatchedSectionRemovals() {
@@ -308,6 +308,16 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.child3.append("new-element")
+        }
+    }
+
+    func testSwapping() {
+        let tester = Tester() { sections in
+            sections.rootSectionProvider.append(sections.child2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child2.swapAt(0, 3)
         }
     }
 }
