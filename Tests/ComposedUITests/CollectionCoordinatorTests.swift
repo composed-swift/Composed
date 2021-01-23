@@ -322,7 +322,7 @@ final class CollectionCoordinatorTests: XCTestCase {
     }
 }
 
-private final class MockCollectionArraySection: ArraySection<String>, SingleUICollectionViewSection {
+private final class MockCollectionArraySection: ArraySection<String>, CollectionSectionProvider {
     func section(with traitCollection: UITraitCollection) -> CollectionSection {
         let cell = CollectionCellElement(section: self, dequeueMethod: .fromClass(UICollectionViewCell.self), configure: { _, _, _ in })
         return CollectionSection(section: self, cell: cell)
