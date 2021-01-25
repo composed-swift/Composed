@@ -35,15 +35,7 @@ open class CollectionSection: SingleUICollectionViewSectionElementsProvider {
         footer: CollectionSupplementaryElement? = nil
     ) where Section: Composed.Section {
         self.section = section
-
-        // The code below copies the relevent elements to erase type-safety
-
-        self.cell = CollectionCellElement(section: section,
-                                          dequeueMethod: cell.dequeueMethod,
-                                          reuseIdentifier: cell.reuseIdentifier,
-                                          configure: cell.configure,
-                                          willAppear: cell.willAppear,
-                                          didDisappear: cell.didDisappear)
+        self.cell = cell
 
         if let header = header {
             let kind: CollectionElementKind
