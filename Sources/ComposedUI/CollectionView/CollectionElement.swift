@@ -194,6 +194,7 @@ open class CollectionCellElement: CollectionElement {
             willAppear?(view as! View, index)
         }
 
+        // TODO: Fix a memory leak that occurs here? It appears to only be caused when `FlattenedCollectionCellElement` is used.
         self.didDisappear = { view, index, _ in
             didDisappear?(view as! View, index)
         }
