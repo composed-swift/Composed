@@ -64,7 +64,8 @@ open class CollectionCoordinator: NSObject {
     private weak var originalDropDelegate: UICollectionViewDropDelegate?
     private var dropDelegateObserver: NSKeyValueObservation?
 
-    private var cachedProviders: [CollectionElementsProvider] = []
+    private var cachedElementsProviders: [UICollectionViewSectionElementsProvider] = []
+    private var cellSectionMap = [UICollectionViewCell: (CollectionCellElement, Section)]()
     private var nibRegistrations = Set<NIBRegistration>()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
@@ -153,44 +154,55 @@ open class CollectionCoordinator: NSObject {
     open func invalidateVisibleCells() {
         for (indexPath, cell) in zip(collectionView.indexPathsForVisibleItems, collectionView.visibleCells) {
             let elements = elementsProvider(for: indexPath.section)
-            elements.cell.configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
+            elements.cell(for: indexPath.item).configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
         }
     }
 
     // Prepares and caches the section to improve performance
     private func prepareSections() {
-        cachedProviders.removeAll()
+        cachedElementsProviders.removeAll()
         mapper.delegate = self
 
         for index in 0..<mapper.numberOfSections {
-            guard let section = (mapper.provider.sections[index] as? CollectionSectionProvider)?.section(with: collectionView.traitCollection) else {
+            guard let section = mapper.provider.sections[index] as? UICollectionViewSection else {
                 fatalError("No provider available for section: \(index), or it does not conform to CollectionSectionProvider")
             }
 
-            switch section.cell.dequeueMethod {
-            case let .fromNib(type):
-                // `UINib(nibName:bundle:)` is an expensive call because it reads the NIB from the
-                // disk, which can have a large impact on performance when this is called multiple times.
-                //
-                // Each registration is cached to ensure that the same nib is not read from disk multiple times.
+            let elementsProvider = section.collectionViewElementsProvider(with: collectionView.traitCollection)
+            let cells = (0..<section.numberOfElements).reduce(into: [CollectionCellElement](), { cells, index in
+                let cell = elementsProvider.cell(for: index)
 
-                let nibName = String(describing: type)
-                let nibBundle = Bundle(for: type)
-                let nibRegistration = NIBRegistration(nibName: nibName, bundle: nibBundle, reuseIdentifier: section.cell.reuseIdentifier)
+                guard !cells.contains(where: { $0.reuseIdentifier == cell.reuseIdentifier }) else { return }
 
-                guard !nibRegistrations.contains(nibRegistration) else { break }
+                cells.append(cell)
+            })
 
-                let nib = UINib(nibName: nibName, bundle: nibBundle)
-                collectionView.register(nib, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
-                nibRegistrations.insert(nibRegistration)
-            case let .fromClass(type):
-                collectionView.register(type, forCellWithReuseIdentifier: section.cell.reuseIdentifier)
-            case .fromStoryboard:
-                break
+            for cell in cells {
+                switch cell.dequeueMethod.method {
+                case let .fromNib(type):
+                    // `UINib(nibName:bundle:)` is an expensive call because it reads the NIB from the
+                    // disk, which can have a large impact on performance when this is called multiple times.
+                    //
+                    // Each registration is cached to ensure that the same nib is not registered multiple times.
+
+                    let nibName = String(describing: type)
+                    let nibBundle = Bundle(for: type)
+                    let nibRegistration = NIBRegistration(nibName: nibName, bundle: nibBundle, reuseIdentifier: cell.reuseIdentifier)
+
+                    guard !nibRegistrations.contains(nibRegistration) else { break }
+
+                    let nib = UINib(nibName: nibName, bundle: nibBundle)
+                    collectionView.register(nib, forCellWithReuseIdentifier: cell.reuseIdentifier)
+                    nibRegistrations.insert(nibRegistration)
+                case let .fromClass(type):
+                    collectionView.register(type, forCellWithReuseIdentifier: cell.reuseIdentifier)
+                case .fromStoryboard:
+                    break
+                }
             }
 
-            [section.header, section.footer].compactMap { $0 }.forEach {
-                switch $0.dequeueMethod {
+            [elementsProvider.header, elementsProvider.footer].compactMap { $0 }.forEach {
+                switch $0.dequeueMethod.method {
                 case let .fromNib(type):
                     let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
                     collectionView.register(nib, forSupplementaryViewOfKind: $0.kind.rawValue, withReuseIdentifier: $0.reuseIdentifier)
@@ -201,11 +213,13 @@ open class CollectionCoordinator: NSObject {
                 }
             }
 
-            cachedProviders.append(section)
+            cachedElementsProviders.append(elementsProvider)
         }
 
         collectionView.allowsMultipleSelection = true
-        collectionView.backgroundView = delegate?.coordinator(self, backgroundViewInCollectionView: collectionView)
+        if let delegate = delegate {
+            collectionView.backgroundView = delegate.coordinator(self, backgroundViewInCollectionView: collectionView)
+        }
         collectionView.dragInteractionEnabled = sectionProvider.sections.contains { $0 is MoveHandler || $0 is CollectionDragHandler || $0 is CollectionDropHandler }
         delegate?.coordinatorDidUpdate(self)
     }
@@ -331,7 +345,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
                         continue
                 }
 
-                self.cachedProviders[indexPath.section].cell.configure(cell, indexPath.item, self.mapper.provider.sections[indexPath.section])
+                self.cachedElementsProviders[indexPath.section].cell(for: indexPath.item).configure(cell, indexPath.item, self.mapper.provider.sections[indexPath.section])
             }
 
             guard !indexPathsToReload.isEmpty else { return }
@@ -376,6 +390,34 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         collectionView.moveItem(at: sourceIndexPath, to: destinationIndexPath)
     }
 
+    public func mappingDidInvalidateHeader(at sectionIndex: Int) {
+        let elementsProvider = self.elementsProvider(for: sectionIndex)
+
+        if let header = elementsProvider.header {
+            switch header.dequeueMethod.method {
+            case let .fromNib(type):
+                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                collectionView.register(nib, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
+            case let .fromClass(type):
+                collectionView.register(type, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
+            case .fromStoryboard:
+                break
+            }
+        }
+
+        let context = UICollectionViewFlowLayoutInvalidationContext()
+        context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
+        invalidateLayout(with: context)
+
+        guard let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
+
+        let section = mapper.provider.sections[sectionIndex]
+
+        if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
+            header.configure(headerView, sectionIndex, section)
+        }
+    }
+
 }
 
 // MARK: - UICollectionViewDataSource
@@ -398,7 +440,7 @@ extension CollectionCoordinator: UICollectionViewDataSource {
 
         let elements = elementsProvider(for: indexPath.section)
         let section = mapper.provider.sections[indexPath.section]
-        elements.cell.willAppear(cell, indexPath.item, section)
+        elements.cell(for: indexPath.item).willAppear?(cell, indexPath.item, section)
     }
 
     public func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -406,17 +448,17 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         defer {
             originalDelegate?.collectionView?(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
         }
-
-        guard indexPath.section < sectionProvider.numberOfSections else { return }
-        let elements = elementsProvider(for: indexPath.section)
-        let section = mapper.provider.sections[indexPath.section]
-        elements.cell.didDisappear(cell, indexPath.item, section)
+        if let (cellElement, section) = cellSectionMap[cell] {
+            cellElement.didDisappear?(cell, indexPath.item, section)
+	        cellSectionMap.removeValue(forKey: cell)
+        }
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         assert(Thread.isMainThread)
         let elements = elementsProvider(for: indexPath.section)
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: elements.cell.reuseIdentifier, for: indexPath)
+        let cellElement = elements.cell(for: indexPath.item)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellElement.reuseIdentifier, for: indexPath)
 
         if let handler = sectionProvider.sections[indexPath.section] as? EditingHandler {
             if let handler = sectionProvider.sections[indexPath.section] as? CollectionEditingHandler {
@@ -426,7 +468,9 @@ extension CollectionCoordinator: UICollectionViewDataSource {
             }
         }
 
-        elements.cell.configure(cell, indexPath.item, mapper.provider.sections[indexPath.section])
+        let section = mapper.provider.sections[indexPath.section]
+        cellSectionMap[cell] = (cellElement, section)
+        cellElement.configure(cell, indexPath.item, section)
         return cell
     }
 
@@ -436,14 +480,17 @@ extension CollectionCoordinator: UICollectionViewDataSource {
             originalDelegate?.collectionView?(collectionView, willDisplaySupplementaryView: view, forElementKind: elementKind, at: indexPath)
         }
 
-        guard indexPath.section > sectionProvider.numberOfSections else { return }
+        guard indexPath.section < sectionProvider.numberOfSections else { return }
+
         let elements = elementsProvider(for: indexPath.section)
         let section = mapper.provider.sections[indexPath.section]
 
         if let header = elements.header, header.kind.rawValue == elementKind {
-            elements.header?.willAppear?(view, indexPath.section, section)
+            header.willAppear?(view, indexPath.section, section)
+            header.configure(view, indexPath.section, section)
         } else if let footer = elements.footer, footer.kind.rawValue == elementKind {
-            elements.footer?.willAppear?(view, indexPath.section, section)
+            footer.willAppear?(view, indexPath.section, section)
+            footer.configure(view, indexPath.section, section)
         } else {
             // the original delegate can handle this
         }
@@ -492,11 +539,11 @@ extension CollectionCoordinator: UICollectionViewDataSource {
         }
     }
 
-    private func elementsProvider(for section: Int) -> CollectionElementsProvider {
-        guard cachedProviders.indices.contains(section) else {
+    private func elementsProvider(for section: Int) -> UICollectionViewSectionElementsProvider {
+        guard cachedElementsProviders.indices.contains(section) else {
             fatalError("No UI configuration available for section \(section)")
         }
-        return cachedProviders[section]
+        return cachedElementsProviders[section]
     }
 
 }

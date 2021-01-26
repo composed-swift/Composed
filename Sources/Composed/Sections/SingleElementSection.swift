@@ -26,9 +26,10 @@ open class SingleElementSection<Element>: Section {
     public init(element: Element) {
         self.element = element
 
-        switch element as Any {
-        case Optional<Any>.none: numberOfElements = 0
-        default: numberOfElements = 1
+        if case Optional<Any>.none = element as Any {
+            numberOfElements = 0
+        } else {
+            numberOfElements = 1
         }
     }
 
@@ -39,9 +40,10 @@ open class SingleElementSection<Element>: Section {
         let wasEmpty = isEmpty
         self.element = element
 
-        switch element as Any {
-        case Optional<Any>.none: numberOfElements = 0
-        default: numberOfElements = 1
+        if case Optional<Any>.none = element as Any {
+            numberOfElements = 0
+        } else {
+            numberOfElements = 1
         }
 
         switch (wasEmpty, isEmpty) {

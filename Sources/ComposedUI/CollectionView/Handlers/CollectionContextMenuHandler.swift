@@ -3,7 +3,7 @@ import Composed
 
 /// Provides context menu handling for `UICollectionView`'s
 @available(iOS 13.0, *)
-public protocol CollectionContextMenuHandler: CollectionSectionProvider {
+public protocol CollectionContextMenuHandler: UICollectionViewSection {
 
     /// Specifies whether or not a specific element allows showing a context menu. If you want UIKit to indicate that a menu is usually provided for this element, true `true` and simply return `nil` for `contextMenu(forElementAt:cell:suggestedActions:)`
     /// - Parameter index: The index of the element

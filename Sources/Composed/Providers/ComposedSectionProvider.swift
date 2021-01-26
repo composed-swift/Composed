@@ -258,7 +258,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
 
         numberOfSections += sections.count
 
-        let sectionOffset = self.sectionOffset(for: provider)!
+        guard let sectionOffset = self.sectionOffset(for: provider) else {  return }
 
         indexes
             .enumerated()
@@ -282,7 +282,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         }
 
         numberOfSections -= sections.count
-        let sectionOffset = self.sectionOffset(for: provider)!
+        guard let sectionOffset = self.sectionOffset(for: provider) else { return }
         indexes.map { $0 + sectionOffset }.reversed().forEach { self.sections.remove(at: $0) }
 
         updateDelegate?.provider(provider, didRemoveSections: sections, at: indexes)

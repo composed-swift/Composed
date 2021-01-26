@@ -31,7 +31,7 @@ public struct CollectionFlowLayoutEnvironment {
 }
 
 /// Conform your section to this protocol to override sizing and metric values for a `UICollectionViewFlowLayout`
-public protocol CollectionFlowLayoutHandler: CollectionSectionProvider {
+public protocol CollectionFlowLayoutHandler: UICollectionViewSection {
 
     /// Return the size for the element at the specified index
     /// - Parameters:

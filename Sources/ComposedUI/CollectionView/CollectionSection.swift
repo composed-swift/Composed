@@ -3,16 +3,16 @@ import Composed
 
 /// Defines a configuration for a section in a `UICollectionView`.
 /// The section must contain a cell element, but can also optionally include a header and/or footer element.
-open class CollectionSection: CollectionElementsProvider {
+open class CollectionSection: SingleUICollectionViewSectionElementsProvider {
 
     /// The cell configuration element
-    public let cell: CollectionCellElement<UICollectionViewCell>
+    public let cell: CollectionCellElement
 
     /// The header configuration element
-    public let header: CollectionSupplementaryElement<UICollectionReusableView>?
+    public let header: CollectionSupplementaryElement?
 
     /// The footer configuration element
-    public let footer: CollectionSupplementaryElement<UICollectionReusableView>?
+    public let footer: CollectionSupplementaryElement?
 
     /// The number of elements in this section
     open var numberOfElements: Int {
@@ -28,76 +28,48 @@ open class CollectionSection: CollectionElementsProvider {
     ///   - cell: The cell configuration element
     ///   - header: The header configuration element
     ///   - footer: The footer configuration element
-    public init<Section, Cell, Header, Footer>(section: Section,
-                                               cell: CollectionCellElement<Cell>,
-                                               header: CollectionSupplementaryElement<Header>? = nil,
-                                               footer: CollectionSupplementaryElement<Footer>? = nil)
-        where Header: UICollectionReusableView, Footer: UICollectionReusableView, Cell: UICollectionViewCell, Section: Composed.Section {
-            self.section = section
+    public init<Section>(
+        section: Section,
+        cell: CollectionCellElement,
+        header: CollectionSupplementaryElement? = nil,
+        footer: CollectionSupplementaryElement? = nil
+    ) where Section: Composed.Section {
+        self.section = section
+        self.cell = cell
 
-            // The code below copies the relevent elements to erase type-safety
-
-            let dequeueMethod: DequeueMethod<UICollectionViewCell>
-            switch cell.dequeueMethod {
-            case .fromClass: dequeueMethod = .fromClass(Cell.self)
-            case .fromNib: dequeueMethod = .fromNib(Cell.self)
-            case .fromStoryboard: dequeueMethod = .fromStoryboard(Cell.self)
-            }
-
-            self.cell = CollectionCellElement(section: section,
-                                              dequeueMethod: dequeueMethod,
-                                              reuseIdentifier: cell.reuseIdentifier,
-                                              configure: cell.configure,
-                                              willAppear: cell.willAppear,
-                                              didDisappear: cell.didDisappear)
-
-            if let header = header {
-                let dequeueMethod: DequeueMethod<UICollectionReusableView>
-                switch header.dequeueMethod {
-                case .fromClass: dequeueMethod = .fromClass(Header.self)
-                case .fromNib: dequeueMethod = .fromNib(Header.self)
-                case .fromStoryboard: dequeueMethod = .fromStoryboard(Header.self)
-                }
-
-                let kind: CollectionElementKind
-                if case .automatic = header.kind {
-                    kind = .custom(kind: UICollectionView.elementKindSectionHeader)
-                } else {
-                    kind = header.kind
-                }
-
-                self.header = CollectionSupplementaryElement(section: section,
-                                                             dequeueMethod: dequeueMethod,
-                                                             reuseIdentifier: header.reuseIdentifier,
-                                                             kind: kind,
-                                                             configure: header.configure)
+        if let header = header {
+            let kind: CollectionElementKind
+            if case .automatic = header.kind {
+                kind = .custom(kind: UICollectionView.elementKindSectionHeader)
             } else {
-                self.header = nil
+                kind = header.kind
             }
 
-            if let footer = footer {
-                let dequeueMethod: DequeueMethod<UICollectionReusableView>
-                switch footer.dequeueMethod {
-                case .fromClass: dequeueMethod = .fromClass(Footer.self)
-                case .fromNib: dequeueMethod = .fromNib(Footer.self)
-                case .fromStoryboard: dequeueMethod = .fromStoryboard(Footer.self)
-                }
+            self.header = CollectionSupplementaryElement(section: section,
+                                                         dequeueMethod: header.dequeueMethod,
+                                                         reuseIdentifier: header.reuseIdentifier,
+                                                         kind: kind,
+                                                         configure: header.configure)
+        } else {
+            self.header = nil
+        }
 
-                let kind: CollectionElementKind
-                if case .automatic = footer.kind {
-                    kind = .custom(kind: UICollectionView.elementKindSectionFooter)
-                } else {
-                    kind = footer.kind
-                }
-
-                self.footer = CollectionSupplementaryElement(section: section,
-                                                             dequeueMethod: dequeueMethod,
-                                                             reuseIdentifier: footer.reuseIdentifier,
-                                                             kind: kind,
-                                                             configure: footer.configure)
+        if let footer = footer {
+            let kind: CollectionElementKind
+            if case .automatic = footer.kind {
+                kind = .custom(kind: UICollectionView.elementKindSectionFooter)
             } else {
-                self.footer = nil
+                kind = footer.kind
             }
+
+            self.footer = CollectionSupplementaryElement(section: section,
+                                                         dequeueMethod: footer.dequeueMethod,
+                                                         reuseIdentifier: footer.reuseIdentifier,
+                                                         kind: kind,
+                                                         configure: footer.configure)
+        } else {
+            self.footer = nil
+        }
     }
 
 }
