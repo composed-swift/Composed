@@ -12,6 +12,13 @@ import Foundation
      section.numberOfElements    // return 1
  */
 open class SingleElementSection<Element>: Section {
+    private static func valueIsNil(_ value: Any) -> Bool {
+        if case Optional<Any>.none = value {
+            return true
+        } else {
+            return false
+        }
+    }
 
     public weak var updateDelegate: SectionUpdateDelegate?
 
@@ -25,11 +32,7 @@ open class SingleElementSection<Element>: Section {
     /// - Parameter element: The element
     public init(element: Element) {
         self.element = element
-
-        switch element as Any {
-        case Optional<Any>.none: numberOfElements = 0
-        default: numberOfElements = 1
-        }
+        numberOfElements = Self.valueIsNil(element) ? 0 : 1
     }
 
     /// Replaces the element with the specified element
@@ -39,10 +42,7 @@ open class SingleElementSection<Element>: Section {
         let wasEmpty = isEmpty
         self.element = element
 
-        switch element as Any {
-        case Optional<Any>.none: numberOfElements = 0
-        default: numberOfElements = 1
-        }
+        numberOfElements = Self.valueIsNil(element) ? 0 : 1
 
         switch (wasEmpty, isEmpty) {
         case (true, true):
