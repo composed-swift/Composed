@@ -205,7 +205,9 @@ open class CollectionCoordinator: NSObject {
         }
 
         collectionView.allowsMultipleSelection = true
-        collectionView.backgroundView = delegate?.coordinator(self, backgroundViewInCollectionView: collectionView)
+        if let delegate = delegate {
+            collectionView.backgroundView = delegate.coordinator(self, backgroundViewInCollectionView: collectionView)
+        }
         collectionView.dragInteractionEnabled = sectionProvider.sections.contains { $0 is MoveHandler || $0 is CollectionDragHandler || $0 is CollectionDropHandler }
         delegate?.coordinatorDidUpdate(self)
     }
