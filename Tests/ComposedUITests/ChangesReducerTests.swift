@@ -470,21 +470,108 @@ final class ChangesReducerTests: XCTestCase {
             })
     }
 
+    func testGroupAndElementRemoves() {
+        /**
+         Because element removals are processed before group removals, any element removals that are
+         performed after a group removal should have their section increased.
+         */
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+        changesReducer.removeGroups(IndexSet([0, 1]))
+        changesReducer.removeElements(at: [IndexPath(item: 1, section: 2)])
+        changesReducer.removeGroups(IndexSet(integer: 0))
+        let changeset = changesReducer.endUpdating()
+
+        XCTAssertNotNil(changeset)
+
+        XCTAssertEqual(changeset!.groupsRemoved, [0, 1, 2])
+        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
+        XCTAssertEqual(changeset!.elementsRemoved, [IndexPath(row: 1, section: 4)])
+        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
+        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
+    }
+
+    func testRemoveSectionThenRemoveElementThenRemoveSection() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        changesReducer.removeGroups([1])
+        changesReducer.removeElements(at: [IndexPath(row: 1, section: 2)])
+        changesReducer.removeGroups([1])
+    }
+
+    func testMoveElement() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        changesReducer.moveElements([(from: IndexPath(row: 0, section: 0), to: IndexPath(row: 1, section: 0))])
+
+        let changeset = changesReducer.endUpdating()
+
+        XCTAssertNotNil(changeset)
+
+        XCTAssertEqual(
+            changeset!.elementsMoved,
+            [
+                Changeset.Move(
+                    from: IndexPath(row: 0, section: 0),
+                    to: IndexPath(row: 1, section: 0)
+                )
+            ]
+        )
+        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
+        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
+        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
+        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
+    }
+
+    func testGroupAndElementInserts() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        changesReducer.insertElements(at: [IndexPath(item: 5, section: 2)])
+        changesReducer.insertGroups([1])
+        changesReducer.insertElements(at: [IndexPath(item: 6, section: 3)])
+
+        guard let changeset = changesReducer.endUpdating() else {
+            XCTFail("Changeset should not be `nil`")
+            return
+        }
+
+        XCTAssertTrue(changeset.elementsMoved.isEmpty)
+        XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+        XCTAssertEqual(
+            changeset.elementsInserted,
+            [
+                IndexPath(row: 5, section: 3),
+                IndexPath(row: 6, section: 3),
+            ]
+        )
+        XCTAssertEqual(
+            changeset.groupsInserted,
+            [1]
+        )
+        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+    }
+
+    // MARK:- Unfinished Tests
+
 //    func testGroupInserts() {
 //        var changesReducer = ChangesReducer()
 //        changesReducer.beginUpdating()
+//
 //        changesReducer.insertGroups(IndexSet([0, 2]))
+//
 //        changesReducer.insertGroups(IndexSet(integer: 1))
+//
 //        let changeset = changesReducer.endUpdating()
 //
 //        XCTAssertNotNil(changeset)
 //
-//        XCTAssertEqual(changeset!.groupsInserted, [0, 1, 2])
+//        XCTAssertEqual(changeset!.groupsInserted, [0, 0, 2])
 //        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
 //        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
 //        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
 //        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
 //    }
 //
@@ -499,70 +586,9 @@ final class ChangesReducerTests: XCTestCase {
 //
 //        XCTAssertEqual(changeset!.groupsRemoved, [0, 1, 2])
 //        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
 //        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
 //        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
 //        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
-//    }
-//
-//    func testGroupAndElementRemoves() {
-//        /**
-//         Because element removals are processed before group removals, any element removals that are
-//         performed after a group removal should have their section increased.
-//         */
-//        var changesReducer = ChangesReducer()
-//        changesReducer.beginUpdating()
-//        changesReducer.removeGroups(IndexSet([0, 1]))
-//        changesReducer.removeElements(at: [IndexPath(item: 1, section: 2)])
-//        changesReducer.removeGroups(IndexSet(integer: 0))
-//        let changeset = changesReducer.endUpdating()
-//
-//        XCTAssertNotNil(changeset)
-//
-//        XCTAssertEqual(changeset!.groupsRemoved, [0, 1, 2])
-//        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
-//        XCTAssertEqual(changeset!.elementsRemoved, [IndexPath(row: 1, section: 4)])
-//        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
-//        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
-//    }
-//
-//    func testRemoveSectionThenRemoveElementThenRemoveSection() {
-//        var changesReducer = ChangesReducer()
-//        changesReducer.beginUpdating()
-//
-//        changesReducer.removeGroups([1])
-//        changesReducer.removeElements(at: [IndexPath(row: 1, section: 2)])
-//        changesReducer.removeGroups([1])
-//    }
-//
-//    func testMoveElement() {
-//        var changesReducer = ChangesReducer()
-//        changesReducer.beginUpdating()
-//
-//        changesReducer.moveElements([(from: IndexPath(row: 0, section: 0), to: IndexPath(row: 1, section: 0))])
-//
-//        let changeset = changesReducer.endUpdating()
-//
-//        XCTAssertNotNil(changeset)
-//
-//        XCTAssertEqual(
-//            changeset!.elementsMoved,
-//            [
-//                Changeset.Move(
-//                    from: IndexPath(row: 0, section: 0),
-//                    to: IndexPath(row: 1, section: 0)
-//                )
-//            ]
-//        )
-//        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
-//        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
 //    }
 //
 //    func testElementRemovalAfterOtherChanges() {
@@ -590,44 +616,11 @@ final class ChangesReducerTests: XCTestCase {
 //                IndexPath(row: 6, section: 3),
 //            ]
 //        )
-//        XCTAssertTrue(changeset.elementsUpdated.isEmpty)
 //        XCTAssertEqual(
 //            changeset.groupsInserted,
 //            [1]
 //        )
 //        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-//    }
-//
-//    func testGroupAndElementInserts() {
-//        var changesReducer = ChangesReducer()
-//        changesReducer.beginUpdating()
-//
-//        changesReducer.insertElements(at: [IndexPath(item: 5, section: 2)])
-//        changesReducer.insertGroups([1])
-//        changesReducer.insertElements(at: [IndexPath(item: 6, section: 3)])
-//
-//        guard let changeset = changesReducer.endUpdating() else {
-//            XCTFail("Changeset should not be `nil`")
-//            return
-//        }
-//
-//        XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//        XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-//        XCTAssertEqual(
-//            changeset.elementsInserted,
-//            [
-//                IndexPath(row: 5, section: 3),
-//                IndexPath(row: 6, section: 3),
-//            ]
-//        )
-//        XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-//        XCTAssertEqual(
-//            changeset.groupsInserted,
-//            [1]
-//        )
-//        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsUpdated.isEmpty)
 //    }
 //
 //    func testMoveElementThenRemoveElementBeforeMovedElement() {
@@ -674,10 +667,8 @@ final class ChangesReducerTests: XCTestCase {
 //        )
 //        XCTAssertEqual(changeset!.elementsRemoved, [IndexPath(row: 0, section: 0)])
 //        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsUpdated.isEmpty)
 //        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
 //        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
 //    }
 //
 //    func testRemoveAnIndexPathWithAMoveTo() {
@@ -730,11 +721,9 @@ final class ChangesReducerTests: XCTestCase {
 //                IndexPath(row: 1, section: 0),
 //            ]
 //        )
-//        XCTAssertTrue(changeset.elementsUpdated.isEmpty)
 //        XCTAssertTrue(changeset.elementsMoved.isEmpty)
 //        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsUpdated.isEmpty)
 //    }
 //
 //    func testRemoveAnIndexPathWithAMoveFrom() {
@@ -787,11 +776,9 @@ final class ChangesReducerTests: XCTestCase {
 //                IndexPath(row: 1, section: 0),
 //            ]
 //        )
-//        XCTAssertTrue(changeset.elementsUpdated.isEmpty)
 //        XCTAssertTrue(changeset.elementsMoved.isEmpty)
 //        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsUpdated.isEmpty)
 //    }
 //
 //    func testMoveElementAtSameIndexAsRemove() {
@@ -846,9 +833,8 @@ final class ChangesReducerTests: XCTestCase {
 //        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
 //        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
 //        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.groupsUpdated.isEmpty)
 //    }
-
+//
 //    func testBuildingUpComplexChanges() {
 //        /**
 //         This test continuously builds upon the same `ChangesReducer` to test
@@ -962,7 +948,7 @@ final class ChangesReducerTests: XCTestCase {
 //                    [0, 1]
 //                )
 //            })
-
+//
 //        AssertApplyingUpdates(
 //            { changesReducer in
 //                changesReducer.removeElements(at: [IndexPath(item: 2, section: 3)])
@@ -1030,10 +1016,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    [0, 1, 4, 5]
 //                )
 //            })
-
-
-
-        
 //
 //        AssertApplyingUpdates(
 //            { changesReducer in
@@ -1195,7 +1177,7 @@ final class ChangesReducerTests: XCTestCase {
 //                    [1]
 //                )
 //            })
-
+//
 //        changesReducer.removeElements(at: [IndexPath(item: 2, section: 1)])
 //        changesReducer.insertGroups([1, 2, 4])
 //        changesReducer.removeGroups([2])
