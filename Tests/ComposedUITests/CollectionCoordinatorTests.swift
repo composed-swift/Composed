@@ -37,9 +37,11 @@ final class CollectionCoordinatorTests: XCTestCase {
          - Child 3
          */
 
-//        tester.applyUpdate { sections in
-//            sections.child2.swapAt(0, 3)
-//        }
+        tester.applyUpdate({ sections in
+            sections.child2.swapAt(0, 3)
+        }, postUpdateChecks: { sections in
+            XCTAssertEqual(sections.child2.requestedCells, [0, 3])
+        })
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.insert(sections.child0, at: 0)
@@ -203,13 +205,13 @@ final class CollectionCoordinatorTests: XCTestCase {
          - Child 6
          */
 
-//        tester.applyUpdate { sections in
-//            sections.child5.swapAt(0, 8)
-//        }
+        tester.applyUpdate { sections in
+            sections.child5.swapAt(0, 8)
+        }
 
-//        tester.applyUpdate { sections in
-//            sections.child2.swapAt(0, 3)
-//        }
+        tester.applyUpdate { sections in
+            sections.child2.swapAt(0, 3)
+        }
     }
 
     func testBatchedSectionRemovals() {
@@ -323,8 +325,12 @@ final class CollectionCoordinatorTests: XCTestCase {
 }
 
 private final class MockCollectionArraySection: ArraySection<String>, SingleUICollectionViewSection {
+    private(set) var requestedCells: [Int] = []
+
     func section(with traitCollection: UITraitCollection) -> CollectionSection {
-        let cell = CollectionCellElement(section: self, dequeueMethod: .fromClass(UICollectionViewCell.self), configure: { _, _, _ in })
+        let cell = CollectionCellElement(section: self, dequeueMethod: .fromClass(UICollectionViewCell.self), configure: { [weak self] _, cellIndex, _ in
+            self?.requestedCells.append(cellIndex)
+        })
         return CollectionSection(section: self, cell: cell)
     }
 }
@@ -334,7 +340,7 @@ private final class TestSections {
 
     let child0 = MockCollectionArraySection([])
     let child1 = MockCollectionArraySection(["1"])
-    var child2 = MockCollectionArraySection(["1", "2", "3", "4"])
+    var child2 = MockCollectionArraySection(["0", "1", "2", "3"])
     let child3 = MockCollectionArraySection(["1", "2", "3"])
     let child4 = MockCollectionArraySection(["1", "2", "3", "4", "5"])
     var child5 = MockCollectionArraySection(["1", "2", "3", "4", "5", "6", "7", "8", "9"])
@@ -358,7 +364,7 @@ private final class Tester {
         sections = TestSections()
     }
 
-    func applyUpdate(_ updater: @escaping Updater) {
+    func applyUpdate(_ updater: @escaping Updater, postUpdateChecks: ((TestSections) -> Void)? = nil) {
         updaters.append(updater)
         sections = TestSections()
         initialState(sections)
@@ -377,5 +383,7 @@ private final class Tester {
         updaters.forEach { $0(sections) }
 
         rootSectionProvider.updateDelegate?.didEndUpdating(rootSectionProvider)
+
+        postUpdateChecks?(sections)
     }
 }
