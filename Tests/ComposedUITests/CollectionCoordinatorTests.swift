@@ -322,6 +322,26 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.child2.swapAt(0, 3)
         }
     }
+
+    func testRemoveAll() {
+        let tester = Tester() { sections in
+            sections.rootSectionProvider.append(sections.child2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child2.removeAll()
+        }
+    }
+
+    func testRemoveLast2() {
+        let tester = Tester() { sections in
+            sections.rootSectionProvider.append(sections.child2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child2.removeLast(2)
+        }
+    }
 }
 
 private final class MockCollectionArraySection: ArraySection<String>, CollectionSectionProvider {
