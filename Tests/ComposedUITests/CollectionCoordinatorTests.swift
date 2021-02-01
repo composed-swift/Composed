@@ -40,7 +40,7 @@ final class CollectionCoordinatorTests: XCTestCase {
         tester.applyUpdate({ sections in
             sections.child2.swapAt(0, 3)
         }, postUpdateChecks: { sections in
-            XCTAssertEqual(sections.child2.requestedCells, [0, 3])
+            XCTAssertEqual(Set(sections.child2.requestedCells), Set([0, 3]))
         })
 
         tester.applyUpdate { sections in
