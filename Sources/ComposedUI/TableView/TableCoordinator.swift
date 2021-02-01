@@ -306,6 +306,10 @@ extension TableCoordinator: SectionProviderMappingDelegate {
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {
         // TODO: Reload header
     }
+
+    public func mappingDidInvalidateFooter(at sectionIndex: Int) {
+        // TODO: Reload header
+    }
     
 }
 

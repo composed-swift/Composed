@@ -167,4 +167,5 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {}
 
     func mappingDidInvalidateHeader(at sectionIndex: Int) {}
+    func mappingDidInvalidateFooter(at sectionIndex: Int) {}
 }

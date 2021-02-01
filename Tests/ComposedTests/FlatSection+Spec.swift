@@ -833,4 +833,5 @@ private final class MockSectionUpdateDelegate: SectionUpdateDelegate {
     func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int) {}
 
     func sectionDidInvalidateHeader(_ section: Section) {}
+    func sectionDidInvalidateFooter(_ section: Section) {}
 }

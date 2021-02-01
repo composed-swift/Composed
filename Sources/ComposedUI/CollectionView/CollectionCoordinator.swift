@@ -183,7 +183,7 @@ open class CollectionCoordinator: NSObject {
                     // `UINib(nibName:bundle:)` is an expensive call because it reads the NIB from the
                     // disk, which can have a large impact on performance when this is called multiple times.
                     //
-                    // Each registration is cached to ensure that the same nib is not registered multiple times.
+                    // Each registration is cached to ensure that the same nib is not read from disk multiple times.
 
                     let nibName = String(describing: type)
                     let nibBundle = Bundle(for: type)
@@ -415,6 +415,34 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
             header.configure(headerView, sectionIndex, section)
+        }
+    }
+
+    public func mappingDidInvalidateFooter(at sectionIndex: Int) {
+        let elementsProvider = self.elementsProvider(for: sectionIndex)
+
+        if let footer = elementsProvider.footer {
+            switch footer.dequeueMethod.method {
+            case let .fromNib(type):
+                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                collectionView.register(nib, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
+            case let .fromClass(type):
+                collectionView.register(type, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
+            case .fromStoryboard:
+                break
+            }
+        }
+
+        let context = UICollectionViewFlowLayoutInvalidationContext()
+        context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: sectionIndex)])
+        invalidateLayout(with: context)
+
+        guard let footerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) else { return }
+
+        let section = mapper.provider.sections[sectionIndex]
+
+        if let footer = elementsProvider.footer, footer.kind.rawValue == UICollectionView.elementKindSectionFooter {
+            footer.configure(footerView, sectionIndex, section)
         }
     }
 
