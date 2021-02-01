@@ -212,8 +212,12 @@ internal struct ChangesReducer {
             if !changeset.groupsInserted.contains(removedIndexPath.section) {
                 let itemInsertsInSection = changeset
                     .elementsInserted
-                    .filter { $0.section == removedIndexPath.section }
+                    .filter { $0.section == removedIndexPath.section - sectionsRemovedBefore + sectionsInsertedBefore }
                     .map(\.item)
+
+                if changeset.elementsRemoved.contains(removedIndexPath), changeset.elementsInserted.remove(removedIndexPath) != nil {
+                    return
+                }
 
                 changeset.elementsInserted = Set(changeset.elementsInserted.map { existingInsertedIndexPath in
                     guard existingInsertedIndexPath.section == removedIndexPath.section else {
