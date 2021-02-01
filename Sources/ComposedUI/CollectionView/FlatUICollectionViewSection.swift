@@ -11,7 +11,7 @@ open class FlatUICollectionViewSection: FlatSection, UICollectionViewSection {
 
     public var footer: CollectionSupplementaryElement? {
         didSet {
-            // TODO: Notify delegate
+            updateDelegate?.sectionDidInvalidateFooter(self)
         }
     }
 

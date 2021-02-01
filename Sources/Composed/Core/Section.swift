@@ -84,7 +84,11 @@ public protocol SectionUpdateDelegate: class {
 
     /// Notifies the delegate that the section invalidated its header.
     /// - Parameters:
-    ///   - section: The section where the move should be performed
+    ///   - section: The section that invalidated its header.
     func sectionDidInvalidateHeader(_ section: Section)
 
+    /// Notifies the delegate that the section invalidated its footer.
+    /// - Parameters:
+    ///   - section: The section that invalidated its footer.
+    func sectionDidInvalidateFooter(_ section: Section)
 }

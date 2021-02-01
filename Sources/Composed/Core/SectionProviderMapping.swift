@@ -81,6 +81,11 @@ public protocol SectionProviderMappingDelegate: class {
     ///   - sectionIndex: The index of the section that invalidated its header.
     func mappingDidInvalidateHeader(at sectionIndex: Int)
 
+    /// Notifies the delegate that the section invalidated its footer.
+    /// - Parameters:
+    ///   - sectionIndex: The index of the section that invalidated its footer.
+    func mappingDidInvalidateFooter(at sectionIndex: Int)
+
 }
 
 /// An object that encapsulates the logic required to map `SectionProvider`s to a global context,
@@ -231,6 +236,11 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
     public func sectionDidInvalidateHeader(_ section: Section) {
         guard let sectionOffset = self.sectionOffset(of: section) else { return }
         delegate?.mappingDidInvalidateHeader(at: sectionOffset)
+    }
+
+    public func sectionDidInvalidateFooter(_ section: Section) {
+        guard let sectionOffset = self.sectionOffset(of: section) else { return }
+        delegate?.mappingDidInvalidateFooter(at: sectionOffset)
     }
 
     // Rebuilds the cached providers to improve lookup performance.
