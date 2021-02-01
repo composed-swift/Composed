@@ -148,6 +148,9 @@ open class FlatSection: Section, CustomReflectable {
                 updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
             }
         }
+        if sectionProvider.updateDelegate === self {
+            sectionProvider.updateDelegate = nil
+        }
 
         children.remove(at: childIndex)
 
