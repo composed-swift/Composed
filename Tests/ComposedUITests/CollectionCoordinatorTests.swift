@@ -390,11 +390,11 @@ private final class TestSections {
     let rootSectionProvider = ComposedSectionProvider()
 
     let child0 = MockCollectionArraySection([])
-    let child1 = MockCollectionArraySection(["1"])
+    let child1 = MockCollectionArraySection([])
     var child2 = MockCollectionArraySection(["0", "1", "2", "3"])
-    let child3 = MockCollectionArraySection(["1", "2", "3"])
-    let child4 = MockCollectionArraySection(["1", "2", "3", "4", "5"])
-    var child5 = MockCollectionArraySection(["1", "2", "3", "4", "5", "6", "7", "8", "9"])
+    let child3 = MockCollectionArraySection(["0", "1", "2"])
+    let child4 = MockCollectionArraySection(["0"])
+    var child5 = MockCollectionArraySection(["0", "1", "2", "3", "4", "5", "6", "7", "8"])
     let child6 = MockCollectionArraySection([])
 }
 

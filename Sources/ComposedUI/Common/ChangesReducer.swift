@@ -124,70 +124,31 @@ internal struct ChangesReducer {
     }
 
     internal mutating func removeGroups(_ groups: IndexSet) {
-        print(#function, groups)
         groups.sorted(by: >).forEach { removedGroup in
-            print("Removing", removedGroup)
-            print("groupsInserted", changeset.groupsInserted)
-
-            /**
-
-             */
-//            changeset.groupsRemoved = Set(changeset.groupsRemoved
-//                .sorted(by: >)
-//                .map { existingRemovedGroup in
-//                    existingRemovedGroup
-//                }
-//                .reduce(into: (previous: Int?.none, groupsRemoved: [Int]()), { (result, groupsRemoved) in
-//                    if groupsRemoved == removedGroup {
-//                        result.groupsRemoved.append(groupsRemoved)
-//                        result.groupsRemoved.append(groupsRemoved + 1)
-//                        result.previous = groupsRemoved + 1
-//                    } else if let previous = result.previous, groupsRemoved == previous {
-//                        // TODO: Test this
-//                        result.groupsRemoved.append(groupsRemoved + 1)
-//                        result.previous = groupsRemoved + 1
-//                    } else {
-//                        result.groupsRemoved.append(groupsRemoved)
-//                        result.previous = groupsRemoved
-//                    }
-//                })
-//                .groupsRemoved
-//            )
-
             var removedGroup = removedGroup
 
             if changeset.groupsInserted.remove(removedGroup) != nil {
-                // TODO: Offset future indexes?
+                changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
+                    if insertedGroup > removedGroup {
+                        return insertedGroup - 1
+                    }
+
+                    return insertedGroup
+                })
                 removedGroup = transformSection(removedGroup)
             } else {
+                changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
+                    if insertedGroup > removedGroup {
+                        return insertedGroup - 1
+                    }
+
+                    return insertedGroup
+                })
                 removedGroup = transformSection(removedGroup)
                 changeset.groupsRemoved.insert(removedGroup)
             }
 
-
-//            if !changeset.groupsRemoved.contains(removedGroup) {
-
-//            }
-
-            changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
-                if insertedGroup > removedGroup {
-                    return insertedGroup - 1
-                }
-
-                return insertedGroup
-            })
-
-//            changeset.elementsUpdated = Set(changeset.elementsUpdated.compactMap { updatedIndexPath in
-//                guard updatedIndexPath.section != removedGroup else { return nil }
-//
-//                var updatedIndexPath = updatedIndexPath
-//
-//                if updatedIndexPath.section > removedGroup {
-//                    updatedIndexPath.section -= 1
-//                }
-//
-//                return updatedIndexPath
-//            })
+            changeset.elementsUpdated = Set(changeset.elementsUpdated.filter { $0.section != removedGroup })
 
             changeset.elementsInserted = Set(changeset.elementsInserted.compactMap { insertedIndexPath in
                 guard insertedIndexPath.section != removedGroup else { return nil }
