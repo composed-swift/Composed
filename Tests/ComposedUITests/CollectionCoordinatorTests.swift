@@ -58,13 +58,17 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.child0.append("new-0")
         }
 
-        tester.applyUpdate { sections in
+        tester.applyUpdate({ sections in
             sections.child2[1] = "new-1"
-        }
+        }, postUpdateChecks: { sections in
+            XCTAssertEqual(Set(sections.child2.requestedCells), Set([0, 1, 3]))
+        })
 
-        tester.applyUpdate { sections in
+        tester.applyUpdate({ sections in
             sections.child2[2] = "new-2"
-        }
+        }, postUpdateChecks: { sections in
+            XCTAssertEqual(Set(sections.child2.requestedCells), Set([0, 1, 2, 3]))
+        })
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.remove(sections.child3)
@@ -269,6 +273,33 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.remove(sections.child1)
+        }
+    }
+
+    func testGroupAndElementRemoves() {
+        // Mirror of `ChangesReducerTests.testGroupAndElementRemoves`
+        let tester = Tester() { sections in
+            sections.child0.removeAll()
+            sections.child1.removeAll()
+            sections.child2.removeAll()
+
+            sections.rootSectionProvider.append(sections.child0)
+            sections.rootSectionProvider.append(sections.child1)
+            sections.rootSectionProvider.append(sections.child2)
+            sections.rootSectionProvider.append(sections.child3)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child1)
+            sections.rootSectionProvider.remove(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child3.remove(at: 1)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child2)
         }
     }
 
