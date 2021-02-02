@@ -12,6 +12,14 @@ import Foundation
 
  Final updates are applied in the order:
 
+ | Update           | Order       | Indexes  |
+ |------------------|-------------|----------|
+ | Element Removals | High to low | Original |
+ | Element Reloads  | N/A         | Original |
+ | Group removals   | High to low | Original |
+
+ https://developer.apple.com/videos/play/wwdc2018/225/ is useful. Page 62 of the slides helps confirm the above table.
+
  - Element removals
    - Using original index paths
  - Group removals
@@ -116,33 +124,50 @@ internal struct ChangesReducer {
     }
 
     internal mutating func removeGroups(_ groups: IndexSet) {
-        groups.forEach { removedGroup in
-            let removedGroup = removedGroup - changeset.groupsInserted.filter { $0 < removedGroup }.count + changeset.groupsRemoved.filter { $0 <= removedGroup }.count
+        print(#function, groups)
+        groups.sorted(by: >).forEach { removedGroup in
+            print("Removing", removedGroup)
+            print("groupsInserted", changeset.groupsInserted)
 
-            if changeset.groupsInserted.remove(removedGroup) == nil {
-                changeset.groupsRemoved = Set(changeset.groupsRemoved
-                    .sorted(by: <)
-                    .reduce(into: (previous: Int?.none, groupsRemoved: [Int]()), { (result, groupsRemoved) in
-                        if groupsRemoved == removedGroup {
-                            result.groupsRemoved.append(groupsRemoved)
-                            result.groupsRemoved.append(groupsRemoved + 1)
-                            result.previous = groupsRemoved + 1
-                        } else if let previous = result.previous, groupsRemoved == previous {
-                            // TODO: Test this
-                            result.groupsRemoved.append(groupsRemoved + 1)
-                            result.previous = groupsRemoved + 1
-                        } else {
-                            result.groupsRemoved.append(groupsRemoved)
-                            result.previous = groupsRemoved
-                        }
-                    })
-                    .groupsRemoved
-                )
+            /**
 
-                if !changeset.groupsRemoved.contains(removedGroup) {
-                    changeset.groupsRemoved.insert(removedGroup)
-                }
+             */
+//            changeset.groupsRemoved = Set(changeset.groupsRemoved
+//                .sorted(by: >)
+//                .map { existingRemovedGroup in
+//                    existingRemovedGroup
+//                }
+//                .reduce(into: (previous: Int?.none, groupsRemoved: [Int]()), { (result, groupsRemoved) in
+//                    if groupsRemoved == removedGroup {
+//                        result.groupsRemoved.append(groupsRemoved)
+//                        result.groupsRemoved.append(groupsRemoved + 1)
+//                        result.previous = groupsRemoved + 1
+//                    } else if let previous = result.previous, groupsRemoved == previous {
+//                        // TODO: Test this
+//                        result.groupsRemoved.append(groupsRemoved + 1)
+//                        result.previous = groupsRemoved + 1
+//                    } else {
+//                        result.groupsRemoved.append(groupsRemoved)
+//                        result.previous = groupsRemoved
+//                    }
+//                })
+//                .groupsRemoved
+//            )
+
+            var removedGroup = removedGroup
+
+            if changeset.groupsInserted.remove(removedGroup) != nil {
+                // TODO: Offset future indexes?
+                removedGroup = transformSection(removedGroup)
+            } else {
+                removedGroup = transformSection(removedGroup)
+                changeset.groupsRemoved.insert(removedGroup)
             }
+
+
+//            if !changeset.groupsRemoved.contains(removedGroup) {
+
+//            }
 
             changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
                 if insertedGroup > removedGroup {
@@ -151,6 +176,18 @@ internal struct ChangesReducer {
 
                 return insertedGroup
             })
+
+//            changeset.elementsUpdated = Set(changeset.elementsUpdated.compactMap { updatedIndexPath in
+//                guard updatedIndexPath.section != removedGroup else { return nil }
+//
+//                var updatedIndexPath = updatedIndexPath
+//
+//                if updatedIndexPath.section > removedGroup {
+//                    updatedIndexPath.section -= 1
+//                }
+//
+//                return updatedIndexPath
+//            })
 
             changeset.elementsInserted = Set(changeset.elementsInserted.compactMap { insertedIndexPath in
                 guard insertedIndexPath.section != removedGroup else { return nil }
@@ -193,26 +230,12 @@ internal struct ChangesReducer {
          Element removals are handled before all other updates.
          */
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { removedIndexPath in
-            let sectionsRemovedBefore = changeset
-                .groupsRemoved
-                .sorted(by: <)
-                .enumerated()
-                .map { element in
-                    element.element - element.offset
-                }
-                .filter { $0 <= removedIndexPath.section }
-                .count
-
-            let sectionsInsertedBefore = changeset.groupsInserted.filter { $0 <= removedIndexPath.section }.count
-
-            var removedIndexPath = removedIndexPath
-            removedIndexPath.section += sectionsRemovedBefore
-            removedIndexPath.section -= sectionsInsertedBefore
+            var removedIndexPath = transformIndexPath(removedIndexPath, toContext: .original)
 
             if !changeset.groupsInserted.contains(removedIndexPath.section) {
                 let itemInsertsInSection = changeset
                     .elementsInserted
-                    .filter { $0.section == removedIndexPath.section - sectionsRemovedBefore + sectionsInsertedBefore }
+                    .filter { $0.section == removedIndexPath.section }
                     .map(\.item)
 
                 if changeset.elementsRemoved.contains(removedIndexPath), changeset.elementsInserted.remove(removedIndexPath) != nil {
@@ -261,9 +284,11 @@ internal struct ChangesReducer {
 
     internal mutating func updateElements(at indexPaths: [IndexPath]) {
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { updatedElement in
-            // Reloads are decomposed in to a delete and insert
-            removeElements(at: [updatedElement])
-            insertElements(at: [updatedElement])
+            let updatedElement = transformIndexPath(updatedElement, toContext: .original)
+
+            if !changeset.groupsInserted.contains(updatedElement.section) {
+                changeset.elementsUpdated.insert(updatedElement)
+            }
         }
     }
 
@@ -273,5 +298,37 @@ internal struct ChangesReducer {
 
     internal mutating func moveElements(_ moves: [(from: IndexPath, to: IndexPath)]) {
         moveElements(moves.map { Changeset.Move(from: $0.from, to: $0.to) })
+    }
+
+    private enum IndexPathContext {
+        /// Start of updates.
+        case original
+
+        /// After deletes and reloads
+        case afterUpdates
+    }
+
+    private func transformIndexPath(_ indexPath: IndexPath, toContext context: IndexPathContext) -> IndexPath {
+        var indexPath = indexPath
+
+        switch context {
+        case .original:
+            indexPath.section = transformSection(indexPath.section)
+        case .afterUpdates:
+            break
+        }
+
+        return indexPath
+    }
+
+    private func transformSection(_ section: Int) -> Int {
+        let groupsRemoved = changeset.groupsRemoved
+        let groupsInserted = changeset.groupsInserted
+        let availableSpaces = (0..<Int.max)
+            .lazy
+            .filter { !groupsRemoved.contains($0) || groupsInserted.contains($0) }
+        let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: section)
+
+        return availableSpaces[availableSpaceIndex]
     }
 }

@@ -277,19 +277,22 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         collectionView.performBatchUpdates({
             prepareSections()
 
+            debugLog("Deleting sections \(changeset.groupsRemoved)")
+            collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
+
             debugLog("Deleting items \(changeset.elementsRemoved)")
             collectionView.deleteItems(at: Array(changeset.elementsRemoved))
 
             debugLog("Inserting items \(changeset.elementsInserted)")
             collectionView.insertItems(at: Array(changeset.elementsInserted))
 
+            debugLog("Reloading items \(changeset.elementsUpdated)")
+            collectionView.reloadItems(at: Array(changeset.elementsUpdated))
+
             changeset.elementsMoved.forEach { move in
                 debugLog("Moving \(move.from) to \(move.to)")
                 collectionView.moveItem(at: move.from, to: move.to)
             }
-
-            debugLog("Deleting sections \(changeset.groupsRemoved)")
-            collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
 
             debugLog("Inserting sections \(changeset.groupsInserted)")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
