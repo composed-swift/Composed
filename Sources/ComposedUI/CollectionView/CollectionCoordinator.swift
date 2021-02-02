@@ -277,16 +277,16 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         collectionView.performBatchUpdates({
             prepareSections()
 
-            debugLog("Deleting sections \(changeset.groupsRemoved)")
+            debugLog("Deleting sections \(changeset.groupsRemoved.sorted(by: >))")
             collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
 
-            debugLog("Deleting items \(changeset.elementsRemoved)")
+            debugLog("Deleting items \(changeset.elementsRemoved.sorted(by: >))")
             collectionView.deleteItems(at: Array(changeset.elementsRemoved))
 
-            debugLog("Inserting items \(changeset.elementsInserted)")
+            debugLog("Inserting items \(changeset.elementsInserted.sorted(by: <))")
             collectionView.insertItems(at: Array(changeset.elementsInserted))
 
-            debugLog("Reloading items \(changeset.elementsUpdated)")
+            debugLog("Reloading items \(changeset.elementsUpdated.sorted(by: <))")
             collectionView.reloadItems(at: Array(changeset.elementsUpdated))
 
             changeset.elementsMoved.forEach { move in
@@ -294,7 +294,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
                 collectionView.moveItem(at: move.from, to: move.to)
             }
 
-            debugLog("Inserting sections \(changeset.groupsInserted)")
+            debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
         })
     }
