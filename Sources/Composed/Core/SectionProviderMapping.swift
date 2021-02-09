@@ -39,12 +39,6 @@ public protocol SectionProviderMappingDelegate: class {
     ///   - indexPaths: The element indexPaths
     func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath])
 
-    /// Notifies the delegate that the mapping did update sections
-    /// - Parameters:
-    ///   - mapping: The mapping that provided this update
-    ///   - sections: The section indexes
-    func mapping(_ mapping: SectionProviderMapping, didUpdateSections sections: IndexSet)
-
     /// Notifies the delegate that the mapping did update elements
     /// - Parameters:
     ///   - mapping: The mapping that provided this update

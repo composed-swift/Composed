@@ -132,7 +132,7 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
         let oldCount = elements.count
         elements.removeLast(k)
         let newCount = elements.count
-        (newCount..<oldCount).forEach {
+        (newCount..<oldCount).sorted(by: >).forEach {
             updateDelegate?.section(self, didRemoveElementAt: $0)
         }
         updateDelegate?.didEndUpdating(self)
@@ -159,7 +159,7 @@ extension ArraySection: MutableCollection, RandomAccessCollection, Bidirectional
     public func removeAll() {
         updateDelegate?.willBeginUpdating(self)
         let indexes = IndexSet(integersIn: indices)
-        indexes.forEach { updateDelegate?.section(self, didRemoveElementAt: $0) }
+        indexes.sorted(by: >).forEach { updateDelegate?.section(self, didRemoveElementAt: $0) }
         elements.removeAll()
         updateDelegate?.didEndUpdating(self)
     }
