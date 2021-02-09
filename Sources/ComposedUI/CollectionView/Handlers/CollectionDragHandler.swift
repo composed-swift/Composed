@@ -2,7 +2,7 @@ import UIKit
 import CoreData
 import Composed
 
-public protocol CollectionDragHandler: CollectionSectionProvider {
+public protocol CollectionDragHandler: UICollectionViewSection {
 
     func dragSessionWillBegin(_ session: UIDragSession)
     func dragSessionDidEnd(_ session: UIDragSession)
@@ -26,5 +26,5 @@ public extension CollectionDragHandler {
         return dragSession(session, dragItemsForBeginning: index)
     }
     func dragSession(previewParametersForElementAt index: Int, cell: UICollectionViewCell) -> UIDragPreviewParameters? { return nil }
-
+    
 }
