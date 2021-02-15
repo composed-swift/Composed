@@ -426,16 +426,18 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
 
-        let context = UICollectionViewFlowLayoutInvalidationContext()
-        context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
-        invalidateLayout(with: context)
+        collectionView.performBatchUpdates {
+            let context = UICollectionViewFlowLayoutInvalidationContext()
+            context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
+            self.invalidateLayout(with: context)
+        } completion: { _ in
+            guard let headerView = self.collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
 
-        guard let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
+            let section = self.mapper.provider.sections[sectionIndex]
 
-        let section = mapper.provider.sections[sectionIndex]
-
-        if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
-            header.configure(headerView, sectionIndex, section)
+            if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
+                header.configure(headerView, sectionIndex, section)
+            }
         }
     }
 
