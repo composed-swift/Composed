@@ -150,7 +150,6 @@ internal struct ChangesReducer: CustomReflectable {
 
                     return insertedGroup
                 })
-                removedGroup = transformSection(removedGroup)
             } else if changeset.groupsInserted.remove(removedGroup - groupsInsertedBefore) == nil {
                 changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
                     if insertedGroup > removedGroup {
