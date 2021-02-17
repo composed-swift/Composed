@@ -87,8 +87,8 @@ internal struct ChangesReducer {
                 return existingInsertedGroup
             })
 
-            if changeset.groupsRemoved.contains(insertedGroup) {
-                changeset.groupsInserted.insert(insertedGroup)
+            if changeset.groupsRemoved.remove(insertedGroup) != nil {
+                changeset.groupsUpdated.insert(insertedGroup)
             } else {
                 changeset.groupsInserted.insert(insertedGroup)
             }
@@ -126,6 +126,11 @@ internal struct ChangesReducer {
     internal mutating func removeGroups(_ groups: IndexSet) {
         groups.sorted(by: >).forEach { removedGroup in
             var removedGroup = removedGroup
+            let groupsInsertedBefore = changeset.groupsInserted.filter { $0 < removedGroup }.count
+
+            print("removedGroup", removedGroup)
+            print("groupsRemovedBefore", groupsInsertedBefore)
+            print("changeset.groupsInserted", changeset.groupsInserted)
 
             if changeset.groupsInserted.remove(removedGroup) != nil {
                 changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
@@ -136,7 +141,7 @@ internal struct ChangesReducer {
                     return insertedGroup
                 })
                 removedGroup = transformSection(removedGroup)
-            } else {
+            } else if changeset.groupsInserted.remove(removedGroup - groupsInsertedBefore) == nil {
                 changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
                     if insertedGroup > removedGroup {
                         return insertedGroup - 1
@@ -193,53 +198,53 @@ internal struct ChangesReducer {
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { removedIndexPath in
             var removedIndexPath = transformIndexPath(removedIndexPath, toContext: .original)
 
-            if !changeset.groupsInserted.contains(removedIndexPath.section) {
-                let itemInsertsInSection = changeset
-                    .elementsInserted
-                    .filter { $0.section == removedIndexPath.section }
-                    .map(\.item)
+            guard !changeset.groupsInserted.contains(removedIndexPath.section), !changeset.groupsUpdated.contains(removedIndexPath.section) else { return }
 
-                if changeset.elementsRemoved.contains(removedIndexPath), changeset.elementsInserted.remove(removedIndexPath) != nil {
-                    return
+            let itemInsertsInSection = changeset
+                .elementsInserted
+                .filter { $0.section == removedIndexPath.section }
+                .map(\.item)
+
+            if changeset.elementsRemoved.contains(removedIndexPath), changeset.elementsInserted.remove(removedIndexPath) != nil {
+                return
+            }
+
+            changeset.elementsInserted = Set(changeset.elementsInserted.map { existingInsertedIndexPath in
+                guard existingInsertedIndexPath.section == removedIndexPath.section else {
+                    // Different section; don't modify
+                    return existingInsertedIndexPath
                 }
 
-                changeset.elementsInserted = Set(changeset.elementsInserted.map { existingInsertedIndexPath in
-                    guard existingInsertedIndexPath.section == removedIndexPath.section else {
-                        // Different section; don't modify
-                        return existingInsertedIndexPath
-                    }
-
-                    guard !changeset.elementsRemoved.contains(existingInsertedIndexPath) else {
-                        // This insert is really a reload (delete and insert)
-                        return existingInsertedIndexPath
-                    }
-
-                    var existingInsertedIndexPath = existingInsertedIndexPath
-
-                    if existingInsertedIndexPath.item > removedIndexPath.item {
-                        existingInsertedIndexPath.item -= 1
-                    } else if existingInsertedIndexPath.item == removedIndexPath.item && !changeset.elementsRemoved.contains(existingInsertedIndexPath) {
-                        existingInsertedIndexPath.item -= 1
-                    }
-
+                guard !changeset.elementsRemoved.contains(existingInsertedIndexPath) else {
+                    // This insert is really a reload (delete and insert)
                     return existingInsertedIndexPath
-                })
+                }
 
-                let itemRemovalsInSection = changeset
-                    .elementsRemoved
-                    .filter { $0.section == removedIndexPath.section }
-                    .map(\.item)
+                var existingInsertedIndexPath = existingInsertedIndexPath
 
-                let availableSpaces = (0..<Int.max)
-                    .lazy
-                    .filter { !itemRemovalsInSection.contains($0) || itemInsertsInSection.contains($0) }
+                if existingInsertedIndexPath.item > removedIndexPath.item {
+                    existingInsertedIndexPath.item -= 1
+                } else if existingInsertedIndexPath.item == removedIndexPath.item && !changeset.elementsRemoved.contains(existingInsertedIndexPath) {
+                    existingInsertedIndexPath.item -= 1
+                }
 
-                let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: removedIndexPath.item)
+                return existingInsertedIndexPath
+            })
 
-                removedIndexPath.item = availableSpaces[availableSpaceIndex]
+            let itemRemovalsInSection = changeset
+                .elementsRemoved
+                .filter { $0.section == removedIndexPath.section }
+                .map(\.item)
 
-                changeset.elementsRemoved.insert(removedIndexPath)
-            }
+            let availableSpaces = (0..<Int.max)
+                .lazy
+                .filter { !itemRemovalsInSection.contains($0) || itemInsertsInSection.contains($0) }
+
+            let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: removedIndexPath.item)
+
+            removedIndexPath.item = availableSpaces[availableSpaceIndex]
+
+            changeset.elementsRemoved.insert(removedIndexPath)
         }
     }
 
@@ -247,7 +252,7 @@ internal struct ChangesReducer {
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { updatedElement in
             let updatedElement = transformIndexPath(updatedElement, toContext: .original)
 
-            if !changeset.groupsInserted.contains(updatedElement.section) {
+            if !changeset.groupsInserted.contains(updatedElement.section), !changeset.groupsUpdated.contains(updatedElement.section) {
                 changeset.elementsUpdated.insert(updatedElement)
             }
         }

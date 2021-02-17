@@ -283,6 +283,9 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             debugLog("Deleting items \(changeset.elementsRemoved.sorted(by: >))")
             collectionView.deleteItems(at: Array(changeset.elementsRemoved))
 
+            debugLog("Reloaded sections \(changeset.groupsUpdated.sorted(by: >))")
+            collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
+
             debugLog("Inserting items \(changeset.elementsInserted.sorted(by: <))")
             collectionView.insertItems(at: Array(changeset.elementsInserted))
 

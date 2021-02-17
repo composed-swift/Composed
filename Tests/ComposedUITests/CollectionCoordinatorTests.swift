@@ -218,6 +218,46 @@ final class CollectionCoordinatorTests: XCTestCase {
         }
     }
 
+    func testRemoveAndInsertMultipleSection() {
+        let tester = Tester() { sections in
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child1)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child1)
+        }
+    }
+
+    func testInsertsAndRemoves() {
+        let tester = Tester() { sections in
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child1)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child1)
+        }
+    }
+
     func testBatchedSectionRemovals() {
         let tester = Tester() { sections in
             sections.rootSectionProvider.append(sections.child0)
@@ -371,6 +411,20 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.child2.removeLast(2)
+        }
+    }
+
+    func testRemoveInsertsSection() {
+        let tester = Tester() { sections in
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.insert(sections.child1, at: 0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child0)
         }
     }
 }
