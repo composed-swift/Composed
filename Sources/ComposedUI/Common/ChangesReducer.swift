@@ -38,9 +38,19 @@ import Foundation
  - Element reloads
    - Using index paths after removals and inserts
  */
-internal struct ChangesReducer {
+internal struct ChangesReducer: CustomReflectable {
     internal var hasActiveUpdates: Bool {
         return activeUpdates > 0
+    }
+
+    var customMirror: Mirror {
+        Mirror(
+            self,
+            children: [
+                "activeUpdates": activeUpdates,
+                "changeset": changeset,
+            ]
+        )
     }
 
     private var activeUpdates = 0
