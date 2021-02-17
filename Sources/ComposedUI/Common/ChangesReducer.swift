@@ -138,10 +138,6 @@ internal struct ChangesReducer: CustomReflectable {
             var removedGroup = removedGroup
             let groupsInsertedBefore = changeset.groupsInserted.filter { $0 < removedGroup }.count
 
-            print("removedGroup", removedGroup)
-            print("groupsRemovedBefore", groupsInsertedBefore)
-            print("changeset.groupsInserted", changeset.groupsInserted)
-
             if changeset.groupsInserted.remove(removedGroup) != nil {
                 changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
                     if insertedGroup > removedGroup {
