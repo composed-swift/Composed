@@ -3,7 +3,7 @@ import Composed
 import os.log
 
 /// Conform to this protocol to receive `CollectionCoordinator` events
-public protocol CollectionCoordinatorDelegate: class {
+public protocol CollectionCoordinatorDelegate: AnyObject {
 
     /// Return a background view to be shown in the `UICollectionView` when its content is empty. Defaults to nil
     /// - Parameters:

@@ -2,7 +2,7 @@ import UIKit
 import Composed
 
 /// Conform to this protocol to receive `TableCoordinator` events
-public protocol TableCoordinatorDelegate: class {
+public protocol TableCoordinatorDelegate: AnyObject {
 
     /// Return a background view to be shown in the `UITableView` when its content is empty. Defaults to nil
     /// - Parameters:

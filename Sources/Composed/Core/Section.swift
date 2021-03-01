@@ -2,7 +2,7 @@ import Foundation
 import CoreGraphics
 
 /// Represents a single section of data.
-public protocol Section: class {
+public protocol Section: AnyObject {
 
     /// The number of elements in this section
     var numberOfElements: Int { get }
@@ -20,7 +20,7 @@ public extension Section {
 }
 
 /// A delegate that will respond to update events from a `Section`
-public protocol SectionUpdateDelegate: class {
+public protocol SectionUpdateDelegate: AnyObject {
 
     /// Notifies the delegate before a section will process updates
     /// - Parameter section: The section that will be updated

@@ -1,7 +1,7 @@
 import UIKit
 
 /// A delegate for responding to mapping updates
-public protocol SectionProviderMappingDelegate: class {
+public protocol SectionProviderMappingDelegate: AnyObject {
 
     /// Notifies the delegate that the mapping will being updating
     /// - Parameter mapping: The mapping that provided this update

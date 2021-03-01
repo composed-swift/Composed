@@ -60,7 +60,7 @@ extension ReusableCell {
     }
 }
 
-public protocol ReuseableView: class {
+public protocol ReuseableView: AnyObject {
     static var reuseIdentifier: String { get }
     static var kind: String { get }
     var reuseIdentifier: String? { get }

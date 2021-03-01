@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a collection of `Section`'s.
-public protocol SectionProvider: class {
+public protocol SectionProvider: AnyObject {
 
     /// The child sections contained in this provider
     var sections: [Section] { get }
@@ -45,7 +45,7 @@ public protocol AggregateSectionProvider: SectionProvider {
 }
 
 /// A delegate that will respond to update events from a `SectionProvider`
-public protocol SectionProviderUpdateDelegate: class {
+public protocol SectionProviderUpdateDelegate: AnyObject {
 
     /// /// Notifies the delegate before a provider will process updates
     /// - Parameter provider: The provider that will be updated
