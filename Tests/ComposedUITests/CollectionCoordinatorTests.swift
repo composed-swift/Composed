@@ -448,17 +448,25 @@ final class CollectionCoordinatorTests: XCTestCase {
     func testRemoveThenReloadAtSameIndexPath() {
         let tester = Tester() { sections in
             (0...9).forEach { index in
-                sections.child0.append("\(index)")
+                sections.child1.append("\(index)")
             }
             sections.rootSectionProvider.append(sections.child0)
+            sections.rootSectionProvider.append(sections.child1)
         }
 
         tester.applyUpdate { sections in
-            sections.child0.remove(at: 2)
+            sections.child1.remove(at: 2)
         }
 
         tester.applyUpdate { sections in
-            sections.child0[2] = "new-2"
+            sections.rootSectionProvider.remove(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child1[2] = "new-2"
+        } postUpdateChecks: { sections in
+            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
+            XCTAssertEqual(sections.child1.requestedCells, [2])
         }
     }
 

@@ -277,7 +277,8 @@ internal struct ChangesReducer: CustomReflectable {
 
     internal mutating func updateElements(at indexPaths: [IndexPath]) {
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { updatedElement in
-            let updatedElement = transformIndexPath(updatedElement, toContext: .original)
+            var updatedElement = transformIndexPath(updatedElement, toContext: .original)
+            updatedElement.item = transformItem(updatedElement.item, inSection: updatedElement.section)
 
             if !changeset.groupsInserted.contains(updatedElement.section), !changeset.groupsUpdated.contains(updatedElement.section) {
                 changeset.elementsUpdated.insert(updatedElement)
@@ -321,6 +322,17 @@ internal struct ChangesReducer: CustomReflectable {
             .lazy
             .filter { !groupsRemoved.contains($0) || groupsInserted.contains($0) }
         let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: section)
+
+        return availableSpaces[availableSpaceIndex]
+    }
+
+    private func transformItem(_ item: Int, inSection section: Int) -> Int {
+        let itemsRemoved = changeset.elementsRemoved.filter({ $0.section == section }).map(\.item)
+        let itemsInserted = changeset.elementsInserted.filter({ $0.section == section }).map(\.item)
+        let availableSpaces = (0..<Int.max)
+            .lazy
+            .filter { !itemsRemoved.contains($0) || itemsInserted.contains($0) }
+        let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: item)
 
         return availableSpaces[availableSpaceIndex]
     }

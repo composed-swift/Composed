@@ -1063,7 +1063,7 @@ final class ChangesReducerTests: XCTestCase {
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
-                        IndexPath(item: 2, section: 0),
+                        IndexPath(item: 3, section: 0),
                     ]
                 )
             })
