@@ -192,6 +192,11 @@ internal struct ChangesReducer: CustomReflectable {
 
     internal mutating func insertElements(at indexPaths: [IndexPath]) {
         indexPaths.forEach { insertedIndexPath in
+            if changeset.elementsRemoved.remove(insertedIndexPath) != nil {
+                changeset.elementsUpdated.insert(insertedIndexPath)
+                return
+            }
+
             changeset.elementsInserted.insert(insertedIndexPath)
         }
     }
