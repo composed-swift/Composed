@@ -490,7 +490,7 @@ final class CollectionCoordinatorTests: XCTestCase {
     /// Test a crash from Sporty
     func testSportyCrash() {
         let tester = Tester() { sections in
-            (0...9).forEach { index in
+            (0...51).forEach { index in
                 sections.child0.append("\(index)")
             }
             sections.rootSectionProvider.append(sections.child0)
@@ -498,16 +498,249 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.child0[0] = "new-0"
+        }
+        tester.applyUpdate { sections in
             sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
             sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 4)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 3)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 2)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 4)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 3)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 2)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 4)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 3)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 2)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 4)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 3)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 2)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 1)
+        }
+        tester.applyUpdate { sections in
             sections.child0.insert("new-1", at: 1)
+        }
+        tester.applyUpdate { sections in
             sections.child0.insert("new-2", at: 2)
-            sections.child0[3] = "new-3"
-            sections.child0.remove(at: 4)
-            sections.child0.remove(at: 4)
-            sections.child0[4] = "new-4"
-            sections.child0.remove(at: 5)
-            sections.child0.remove(at: 5)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-3", at: 3)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-4", at: 4)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-5", at: 5)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-6", at: 6)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-7", at: 7)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-8", at: 8)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-9", at: 9)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-10", at: 10)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-11", at: 11)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-12", at: 12)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-13", at: 13)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-14", at: 14)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-15", at: 15)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-16", at: 16)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-17", at: 17)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-18", at: 18)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-19", at: 19)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-20", at: 20)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-21", at: 21)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-22", at: 22)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-23", at: 23)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-24", at: 24)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-25", at: 25)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-26", at: 26)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-27", at: 27)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-28", at: 28)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-29", at: 29)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("new-30", at: 30)
+        }
+        tester.applyUpdate { sections in
+            sections.child0[31] = "new-31"
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 35)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 34)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 33)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 35)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 34)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 33)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 33)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 32)
+        }
+        tester.applyUpdate { sections in
+            sections.child0[32] = "new-32"
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 33)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 33)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 33)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 33)
         }
     }
 }
