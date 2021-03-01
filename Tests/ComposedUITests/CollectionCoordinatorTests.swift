@@ -441,6 +441,23 @@ final class CollectionCoordinatorTests: XCTestCase {
         }
 
         tester.applyUpdate { sections in
+            sections.child0.insert("new-2", at: 2)
+        }
+    }
+
+    func testRemoveThenReloadAtSameIndexPath() {
+        let tester = Tester() { sections in
+            (0...9).forEach { index in
+                sections.child0.append("\(index)")
+            }
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
             sections.child0[2] = "new-2"
         }
     }
