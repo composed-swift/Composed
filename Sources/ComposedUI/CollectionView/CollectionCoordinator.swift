@@ -305,6 +305,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
         assert(Thread.isMainThread)
 
+        debugLog(#function + "\(Array(sections))")
+
         guard isPerformingBatchedUpdates else {
             prepareSections()
             collectionView.insertSections(sections)
@@ -316,6 +318,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
     public func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet) {
         assert(Thread.isMainThread)
+
+        debugLog(#function + "\(Array(sections))")
 
         guard isPerformingBatchedUpdates else {
             prepareSections()
@@ -329,6 +333,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
 
+        debugLog(#function + "\(indexPaths)")
+
         guard isPerformingBatchedUpdates else {
             prepareSections()
             collectionView.insertItems(at: indexPaths)
@@ -341,6 +347,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
 
+        debugLog(#function + "\(indexPaths)")
+
         guard isPerformingBatchedUpdates else {
             prepareSections()
             collectionView.deleteItems(at: indexPaths)
@@ -352,6 +360,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
     public func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
+
+        debugLog(#function + "\(indexPaths)")
 
         guard isPerformingBatchedUpdates else {
             prepareSections()
@@ -383,6 +393,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
     public func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)]) {
         assert(Thread.isMainThread)
+
+        debugLog(#function + "\(moves)")
 
         guard isPerformingBatchedUpdates else {
             prepareSections()
