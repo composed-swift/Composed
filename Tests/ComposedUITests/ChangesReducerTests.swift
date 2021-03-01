@@ -299,17 +299,17 @@ final class ChangesReducerTests: XCTestCase {
                 }
 
                 XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
                 XCTAssertEqual(
-                    changeset.elementsInserted,
+                    changeset.elementsUpdated,
                     [
                         IndexPath(item: 0, section: 0),
-                        IndexPath(item: 2, section: 0),
                     ]
                 )
                 XCTAssertEqual(
-                    changeset.elementsRemoved,
+                    changeset.elementsInserted,
                     [
-                        IndexPath(item: 0, section: 0),
+                        IndexPath(item: 2, section: 0),
                     ]
                 )
             })
@@ -334,16 +334,20 @@ final class ChangesReducerTests: XCTestCase {
 
                 XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
-                    changeset.elementsInserted,
+                    changeset.elementsUpdated,
                     [
                         IndexPath(item: 0, section: 0),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
                         IndexPath(item: 1, section: 0),
                     ]
                 )
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
-                        IndexPath(item: 0, section: 0),
                         IndexPath(item: 2, section: 0),
                     ]
                 )
@@ -367,10 +371,11 @@ final class ChangesReducerTests: XCTestCase {
                 }
 
                 XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     [
-                        IndexPath(item: 1, section: 0),
+                        IndexPath(item: 0, section: 0),
                     ]
                 )
                 XCTAssertEqual(
@@ -1005,6 +1010,64 @@ final class ChangesReducerTests: XCTestCase {
             })
     }
 
+    func testRemoveThenUpdateAtSameIndexPath() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 2, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 2, section: 0),
+                    ]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.updateElements(at: [IndexPath(item: 2, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 2, section: 0),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 2, section: 0),
+                    ]
+                )
+            })
+    }
 
     func testUpdateThenRemoveAtSameIndexPath() {
         var changesReducer = ChangesReducer()
