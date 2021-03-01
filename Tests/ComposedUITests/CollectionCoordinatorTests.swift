@@ -478,6 +478,30 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.child0.remove(at: 2)
         }
     }
+
+    /// Test a crash from Sporty
+    func testSportyCrash() {
+        let tester = Tester() { sections in
+            (0...9).forEach { index in
+                sections.child0.append("\(index)")
+            }
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child0[0] = "new-0"
+            sections.child0.remove(at: 1)
+            sections.child0.remove(at: 1)
+            sections.child0.insert("new-1", at: 1)
+            sections.child0.insert("new-2", at: 2)
+            sections.child0[3] = "new-3"
+            sections.child0.remove(at: 4)
+            sections.child0.remove(at: 4)
+            sections.child0[4] = "new-4"
+            sections.child0.remove(at: 5)
+            sections.child0.remove(at: 5)
+        }
+    }
 }
 
 private final class MockCollectionArraySection: ArraySection<String>, SingleUICollectionViewSection {
