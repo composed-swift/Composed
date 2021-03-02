@@ -488,6 +488,31 @@ final class CollectionCoordinatorTests: XCTestCase {
     }
 
     /// Test a crash from Sporty
+    func testDeleteDeleteDeleteReload() {
+        let tester = Tester() { sections in
+            (0...3).forEach { index in
+                sections.child0.append("\(index)")
+            }
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 0)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 0)
+        }
+        tester.applyUpdate { sections in
+            sections.child0.remove(at: 0)
+        }
+        tester.applyUpdate { sections in
+            sections.child0[0] = "new-0"
+        } postUpdateChecks: { sections in
+            XCTAssertEqual(sections.child0.requestedCells, [0])
+        }
+    }
+
+    /// Test a crash from Sporty
     func testSportyCrash() {
         let tester = Tester() { sections in
             (0...51).forEach { index in
