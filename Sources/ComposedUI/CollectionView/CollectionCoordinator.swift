@@ -428,6 +428,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {
         let elementsProvider = self.elementsProvider(for: sectionIndex)
+        let section = self.mapper.provider.sections[sectionIndex]
 
         if let header = elementsProvider.header {
             switch header.dequeueMethod.method {
@@ -445,10 +446,9 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             let context = UICollectionViewFlowLayoutInvalidationContext()
             context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
             self.invalidateLayout(with: context)
-        } completion: { _ in
+        } completion: { [weak section] _ in
+            guard let section = section else { return }
             guard let headerView = self.collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
-
-            let section = self.mapper.provider.sections[sectionIndex]
 
             if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
                 header.configure(headerView, sectionIndex, section)
