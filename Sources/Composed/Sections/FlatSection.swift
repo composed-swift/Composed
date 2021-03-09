@@ -23,7 +23,8 @@ open class FlatSection: Section, CustomReflectable {
             self,
             children: [
                 "children": children,
-            ]
+            ],
+            displayStyle: .struct
         )
     }
 
