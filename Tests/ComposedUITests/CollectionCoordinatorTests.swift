@@ -487,6 +487,25 @@ final class CollectionCoordinatorTests: XCTestCase {
         }
     }
 
+    func testReloadInsertReload() {
+        let tester = Tester() { sections in
+            (0..<2).forEach { index in
+                sections.child0.append("initial-\(index)")
+            }
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child0[0] = "new-0"
+        }
+        tester.applyUpdate { sections in
+            sections.child0.insert("inserted-1", at: 1)
+        }
+        tester.applyUpdate { sections in
+            sections.child0[2] = "new-2"
+        }
+    }
+
     /// Test a crash from Sporty
     func testDeleteDeleteDeleteReload() {
         let tester = Tester() { sections in

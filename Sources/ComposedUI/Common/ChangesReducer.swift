@@ -313,9 +313,9 @@ internal struct ChangesReducer: CustomReflectable {
         let itemsInserted = changeset.elementsInserted.filter({ $0.section == section }).map(\.item)
         let availableSpaces = (0..<Int.max)
             .lazy
-            .filter { !itemsRemoved.contains($0) || itemsInserted.contains($0) }
+            .filter { !itemsRemoved.contains($0) }
         let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: item)
 
-        return availableSpaces[availableSpaceIndex]
+        return availableSpaces[availableSpaceIndex] - itemsInserted.filter({ $0 < item }).count
     }
 }
