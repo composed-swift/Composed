@@ -787,6 +787,71 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.child0.remove(at: 33)
         }
     }
+
+    func testBatchUpdateWhileBatchUpdateHappening() {
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        let layout = UICollectionViewFlowLayout()
+        layout.itemSize = CGSize(width: UIScreen.main.bounds.width, height: 44)
+        let collectionView = UICollectionView(frame: UIScreen.main.bounds, collectionViewLayout: layout)
+        window.addSubview(collectionView)
+        let rootSectionProvider = ComposedSectionProvider()
+        let arraySectionProvider = MockCollectionArraySection([])
+        rootSectionProvider.append(arraySectionProvider)
+        let collectionCoordinator = CollectionCoordinator(collectionView: collectionView, sectionProvider: rootSectionProvider)
+        collectionCoordinator.enableLogs = true
+
+        let batchUpdatesCompleteExpectation = expectation(description: "Updates complete")
+        batchUpdatesCompleteExpectation.expectedFulfillmentCount = 2
+        collectionCoordinator.batchUpdatesHandler = {
+            batchUpdatesCompleteExpectation.fulfill()
+        }
+
+        let mainQueueGroup = DispatchGroup()
+
+        DispatchQueue.global().async {
+            XCTAssertFalse(Thread.isMainThread)
+            // Ensure the dispatch group has been entered so the main queue is blocked
+            Thread.sleep(forTimeInterval: 1)
+
+            print("Queuing updates on main queue")
+
+            DispatchQueue.main.async {
+                print("Appending")
+                arraySectionProvider.updateDelegate?.willBeginUpdating(arraySectionProvider)
+                arraySectionProvider.append("new-0")
+                arraySectionProvider.append("new-1")
+                arraySectionProvider.append("new-2")
+                arraySectionProvider.append("new-3")
+                arraySectionProvider.updateDelegate?.didEndUpdating(arraySectionProvider)
+            }
+
+            DispatchQueue.main.async {
+                print("Deleting")
+                XCTAssertEqual(Set(arraySectionProvider.requestedCells), Set([0, 1, 2, 3]))
+                arraySectionProvider.updateDelegate?.willBeginUpdating(arraySectionProvider)
+                arraySectionProvider.remove(at: 0)
+                arraySectionProvider.remove(at: 0)
+                arraySectionProvider.remove(at: 0)
+                arraySectionProvider.remove(at: 0)
+                arraySectionProvider.updateDelegate?.didEndUpdating(arraySectionProvider)
+            }
+
+            print("Updates queued")
+
+            Thread.sleep(forTimeInterval: 1)
+
+            print("Unblocking main queue")
+
+            mainQueueGroup.leave()
+        }
+
+        print("Blocking main queue")
+        mainQueueGroup.enter()
+        mainQueueGroup.wait()
+        print("Main queue unblocked")
+
+        waitForExpectations(timeout: 5)
+    }
 }
 
 private final class MockCollectionArraySection: ArraySection<String>, SingleUICollectionViewSection {

@@ -231,6 +231,8 @@ open class CollectionCoordinator: NSObject {
             os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
         }
     }
+
+    public var batchUpdatesHandler: (() -> Void)?
 }
 
 // MARK: - SectionProviderMappingDelegate
@@ -299,7 +301,10 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
             debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
-        })
+        }) { [weak self] isFinished in
+            self?.debugLog("Batch update completed. isFinished: \(isFinished)")
+            self?.batchUpdatesHandler?()
+        }
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
