@@ -3,6 +3,8 @@ import UIKit
 /// A delegate for responding to mapping updates
 public protocol SectionProviderMappingDelegate: AnyObject {
 
+    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer) -> Void)
+
     /// Notifies the delegate that the mapping will being updating
     /// - Parameter mapping: The mapping that provided this update
     func mappingWillBeginUpdating(_ mapping: SectionProviderMapping)
@@ -144,6 +146,10 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexSet(indexes.map { $0 + offset })
     }
 
+    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (ChangesReducer) -> Void) {
+        delegate?.mapping(self, willPerformBatchUpdates: updates)
+    }
+
     public func willBeginUpdating(_ provider: SectionProvider) {
         delegate?.mappingWillBeginUpdating(self)
     }
@@ -189,6 +195,10 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
 
     public func invalidateAll(_ provider: SectionProvider) {
         delegate?.mappingDidInvalidate(self)
+    }
+
+    public func section(_ section: Section, willPerformBatchUpdates updates: (ChangesReducer) -> Void) {
+        delegate?.mapping(self, willPerformBatchUpdates: updates)
     }
 
     public func willBeginUpdating(_ section: Section) {

@@ -245,6 +245,54 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         collectionView.reloadData()
     }
 
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer) -> Void) {
+        if changesReducer.hasActiveUpdates {
+            updates(changesReducer)
+            return
+        }
+
+        debugLog("Performing batch updates")
+        collectionView.performBatchUpdates({
+            if enableLogs {
+                print("cachedElementsProviders", cachedElementsProviders)
+            }
+            changesReducer.beginUpdating()
+            updates(changesReducer)
+
+            prepareSections()
+
+            guard let changeset = changesReducer.endUpdating() else {
+                assertionFailure()
+                return
+            }
+
+            debugLog("Deleting sections \(changeset.groupsRemoved.sorted(by: >))")
+            collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
+
+            debugLog("Deleting items \(changeset.elementsRemoved.sorted(by: >))")
+            collectionView.deleteItems(at: Array(changeset.elementsRemoved))
+
+            debugLog("Reloaded sections \(changeset.groupsUpdated.sorted(by: >))")
+            collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
+
+            debugLog("Inserting items \(changeset.elementsInserted.sorted(by: <))")
+            collectionView.insertItems(at: Array(changeset.elementsInserted))
+
+            debugLog("Reloading items \(changeset.elementsUpdated.sorted(by: <))")
+            collectionView.reloadItems(at: Array(changeset.elementsUpdated))
+
+            changeset.elementsMoved.forEach { move in
+                debugLog("Moving \(move.from) to \(move.to)")
+                collectionView.moveItem(at: move.from, to: move.to)
+            }
+
+            debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
+            collectionView.insertSections(IndexSet(changeset.groupsInserted))
+        }, completion: { [weak self] isFinished in
+            self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
+        })
+    }
+
     public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
         debugLog(#function)
         assert(Thread.isMainThread)
@@ -299,6 +347,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
             debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
+        }, completion: { [weak self] isFinished in
+            self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
         })
     }
 

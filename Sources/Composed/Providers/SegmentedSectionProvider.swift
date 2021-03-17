@@ -48,11 +48,11 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
             // if the value won't result in a change, ignore it
             if _currentIndex == newIndex { return }
 
-            updateDelegate?.willBeginUpdating(self)
-            _currentIndex = newIndex
-            updateDelegate(forRemovalOf: children[oldIndex])
-            updateDelegate(forInsertionOf: children[newIndex])
-            updateDelegate?.didEndUpdating(self)
+            performBatchUpdates { changesReducer in
+                _currentIndex = newIndex
+                updateDelegate(forRemovalOf: children[oldIndex])
+                updateDelegate(forInsertionOf: children[newIndex])
+            }
         }
     }
 
@@ -205,18 +205,18 @@ open class SegmentedSectionProvider: AggregateSectionProvider, SectionProviderUp
         }
         // if our index is still technically valid
         else if _currentIndex <= children.count - 1 {
-            updateDelegate?.willBeginUpdating(self)
-            updateDelegate(forRemovalOf: child)
-            updateDelegate(forInsertionOf: currentChild)
-            updateDelegate?.didEndUpdating(self)
+            performBatchUpdates { _ in
+                updateDelegate(forRemovalOf: child)
+                updateDelegate(forInsertionOf: currentChild)
+            }
         }
         // if our index should be decremented
         else {
-            updateDelegate?.willBeginUpdating(self)
-            _currentIndex -= 1
-            updateDelegate(forRemovalOf: child)
-            updateDelegate(forInsertionOf: currentChild)
-            updateDelegate?.didEndUpdating(self)
+            performBatchUpdates { _ in
+                _currentIndex -= 1
+                updateDelegate(forRemovalOf: child)
+                updateDelegate(forInsertionOf: currentChild)
+            }
         }
     }
 

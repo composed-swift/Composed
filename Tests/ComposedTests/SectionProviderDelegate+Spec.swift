@@ -47,6 +47,10 @@ final class SectionProviderDelegate_Spec: QuickSpec {
 }
 
 final class MockDelegate: SectionProviderUpdateDelegate {
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (ChangesReducer) -> Void) {
+
+    }
+
     func willBeginUpdating(_ provider: SectionProvider) {
 
     }
