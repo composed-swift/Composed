@@ -252,6 +252,14 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             return
         }
 
+        /**
+         Ensure collection view has been laid out, essentially ensuring that it will not be called
+         by the collection view itself, which may trigger fetching of stale data and cause a crash.
+
+         At this point the `updates` closure has not been called, so any updates about to be applied
+         have not yet been reflected in the data layer.
+         */
+        collectionView.layoutIfNeeded()
         debugLog("Performing batch updates on \(collectionView)")
         collectionView.performBatchUpdates({
             if enableLogs {
