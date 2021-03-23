@@ -246,7 +246,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         collectionView.reloadData()
     }
 
-    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer) -> Void) {
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void) {
         if changesReducer.hasActiveUpdates {
             updates(changesReducer)
             return

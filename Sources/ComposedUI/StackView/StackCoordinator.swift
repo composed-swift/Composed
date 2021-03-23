@@ -60,7 +60,7 @@ open class StackCoordinator: NSObject {
 }
 
 extension StackCoordinator: SectionProviderMappingDelegate {
-    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (ChangesReducer) -> Void) {}
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {}
 
 
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
