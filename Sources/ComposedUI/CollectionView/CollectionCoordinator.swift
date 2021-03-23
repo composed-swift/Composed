@@ -251,10 +251,10 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             return
         }
 
-        debugLog("Performing batch updates")
+        debugLog("Performing batch updates on \(collectionView)")
         collectionView.performBatchUpdates({
             if enableLogs {
-                print("cachedElementsProviders", cachedElementsProviders)
+                debugLog("cachedElementsProviders \(cachedElementsProviders)")
             }
             changesReducer.beginUpdating()
             updates(changesReducer)
@@ -291,6 +291,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         }, completion: { [weak self] isFinished in
             self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
         })
+        debugLog("Performing batch updates has been called on \(collectionView)")
     }
 
     public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
@@ -321,7 +322,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
          All other updates are processed relative to the indexes **after** these deletes have occurred.
          */
-        debugLog("Performing batch updates")
+        debugLog("----------------------")
+        debugLog("Performing delayed batch updates")
         collectionView.performBatchUpdates({
             prepareSections()
 
@@ -492,11 +494,14 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
 
+        debugLog("Section \(sectionIndex) invalidated header")
         collectionView.performBatchUpdates {
+            debugLog("Performing batch updates to update header in section \(sectionIndex)")
             let context = UICollectionViewFlowLayoutInvalidationContext()
             context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
             self.invalidateLayout(with: context)
-        } completion: { [weak section] _ in
+        } completion: { [weak section] isFinished in
+            self.debugLog("Performing batch updates completed to update header in section \(sectionIndex). isFinished = \(isFinished)")
             guard let section = section else { return }
             guard let headerView = self.collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
 
