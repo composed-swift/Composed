@@ -239,6 +239,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
         assert(Thread.isMainThread)
 
+        assert(!changesReducer.hasActiveUpdates, "Should not invalidate with active changes")
         debugLog(#function)
         changesReducer.clearUpdates()
         prepareSections()
