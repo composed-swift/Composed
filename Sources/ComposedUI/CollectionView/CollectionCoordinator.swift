@@ -233,8 +233,6 @@ open class CollectionCoordinator: NSObject {
         print("[CollectionCoordinator] \(message)")
     }
 
-    public var batchUpdatesHandler: (() -> Void)?
-
     /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
     ///
     /// This is used to prevent multiple calls to `performBatchUpdates` once all the updates have been applied to
@@ -387,7 +385,6 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
         }, completion: { [weak self] isFinished in
             self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
-            self?.batchUpdatesHandler?()
         })
     }
 
