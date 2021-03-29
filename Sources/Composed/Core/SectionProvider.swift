@@ -25,6 +25,16 @@ public extension SectionProvider {
         return sections.count
     }
 
+    func performBatchUpdates(_ updates: (_ updateDelegate: SectionProviderUpdateDelegate?) -> Void) {
+        if let updateDelegate = updateDelegate {
+            updateDelegate.provider(self) { changesReducer in
+                updates(updateDelegate)
+            }
+        } else {
+            updates(nil)
+        }
+    }
+
 }
 
 /// Represents a collection of `SectionProvider`'s
@@ -47,12 +57,16 @@ public protocol AggregateSectionProvider: SectionProvider {
 /// A delegate that will respond to update events from a `SectionProvider`
 public protocol SectionProviderUpdateDelegate: AnyObject {
 
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void)
+
     /// /// Notifies the delegate before a provider will process updates
     /// - Parameter provider: The provider that will be updated
+    @available(*, deprecated, message: "Use batch updates")
     func willBeginUpdating(_ provider: SectionProvider)
 
     /// Notifies the delegate after a provider has processed updates
     /// - Parameter provider: The provider that was updated
+    @available(*, deprecated, message: "Use batch updates")
     func didEndUpdating(_ provider: SectionProvider)
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
@@ -76,6 +90,14 @@ public protocol SectionProviderUpdateDelegate: AnyObject {
 
 // Default implementations to minimise `SectionProvider` implementation requirements
 public extension SectionProviderUpdateDelegate where Self: SectionProvider {
+
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void) {
+        if let updateDelegate = updateDelegate {
+            updateDelegate.provider(self, willPerformBatchUpdates: updates)
+        } else {
+            updates(nil)
+        }
+    }
 
     func willBeginUpdating(_ provider: SectionProvider) {
         updateDelegate?.willBeginUpdating(self)

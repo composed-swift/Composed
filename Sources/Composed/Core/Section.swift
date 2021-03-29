@@ -17,17 +17,31 @@ public extension Section {
     /// Returns true if the section contains no elements, false otherwise
     var isEmpty: Bool { return numberOfElements == 0 }
 
+    func performBatchUpdates(_ updates: (_ updateDelegate: SectionUpdateDelegate?) -> Void) {
+        if let updateDelegate = updateDelegate {
+            updateDelegate.section(self) { changesReducer in
+                updates(updateDelegate)
+            }
+        } else {
+            updates(nil)
+        }
+    }
+
 }
 
 /// A delegate that will respond to update events from a `Section`
 public protocol SectionUpdateDelegate: AnyObject {
 
+    func section(_ section: Section, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void)
+
     /// Notifies the delegate before a section will process updates
     /// - Parameter section: The section that will be updated
+    @available(*, deprecated, message: "Use batch updates")
     func willBeginUpdating(_ section: Section)
 
     /// Notifies the delegate after a section has processed updates
     /// - Parameter section: The section that was updated
+    @available(*, deprecated, message: "Use batch updates")
     func didEndUpdating(_ section: Section)
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates

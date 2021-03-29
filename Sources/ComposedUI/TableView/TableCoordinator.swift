@@ -153,6 +153,8 @@ open class TableCoordinator: NSObject {
 // MARK: - SectionProviderMappingDelegate
 
 extension TableCoordinator: SectionProviderMappingDelegate {
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {}
+
     private func reset() {
         removes.removeAll()
         inserts.removeAll()

@@ -110,6 +110,10 @@ final class SectionProviderMapping_Spec: QuickSpec {
 }
 
 final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
+    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (ChangesReducer) -> Void) {
+        
+    }
+
     var didInsertSections: (mapping: SectionProviderMapping, sections: IndexSet)?
     var didInsertElements: (section: SectionProviderMapping, indexPaths: [IndexPath])?
 

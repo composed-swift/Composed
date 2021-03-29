@@ -218,6 +218,19 @@ final class CollectionCoordinatorTests: XCTestCase {
         }
     }
 
+    func testRemoveInsertedElementWhileWaitingForAnimations() {
+        let tester = Tester() { sections in
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.child0.insert("inserted-0", at: 0)
+            DispatchQueue.main.async {
+                sections.child0.remove(at: 0)
+            }
+        }
+    }
+
     func testRemoveAndInsertMultipleSection() {
         let tester = Tester() { sections in
             sections.rootSectionProvider.append(sections.child0)
@@ -908,11 +921,9 @@ private final class Tester {
         collectionCoordinator.enableLogs = true
         collectionView.reloadData()
 
-        rootSectionProvider.updateDelegate?.willBeginUpdating(rootSectionProvider)
-
-        updaters.forEach { $0(sections) }
-
-        rootSectionProvider.updateDelegate?.didEndUpdating(rootSectionProvider)
+        rootSectionProvider.performBatchUpdates { _ in
+            updaters.forEach { $0(sections) }
+        }
 
         postUpdateChecks?(sections)
     }

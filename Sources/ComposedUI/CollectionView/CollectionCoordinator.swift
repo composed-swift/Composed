@@ -227,12 +227,19 @@ open class CollectionCoordinator: NSObject {
     }
 
     fileprivate func debugLog(_ message: String) {
-        if #available(iOS 12, *), enableLogs {
-            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
-        }
+//        if #available(iOS 12, *), enableLogs {
+//            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
+//        }
+        print("[CollectionCoordinator] \(message)")
     }
 
     public var batchUpdatesHandler: (() -> Void)?
+
+    /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
+    ///
+    /// This is used to prevent multiple calls to `performBatchUpdates` once all the updates have been applied to
+    /// the collection view, which can cause the data to be out of sync.
+    fileprivate var isPerformingUpdates = false
 }
 
 // MARK: - SectionProviderMappingDelegate
@@ -241,10 +248,86 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
         assert(Thread.isMainThread)
 
+        assert(!changesReducer.hasActiveUpdates, "Should not invalidate with active changes")
         debugLog(#function)
         changesReducer.clearUpdates()
         prepareSections()
         collectionView.reloadData()
+    }
+
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void) {
+        assert(Thread.isMainThread)
+
+        guard !changesReducer.hasActiveUpdates else {
+            // The changes reducer will only have active updates after `beginUpdating` ha
+            // been called, which is done inside `performBatchUpdates`. This ensures that any
+            // `updates` closure that trigger other updates and call in to this again have
+            // their updates applied in the same batch.
+            updates(changesReducer)
+            return
+        }
+
+        if isPerformingUpdates {
+            print("Batch updates are being applied to \(self) after a previous batch has been applied but before the collection view has finished laying out. This can occur when the configuration for one of your views triggers an update. Since the update has not yet finished this can cause data to be out of sync. See \(#filePath):L\(#line) for more details. Calling `reloadData`.")
+            mappingDidInvalidate(mapping)
+            return
+        }
+
+
+        isPerformingUpdates = true
+
+        /**
+         Ensure collection view has been laid out, essentially ensuring that it will not be called
+         by the collection view itself, which may trigger fetching of stale data and cause a crash.
+
+         At this point the `updates` closure has not been called, so any updates about to be applied
+         have not yet been reflected in the data layer.
+         */
+        debugLog("Layout out collection view, if needed")
+        collectionView.layoutIfNeeded()
+        debugLog("Collection view has been laid out")
+        collectionView.performBatchUpdates({
+            debugLog("Starting batch updates")
+            changesReducer.beginUpdating()
+
+            updates(changesReducer)
+
+            prepareSections()
+
+            guard let changeset = changesReducer.endUpdating() else {
+                assertionFailure("Calls to `beginUpdating` must be balanced with calls to `endUpdating`")
+                return
+            }
+
+            debugLog("Deleting sections \(changeset.groupsRemoved.sorted(by: >))")
+            collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
+
+            debugLog("Deleting items \(changeset.elementsRemoved.sorted(by: >))")
+            collectionView.deleteItems(at: Array(changeset.elementsRemoved))
+
+            debugLog("Reloaded sections \(changeset.groupsUpdated.sorted(by: >))")
+            collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
+
+            debugLog("Inserting items \(changeset.elementsInserted.sorted(by: <))")
+            collectionView.insertItems(at: Array(changeset.elementsInserted))
+
+            debugLog("Reloading items \(changeset.elementsUpdated.sorted(by: <))")
+            collectionView.reloadItems(at: Array(changeset.elementsUpdated))
+
+            changeset.elementsMoved.forEach { move in
+                debugLog("Moving \(move.from) to \(move.to)")
+                collectionView.moveItem(at: move.from, to: move.to)
+            }
+
+            debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
+            collectionView.insertSections(IndexSet(changeset.groupsInserted))
+
+            debugLog("Batch updates have been applied")
+        }, completion: { [weak self] isFinished in
+            self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
+        })
+        isPerformingUpdates = false
+        debugLog("`performBatchUpdates` call has completed")
     }
 
     public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
@@ -275,7 +358,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
          All other updates are processed relative to the indexes **after** these deletes have occurred.
          */
-        debugLog("Performing batch updates")
+        debugLog("----------------------")
+        debugLog("Performing delayed batch updates")
         collectionView.performBatchUpdates({
             prepareSections()
 
@@ -301,10 +385,10 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
             debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
-        }) { [weak self] isFinished in
-            self?.debugLog("Batch update completed. isFinished: \(isFinished)")
+        }, completion: { [weak self] isFinished in
+            self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
             self?.batchUpdatesHandler?()
-        }
+        })
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
@@ -447,11 +531,14 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
 
+        debugLog("Section \(sectionIndex) invalidated header")
         collectionView.performBatchUpdates {
+            debugLog("Performing batch updates to update header in section \(sectionIndex)")
             let context = UICollectionViewFlowLayoutInvalidationContext()
             context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
             self.invalidateLayout(with: context)
-        } completion: { [weak section] _ in
+        } completion: { [weak section] isFinished in
+            self.debugLog("Performing batch updates completed to update header in section \(sectionIndex). isFinished = \(isFinished)")
             guard let section = section else { return }
             guard let headerView = self.collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
 

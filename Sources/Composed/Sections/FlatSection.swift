@@ -33,7 +33,7 @@ open class FlatSection: Section, CustomReflectable {
     public init() {}
 
     public func append(_ section: Section) {
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
 
         let indexOfFirstChildElement = numberOfElements
         children.append(.section(section))
@@ -46,11 +46,11 @@ open class FlatSection: Section, CustomReflectable {
                 updateDelegate?.section(self, didInsertElementAt: index)
             }
 
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 
     public func append(_ sectionProvider: SectionProvider) {
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
 
         var indexOfFirstSectionElement = numberOfElements
 
@@ -71,11 +71,11 @@ open class FlatSection: Section, CustomReflectable {
 
         sectionProvider.updateDelegate = self
 
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 
     public func insert(_ section: Section, at childIndex: Int) {
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
 
         let elementOffset: Int = {
             if childIndex == 0 {
@@ -107,7 +107,7 @@ open class FlatSection: Section, CustomReflectable {
                 updateDelegate?.section(self, didInsertElementAt: index)
             }
 
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 
     public func insert(_ section: Section, after existingSection: Section) {
@@ -119,7 +119,7 @@ open class FlatSection: Section, CustomReflectable {
     public func remove(_ section: Section) {
         guard let childIndex = childIndex(of: section) else { return }
 
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
 
         let sectionOffset = indexForFirstElement(of: section)!
         children.remove(at: childIndex)
@@ -132,13 +132,13 @@ open class FlatSection: Section, CustomReflectable {
             updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
         }
 
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 
     public func remove(_ sectionProvider: SectionProvider) {
         guard let childIndex = self.childIndex(of: sectionProvider) else { return }
 
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
         sectionProvider.sections.reversed().forEach { section in
             section.updateDelegate = nil
 
@@ -155,7 +155,7 @@ open class FlatSection: Section, CustomReflectable {
 
         children.remove(at: childIndex)
 
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 
     public func sectionForElementIndex(_ index: Int) -> (section: Section, offset: Int)? {
@@ -301,6 +301,14 @@ open class FlatSection: Section, CustomReflectable {
 }
 
 extension FlatSection: SectionUpdateDelegate {
+    public func section(_ section: Section, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {
+        if let updateDelegate = updateDelegate {
+            updateDelegate.section(section, willPerformBatchUpdates: updates)
+        } else {
+            updates(nil)
+        }
+    }
+
     public func willBeginUpdating(_ section: Section) {
         updateDelegate?.willBeginUpdating(self)
     }
@@ -367,6 +375,14 @@ extension FlatSection: SectionUpdateDelegate {
 }
 
 extension FlatSection: SectionProviderUpdateDelegate {
+    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {
+        if let updateDelegate = updateDelegate {
+            updateDelegate.section(self, willPerformBatchUpdates: updates)
+        } else {
+            updates(nil)
+        }
+    }
+
     public func willBeginUpdating(_ provider: SectionProvider) {
         updateDelegate?.willBeginUpdating(self)
     }
@@ -393,7 +409,7 @@ extension FlatSection: SectionProviderUpdateDelegate {
             return
         }
 
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
 
         for (section, index) in zip(sections, indexes) {
             section.updateDelegate = self
@@ -407,7 +423,7 @@ extension FlatSection: SectionProviderUpdateDelegate {
             }
         }
 
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 
     public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
@@ -416,7 +432,7 @@ extension FlatSection: SectionProviderUpdateDelegate {
             return
         }
 
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
 
         for (section, sectionIndexInProvider) in zip(sections, indexes).reversed() {
             let localSectionIndex = sectionIndexInProvider + providerSectionIndex
@@ -429,6 +445,6 @@ extension FlatSection: SectionProviderUpdateDelegate {
             }
         }
 
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 }

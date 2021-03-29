@@ -36,7 +36,7 @@ open class SingleElementSection<Element>: Section {
     /// Replaces the element with the specified element
     /// - Parameter element: The new element
     public func replace(element: Element) {
-        updateDelegate?.willBeginUpdating(self)
+        performBatchUpdates { _ in
         let wasEmpty = isEmpty
         self.element = element
 
@@ -56,6 +56,6 @@ open class SingleElementSection<Element>: Section {
         case (false, false):
             updateDelegate?.section(self, didUpdateElementAt: 0)
         }
-        updateDelegate?.didEndUpdating(self)
+        }
     }
 }
