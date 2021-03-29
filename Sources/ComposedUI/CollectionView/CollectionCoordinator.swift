@@ -233,9 +233,11 @@ open class CollectionCoordinator: NSObject {
         print("[CollectionCoordinator] \(message)")
     }
 
+    /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
+    ///
+    /// This is used to prevent multiple calls to `performBatchUpdates` once all the updates have been applied to
+    /// the collection view, which can cause the data to be out of sync.
     fileprivate var isPerformingUpdates = false
-
-    fileprivate var pendingUpdates: [(_ changesReducer: ChangesReducer?) -> Void] = []
 }
 
 // MARK: - SectionProviderMappingDelegate
@@ -254,15 +256,18 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void) {
         assert(Thread.isMainThread)
 
-        if changesReducer.hasActiveUpdates {
+        guard !changesReducer.hasActiveUpdates else {
+            // The changes reducer will only have active updates after `beginUpdating` ha
+            // been called, which is done inside `performBatchUpdates`. This ensures that any
+            // `updates` closure that trigger other updates and call in to this again have
+            // their updates applied in the same batch.
             updates(changesReducer)
             return
         }
 
-        guard !isPerformingUpdates else {
-            // This has never been printed before, unless setting `isPerformingUpdates` to `false`
-            // is done in the completion
-            debugLog("Already performing updates")
+        if isPerformingUpdates {
+            print("Updates are being applied to \(self) as a result batch updates. This can occur when the configuration for one of your views triggers an update. Since the update has not yet been fully applied this can cause data to be out of sync. Calling `reloadData`.")
+            mappingDidInvalidate(mapping)
             return
         }
 
@@ -283,16 +288,12 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             debugLog("Starting batch updates")
             changesReducer.beginUpdating()
 
-            // If updates are ever applied async to try and fix https://github.com/composed-swift/Composed/issues/34
-            // then this is where these should be called.
-            pendingUpdates.forEach { $0(changesReducer) }
-            pendingUpdates = []
             updates(changesReducer)
 
             prepareSections()
 
             guard let changeset = changesReducer.endUpdating() else {
-                assertionFailure()
+                assertionFailure("Calls to `beginUpdating` must be balanced with calls to `endUpdating`")
                 return
             }
 
@@ -318,13 +319,13 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
             debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
-            isPerformingUpdates = false
 
             debugLog("Batch updates have been applied")
         }, completion: { [weak self] isFinished in
             self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
         })
-        debugLog("`performBatchUpdates` has been called")
+        isPerformingUpdates = false
+        debugLog("`performBatchUpdates` call has completed")
     }
 
     public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
