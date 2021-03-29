@@ -227,10 +227,15 @@ open class CollectionCoordinator: NSObject {
     }
 
     fileprivate func debugLog(_ message: String) {
-        if #available(iOS 12, *), enableLogs {
-            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
-        }
+//        if #available(iOS 12, *), enableLogs {
+//            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
+//        }
+        print("[CollectionCoordinator] \(message)")
     }
+
+    fileprivate var isPerformingUpdates = false
+
+    fileprivate var pendingUpdates: [(_ changesReducer: ChangesReducer?) -> Void] = []
 }
 
 // MARK: - SectionProviderMappingDelegate
@@ -247,10 +252,22 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void) {
+        assert(Thread.isMainThread)
+
         if changesReducer.hasActiveUpdates {
             updates(changesReducer)
             return
         }
+
+        guard !isPerformingUpdates else {
+            // This has never been printed before, unless setting `isPerformingUpdates` to `false`
+            // is done in the completion
+            debugLog("Already performing updates")
+            return
+        }
+
+
+        isPerformingUpdates = true
 
         /**
          Ensure collection view has been laid out, essentially ensuring that it will not be called
@@ -259,13 +276,17 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
          At this point the `updates` closure has not been called, so any updates about to be applied
          have not yet been reflected in the data layer.
          */
+        debugLog("Layout out collection view, if needed")
         collectionView.layoutIfNeeded()
-        debugLog("Performing batch updates on \(collectionView)")
+        debugLog("Collection view has been laid out")
         collectionView.performBatchUpdates({
-            if enableLogs {
-                debugLog("cachedElementsProviders \(cachedElementsProviders)")
-            }
+            debugLog("Starting batch updates")
             changesReducer.beginUpdating()
+
+            // If updates are ever applied async to try and fix https://github.com/composed-swift/Composed/issues/34
+            // then this is where these should be called.
+            pendingUpdates.forEach { $0(changesReducer) }
+            pendingUpdates = []
             updates(changesReducer)
 
             prepareSections()
@@ -297,10 +318,13 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
             debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
             collectionView.insertSections(IndexSet(changeset.groupsInserted))
+            isPerformingUpdates = false
+
+            debugLog("Batch updates have been applied")
         }, completion: { [weak self] isFinished in
             self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
         })
-        debugLog("Performing batch updates has been called on \(collectionView)")
+        debugLog("`performBatchUpdates` has been called")
     }
 
     public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
