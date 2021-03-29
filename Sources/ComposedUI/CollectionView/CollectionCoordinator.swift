@@ -44,6 +44,12 @@ open class CollectionCoordinator: NSObject {
 
     internal var changesReducer = ChangesReducer()
 
+    /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
+    ///
+    /// This is used to prevent multiple calls to `performBatchUpdates` once all the updates have been applied to
+    /// the collection view, which can cause the data to be out of sync.
+    fileprivate var isPerformingUpdates = false
+
     private var mapper: SectionProviderMapping
 
     private var isPerformingBatchedUpdates: Bool {
@@ -231,12 +237,6 @@ open class CollectionCoordinator: NSObject {
            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
        }
     }
-
-    /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
-    ///
-    /// This is used to prevent multiple calls to `performBatchUpdates` once all the updates have been applied to
-    /// the collection view, which can cause the data to be out of sync.
-    fileprivate var isPerformingUpdates = false
 }
 
 // MARK: - SectionProviderMappingDelegate
