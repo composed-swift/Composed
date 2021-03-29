@@ -227,10 +227,9 @@ open class CollectionCoordinator: NSObject {
     }
 
     fileprivate func debugLog(_ message: String) {
-//        if #available(iOS 12, *), enableLogs {
-//            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
-//        }
-        print("[CollectionCoordinator] \(message)")
+       if #available(iOS 12, *), enableLogs {
+           os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
+       }
     }
 
     /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
