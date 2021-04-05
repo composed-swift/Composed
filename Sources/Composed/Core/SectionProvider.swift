@@ -56,18 +56,13 @@ public protocol AggregateSectionProvider: SectionProvider {
 
 /// A delegate that will respond to update events from a `SectionProvider`
 public protocol SectionProviderUpdateDelegate: AnyObject {
-
+    /// Notifies the delegate that the section provider will perform a series of updates.
+    ///
+    /// The delegate must call the `updates` closure synchronously.
+    ///
+    /// - Parameter provider: The section provider that will be updated.
+    /// - Parameter updates: A closure that will perform the updates.
     func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void)
-
-    /// /// Notifies the delegate before a provider will process updates
-    /// - Parameter provider: The provider that will be updated
-    @available(*, deprecated, message: "Use batch updates")
-    func willBeginUpdating(_ provider: SectionProvider)
-
-    /// Notifies the delegate after a provider has processed updates
-    /// - Parameter provider: The provider that was updated
-    @available(*, deprecated, message: "Use batch updates")
-    func didEndUpdating(_ provider: SectionProvider)
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
     /// - Parameter provider: The provider that requested the invalidation
@@ -97,14 +92,6 @@ public extension SectionProviderUpdateDelegate where Self: SectionProvider {
         } else {
             updates()
         }
-    }
-
-    func willBeginUpdating(_ provider: SectionProvider) {
-        updateDelegate?.willBeginUpdating(self)
-    }
-
-    func didEndUpdating(_ provider: SectionProvider) {
-        updateDelegate?.didEndUpdating(self)
     }
 
     func invalidateAll(_ provider: SectionProvider) {

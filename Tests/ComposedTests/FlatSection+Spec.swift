@@ -794,22 +794,12 @@ final class FlatSection_Spec: QuickSpec {
 }
 
 private final class MockSectionUpdateDelegate: SectionUpdateDelegate {
-    func section(_ section: Section, willPerformBatchUpdates updates: () -> Void) {
-        updates()
-    }
-
-    private(set) var willBeginUpdatingCalls: [Section] = []
-    private(set) var didEndUpdatingCalls: [Section] = []
     private(set) var invalidateAllCalls: [Section] = []
     private(set) var didInsertElementCalls: [(section: Section, index: Int)] = []
     private(set) var didRemoveElementCalls: [(section: Section, index: Int)] = []
 
-    func willBeginUpdating(_ section: Section) {
-        willBeginUpdatingCalls.append(section)
-    }
-
-    func didEndUpdating(_ section: Section) {
-        didEndUpdatingCalls.append(section)
+    func section(_ section: Section, willPerformBatchUpdates updates: () -> Void) {
+        updates()
     }
 
     func invalidateAll(_ section: Section) {

@@ -31,18 +31,13 @@ public extension Section {
 
 /// A delegate that will respond to update events from a `Section`
 public protocol SectionUpdateDelegate: AnyObject {
-
+    /// Notifies the delegate that the section will perform a series of updates.
+    ///
+    /// The delegate must call the `updates` closure synchronously.
+    ///
+    /// - Parameter section: The section that will be updated.
+    /// - Parameter updates: A closure that will perform the updates.
     func section(_ section: Section, willPerformBatchUpdates updates: () -> Void)
-
-    /// Notifies the delegate before a section will process updates
-    /// - Parameter section: The section that will be updated
-    @available(*, deprecated, message: "Use batch updates")
-    func willBeginUpdating(_ section: Section)
-
-    /// Notifies the delegate after a section has processed updates
-    /// - Parameter section: The section that was updated
-    @available(*, deprecated, message: "Use batch updates")
-    func didEndUpdating(_ section: Section)
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
     /// - Parameter section: The section that requested the invalidation

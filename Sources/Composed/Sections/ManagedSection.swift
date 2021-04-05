@@ -92,9 +92,11 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
         isSuspended = false
     }
 
+    private var batchUpdates: [(_ updateDelegate: SectionUpdateDelegate?) -> Void] = []
+
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard !isSuspended else { return }
-        updateDelegate?.willBeginUpdating(self)
+        batchUpdates = []
     }
 
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
@@ -102,18 +104,28 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
 
         switch type {
         case .insert:
-            updateDelegate?.section(self, didInsertElementAt: newIndexPath!.item)
+            batchUpdates.append({ updateDelegate in
+                updateDelegate?.section(self, didInsertElementAt: newIndexPath!.item)
+            })
         case .delete:
             let sections = fetchedResultsController?.sections ?? []
             if !sections.isEmpty, sections.first?.numberOfObjects == 0 {
-                updateDelegate?.invalidateAll(self)
+                batchUpdates.append({ updateDelegate in
+                    updateDelegate?.invalidateAll(self)
+                })
             } else {
-                updateDelegate?.section(self, didRemoveElementAt: indexPath!.item)
+                batchUpdates.append({ updateDelegate in
+                    updateDelegate?.section(self, didRemoveElementAt: indexPath!.item)
+                })
             }
         case .update:
-            updateDelegate?.section(self, didUpdateElementAt: indexPath!.item)
+            batchUpdates.append({ updateDelegate in
+                updateDelegate?.section(self, didUpdateElementAt: indexPath!.item)
+            })
         case .move:
-            updateDelegate?.section(self, didMoveElementAt: indexPath!.item, to: newIndexPath!.item)
+            batchUpdates.append({ updateDelegate in
+                updateDelegate?.section(self, didMoveElementAt: indexPath!.item, to: newIndexPath!.item)
+            })
         default:
             fatalError("Unsupported type")
         }
@@ -121,7 +133,10 @@ open class ManagedSection<Element>: NSObject, NSFetchedResultsControllerDelegate
 
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard !isSuspended else { return }
-        updateDelegate?.didEndUpdating(self)
+        performBatchUpdates { updateDelegate in
+            batchUpdates.forEach { $0(updateDelegate) }
+        }
+        batchUpdates = []
     }
 
 }

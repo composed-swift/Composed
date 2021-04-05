@@ -323,66 +323,6 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         debugLog("`performBatchUpdates` call has completed")
     }
 
-    public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
-        debugLog(#function)
-        assert(Thread.isMainThread)
-
-        changesReducer.beginUpdating()
-
-        // This is called here to ensure that the collection view's internal state is in-sync with the state of the
-        // data in hierarchy of sections. If this is not done it can cause various crashes when `performBatchUpdates` is called
-        // due to the collection view requesting data for sections that no longer exist, or crashes because the collection view is
-        // told to delete/insert from/into sections that it does not yet think exist.
-        //
-        // For more information on this see https://github.com/composed-swift/ComposedUI/pull/14
-        collectionView.layoutIfNeeded()
-    }
-
-    public func mappingDidEndUpdating(_ mapping: SectionProviderMapping) {
-        debugLog(#function)
-        assert(Thread.isMainThread)
-
-        guard let changeset = changesReducer.endUpdating() else { return }
-
-        /**
-         _Item_ deletes are processed first, with indexes relative to the state at the start of `performBatchUpdates`.
-
-         _Section_ are processed next, with indexes relative to the state at the start of `performBatchUpdates` (since section indexes are not changed by item deletes).
-
-         All other updates are processed relative to the indexes **after** these deletes have occurred.
-         */
-        debugLog("----------------------")
-        debugLog("Performing delayed batch updates")
-        collectionView.performBatchUpdates({
-            prepareSections()
-
-            debugLog("Deleting sections \(changeset.groupsRemoved.sorted(by: >))")
-            collectionView.deleteSections(IndexSet(changeset.groupsRemoved))
-
-            debugLog("Deleting items \(changeset.elementsRemoved.sorted(by: >))")
-            collectionView.deleteItems(at: Array(changeset.elementsRemoved))
-
-            debugLog("Reloaded sections \(changeset.groupsUpdated.sorted(by: >))")
-            collectionView.reloadSections(IndexSet(changeset.groupsUpdated))
-
-            debugLog("Inserting items \(changeset.elementsInserted.sorted(by: <))")
-            collectionView.insertItems(at: Array(changeset.elementsInserted))
-
-            debugLog("Reloading items \(changeset.elementsUpdated.sorted(by: <))")
-            collectionView.reloadItems(at: Array(changeset.elementsUpdated))
-
-            changeset.elementsMoved.forEach { move in
-                debugLog("Moving \(move.from) to \(move.to)")
-                collectionView.moveItem(at: move.from, to: move.to)
-            }
-
-            debugLog("Inserting sections \(changeset.groupsInserted.sorted(by: >))")
-            collectionView.insertSections(IndexSet(changeset.groupsInserted))
-        }, completion: { [weak self] isFinished in
-            self?.debugLog("Batch updates completed. isFinished: \(isFinished)")
-        })
-    }
-
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
         assert(Thread.isMainThread)
 

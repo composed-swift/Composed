@@ -127,7 +127,6 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     var didUpdate: SectionProviderMapping?
 
     func mappingDidReload(_ mapping: SectionProviderMapping) { }
-    func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) { }
 
     func mappingDidUpdate(_ mapping: SectionProviderMapping) {
         didUpdate = mapping
@@ -164,7 +163,6 @@ final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
     func mapping(_ mapping: SectionProviderMapping, select indexPath: IndexPath) { }
     func mapping(_ mapping: SectionProviderMapping, deselect indexPath: IndexPath) { }
 
-    func mappingDidEndUpdating(_ mapping: SectionProviderMapping) {}
     func mappingDidInvalidate(_ mapping: SectionProviderMapping) {}
     func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {}
 

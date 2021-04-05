@@ -5,14 +5,6 @@ public protocol SectionProviderMappingDelegate: AnyObject {
 
     func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void)
 
-    /// Notifies the delegate that the mapping will being updating
-    /// - Parameter mapping: The mapping that provided this update
-    func mappingWillBeginUpdating(_ mapping: SectionProviderMapping)
-
-    /// Notifies the delegate that the mapping did end updating
-    /// - Parameter mapping: The mapping that provided this update
-    func mappingDidEndUpdating(_ mapping: SectionProviderMapping)
-
     /// Notifies the delegate that the mapping was invalidated
     /// - Parameter mapping: The mapping that provided this update
     func mappingDidInvalidate(_ mapping: SectionProviderMapping)
@@ -153,14 +145,6 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         }
     }
 
-    public func willBeginUpdating(_ provider: SectionProvider) {
-        delegate?.mappingWillBeginUpdating(self)
-    }
-
-    public func didEndUpdating(_ provider: SectionProvider) {
-        delegate?.mappingDidEndUpdating(self)
-    }
-
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
         sections.forEach { $0.updateDelegate = self }
         let indexes = globalIndexes(for: provider, with: indexes)
@@ -206,14 +190,6 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         } else {
             updates()
         }
-    }
-
-    public func willBeginUpdating(_ section: Section) {
-        delegate?.mappingWillBeginUpdating(self)
-    }
-
-    public func didEndUpdating(_ section: Section) {
-        delegate?.mappingDidEndUpdating(self)
     }
 
     public func section(_ section: Section, didInsertElementAt index: Int) {

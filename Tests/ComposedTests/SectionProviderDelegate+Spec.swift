@@ -51,14 +51,6 @@ final class MockDelegate: SectionProviderUpdateDelegate {
         updates()
     }
 
-    func willBeginUpdating(_ provider: SectionProvider) {
-
-    }
-
-    func didEndUpdating(_ provider: SectionProvider) {
-
-    }
-
     func invalidateAll(_ provider: SectionProvider) {
 
     }

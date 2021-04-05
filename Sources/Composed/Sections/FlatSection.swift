@@ -309,14 +309,6 @@ extension FlatSection: SectionUpdateDelegate {
         }
     }
 
-    public func willBeginUpdating(_ section: Section) {
-        updateDelegate?.willBeginUpdating(self)
-    }
-
-    public func didEndUpdating(_ section: Section) {
-        updateDelegate?.didEndUpdating(self)
-    }
-
     public func invalidateAll(_ section: Section) {
         updateDelegate?.invalidateAll(self)
     }
@@ -381,14 +373,6 @@ extension FlatSection: SectionProviderUpdateDelegate {
         } else {
             updates()
         }
-    }
-
-    public func willBeginUpdating(_ provider: SectionProvider) {
-        updateDelegate?.willBeginUpdating(self)
-    }
-
-    public func didEndUpdating(_ provider: SectionProvider) {
-        updateDelegate?.didEndUpdating(self)
     }
 
     public func invalidateAll(_ provider: SectionProvider) {

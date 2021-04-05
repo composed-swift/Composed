@@ -305,20 +305,10 @@ private final class MockSectionProviderUpdateDelegate: SectionProviderUpdateDele
     func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void) {
         updates()
     }
-    
-    private(set) var willBeginUpdatingCalls: [SectionProvider] = []
-    private(set) var didEndUpdatingCalls: [SectionProvider] = []
+
     private(set) var invalidateAllCalls: [SectionProvider] = []
     private(set) var didInsertSectionsCalls: [(SectionProvider, [Section], IndexSet)] = []
     private(set) var didRemoveSectionsCalls: [(SectionProvider, [Section], IndexSet)] = []
-
-    func willBeginUpdating(_ provider: SectionProvider) {
-        willBeginUpdatingCalls.append(provider)
-    }
-
-    func didEndUpdating(_ provider: SectionProvider) {
-        didEndUpdatingCalls.append(provider)
-    }
 
     func invalidateAll(_ provider: SectionProvider) {
         invalidateAllCalls.append(provider)
