@@ -35,15 +35,13 @@ open class TableCoordinator: NSObject {
 
     private var mapper: SectionProviderMapping
 
-    private var defersUpdate: Bool = false
-    private var sectionRemoves: [() -> Void] = []
-    private var sectionInserts: [() -> Void] = []
-    private var sectionUpdates: [() -> Void] = []
+    internal var changesReducer = ChangesReducer()
 
-    private var removes: [() -> Void] = []
-    private var inserts: [() -> Void] = []
-    private var changes: [() -> Void] = []
-    private var moves: [() -> Void] = []
+    /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
+    ///
+    /// This is used to prevent multiple calls to `performBatchUpdates` once all the updates have been applied to
+    /// the collection view, which can cause the data to be out of sync.
+    fileprivate var isPerformingUpdates = false
 
     private let tableView: UITableView
 
@@ -153,105 +151,129 @@ open class TableCoordinator: NSObject {
 // MARK: - SectionProviderMappingDelegate
 
 extension TableCoordinator: SectionProviderMappingDelegate {
-    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void) {
-        updates()
-    }
-
-    private func reset() {
-        removes.removeAll()
-        inserts.removeAll()
-        changes.removeAll()
-        moves.removeAll()
-        sectionInserts.removeAll()
-        sectionRemoves.removeAll()
-    }
-
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
         assert(Thread.isMainThread)
-        reset()
+
+        assert(!changesReducer.hasActiveUpdates, "Should not invalidate with active changes")
+        changesReducer.clearUpdates()
         prepareSections()
         tableView.reloadData()
     }
 
-    public func mappingWillBeginUpdating(_ mapping: SectionProviderMapping) {
-        reset()
-        defersUpdate = true
-    }
-
-    public func mappingDidEndUpdating(_ mapping: SectionProviderMapping) {
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void) {
         assert(Thread.isMainThread)
+
+        guard !changesReducer.hasActiveUpdates else {
+            // The changes reducer will only have active updates after `beginUpdating` ha
+            // been called, which is done inside `performBatchUpdates`. This ensures that any
+            // `updates` closure that trigger other updates and call in to this again have
+            // their updates applied in the same batch.
+            updates()
+            return
+        }
+
+        if isPerformingUpdates {
+            print("Batch updates are being applied to \(self) after a previous batch has been applied but before the collection view has finished laying out. This can occur when the configuration for one of your views triggers an update. Since the update has not yet finished this can cause data to be out of sync. See \(#filePath):L\(#line) for more details. Calling `reloadData`.")
+            mappingDidInvalidate(mapping)
+            return
+        }
+
+
+        isPerformingUpdates = true
+
+        tableView.layoutIfNeeded()
         tableView.performBatchUpdates({
-            if defersUpdate {
-                prepareSections()
+            changesReducer.beginUpdating()
+
+            updates()
+
+            prepareSections()
+
+            guard let changeset = changesReducer.endUpdating() else {
+                assertionFailure("Calls to `beginUpdating` must be balanced with calls to `endUpdating`")
+                return
             }
 
-            removes.forEach { $0() }
-            inserts.forEach { $0() }
-            changes.forEach { $0() }
-            moves.forEach { $0() }
-            sectionRemoves.forEach { $0() }
-            sectionInserts.forEach { $0() }
-            sectionUpdates.forEach { $0() }
-        }, completion: { [weak self] _ in
-            self?.reset()
-            self?.defersUpdate = false
-        })
+            tableView.deleteSections(IndexSet(changeset.groupsRemoved), with: .automatic)
+
+            tableView.deleteRows(at: Array(changeset.elementsRemoved), with: .automatic)
+
+            tableView.reloadSections(IndexSet(changeset.groupsUpdated), with: .automatic)
+
+            tableView.insertRows(at: Array(changeset.elementsInserted), with: .automatic)
+
+            tableView.reloadRows(at: Array(changeset.elementsUpdated), with: .automatic)
+
+            changeset.elementsMoved.forEach { move in
+                tableView.moveRow(at: move.from, to: move.to)
+            }
+
+            tableView.insertSections(IndexSet(changeset.groupsInserted), with: .automatic)
+        }, completion: nil)
+        isPerformingUpdates = false
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertSections sections: IndexSet) {
         assert(Thread.isMainThread)
-        sectionInserts.append { [weak self] in
-            guard let self = self else { return }
-            if !self.defersUpdate { self.prepareSections() }
-            self.tableView.insertSections(sections, with: .fade)
+
+        guard isPerformingUpdates else {
+            prepareSections()
+            tableView.insertSections(sections, with: .fade)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.insertGroups(sections)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didRemoveSections sections: IndexSet) {
         assert(Thread.isMainThread)
-        sectionRemoves.append { [weak self] in
-            guard let self = self else { return }
-            if !self.defersUpdate { self.prepareSections() }
-            self.tableView.deleteSections(sections, with: .fade)
+
+        guard isPerformingUpdates else {
+            prepareSections()
+            tableView.deleteSections(sections, with: .automatic)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.removeGroups(sections)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didInsertElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
-        inserts.append { [weak self] in
-            guard let self = self else { return }
-            self.tableView.insertRows(at: indexPaths, with: .automatic)
+        
+        guard isPerformingUpdates else {
+            prepareSections()
+            tableView.insertRows(at: indexPaths, with: .automatic)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.insertElements(at: indexPaths)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didRemoveElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
-        removes.append { [weak self] in
-            guard let self = self else { return }
-            self.tableView.deleteRows(at: indexPaths, with: .automatic)
+
+        guard isPerformingUpdates else {
+            prepareSections()
+            tableView.deleteRows(at: indexPaths, with: .automatic)
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.removeElements(at: indexPaths)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didUpdateElementsAt indexPaths: [IndexPath]) {
         assert(Thread.isMainThread)
-        changes.append { [weak self] in
-            guard let self = self else { return }
+
+        guard isPerformingUpdates else {
+            prepareSections()
 
             var indexPathsToReload: [IndexPath] = []
             for indexPath in indexPaths {
                 guard let section = self.sectionProvider.sections[indexPath.section] as? TableUpdateHandler,
-                    !section.prefersReload(forElementAt: indexPath.item),
-                    let cell = self.tableView.cellForRow(at: indexPath) else {
-                        indexPathsToReload.append(indexPath)
-                        continue
+                      !section.prefersReload(forElementAt: indexPath.item),
+                      let cell = self.tableView.cellForRow(at: indexPath) else {
+                    indexPathsToReload.append(indexPath)
+                    continue
                 }
 
                 self.cachedProviders[indexPath.section].cell.configure(cell, indexPath.item, self.mapper.provider.sections[indexPath.section])
@@ -264,19 +286,22 @@ extension TableCoordinator: SectionProviderMappingDelegate {
             self.tableView.reloadRows(at: indexPaths, with: .automatic)
             CATransaction.setDisableActions(false)
             CATransaction.commit()
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.updateElements(at: indexPaths)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, didMoveElementsAt moves: [(IndexPath, IndexPath)]) {
         assert(Thread.isMainThread)
-        self.moves.append { [weak self] in
-            guard let self = self else { return }
-            moves.forEach { self.tableView.moveRow(at: $0.0, to: $0.1) }
+
+        guard isPerformingUpdates else {
+            prepareSections()
+            moves.forEach { tableView.moveRow(at: $0.0, to: $0.1) }
+            return
         }
-        if defersUpdate { return }
-        mappingDidEndUpdating(mapping)
+
+        changesReducer.moveElements(moves)
     }
 
     public func mapping(_ mapping: SectionProviderMapping, selectedIndexesIn section: Int) -> [Int] {
