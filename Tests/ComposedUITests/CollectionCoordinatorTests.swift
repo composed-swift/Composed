@@ -427,6 +427,18 @@ final class CollectionCoordinatorTests: XCTestCase {
         }
     }
 
+    func testRemoveInsertedSection() {
+        let tester = Tester() { _ in }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child0)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child0)
+        }
+    }
+
     func testRemoveInsertsSection() {
         let tester = Tester() { sections in
             sections.rootSectionProvider.append(sections.child0)

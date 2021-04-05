@@ -1,60 +1,43 @@
 import Foundation
 
 /**
- A value that collects and reduces changes to allow them to allow multiple changes
+ A value that collects and reduces a single batch of changes to allow them
  to be applied at once.
 
- The logic of how to reduce the changes is designed to match that of `UICollectionView`
- and `UITableView`, allowing for reuse between both.
+ The logic of how to reduce the changes is designed to match that of `UICollectionView`. It may
+ also work for `UITableView` but this has not been tested.
 
  `ChangesReducer` uses the generalised terms "group" and "element", which can be mapped directly
  to "section" and "row" for `UITableView`s and "section" and "item" for `UICollectionView`.
 
- Final updates are applied in the order:
+ The documentation on how updates are applied by `UICollectionView` is incomplete and does not
+ account for all scenarios.
 
- | Update           | Order       | Indexes  |
- |------------------|-------------|----------|
- | Element Removals | High to low | Original |
- | Element Reloads  | N/A         | Original |
- | Group removals   | High to low | Original |
-
- https://developer.apple.com/videos/play/wwdc2018/225/ is useful. Page 62 of the slides helps confirm the above table.
-
- - Element removals
-   - Using original index paths
- - Group removals
-   - Using original index paths
- - Element moves
-   - Decomposed in to delete and insert
-   - Delete post-element removals, but pre-group removals?
-
- To confirm:
- - Group inserts
-   - Using index paths after removals
- - Element inserts
-   - Using index paths after removals
- - Group reloads
-   - Using index paths after removals and inserts
- - Element reloads
-   - Using index paths after removals and inserts
+ https://developer.apple.com/videos/play/wwdc2018/225/ provides some good insight in to how `UICollectionView`
+ applies batched changes. Page 62 of the slides PDF provides a useful – although incomplete – table that describes the
+ order changes are applied, along with the context that each kind of change is applied using.
  */
 internal struct ChangesReducer: CustomReflectable {
+    /// `true` when `beginUpdating` has been called more than `endUpdating`.
     internal var hasActiveUpdates: Bool {
-        return activeUpdates > 0
+        return activeBatches > 0
     }
 
     internal var customMirror: Mirror {
         Mirror(
             self,
             children: [
-                "activeUpdates": activeUpdates,
+                "activeUpdates": activeBatches,
                 "changeset": changeset,
             ]
         )
     }
 
-    private var activeUpdates = 0
+    /// A count of active update batches, e.g. how many
+    /// more times `beginUpdating` has been called than `endUpdating`.
+    private var activeBatches = 0
 
+    /// The changeset for the current batch of updates.
     private var changeset: Changeset = Changeset()
 
     internal init() {}
@@ -64,23 +47,23 @@ internal struct ChangesReducer: CustomReflectable {
         changeset = Changeset()
     }
 
-    /// Begin performing updates. This must be called prior to making updates.
+    /// Begin a batch of updates. This must be called prior to making updates.
     ///
     /// It is possible to call this function multiple times to build up a batch of changes.
     ///
     /// All calls to this must be balanced with a call to `endUpdating`.
     internal mutating func beginUpdating() {
-        activeUpdates += 1
+        activeBatches += 1
     }
 
-    /// End the current collection of updates.
+    /// End a batch of updates. There may be more than 1 batch of updates at the same time.
     ///
-    /// - Returns: The completed changeset, if this ends the last update in the batch.
+    /// - Returns: The completed changeset, if this is the last batch of updates.
     internal mutating func endUpdating() -> Changeset? {
-        activeUpdates -= 1
+        activeBatches -= 1
 
-        guard activeUpdates == 0 else {
-            assert(activeUpdates > 0, "`endUpdating` calls must be balanced with `beginUpdating`")
+        guard activeBatches == 0 else {
+            assert(activeBatches > 0, "`endUpdating` calls must be balanced with `beginUpdating`")
             return nil
         }
 
@@ -299,6 +282,11 @@ internal struct ChangesReducer: CustomReflectable {
         return indexPath
     }
 
+    /// Transforms the provided section to be the index it would have been prior to
+    /// all currently applied changes.
+    ///
+    /// - Parameter section: The section index to transform.
+    /// - Returns: The transformed section index.
     private func transformSection(_ section: Int) -> Int {
         let groupsRemoved = changeset.groupsRemoved
         let groupsInserted = changeset.groupsInserted
@@ -310,6 +298,12 @@ internal struct ChangesReducer: CustomReflectable {
         return availableSpaces[availableSpaceIndex]
     }
 
+    /// Transforms the provided item to be the index it would have been prior to
+    /// all currently applied changes.
+    ///
+    /// - Parameter item: The item index to transform.
+    /// - Parameter section: The section index to the item belongs to.
+    /// - Returns: The transformed item index.
     private func transformItem(_ item: Int, inSection section: Int) -> Int {
         let itemsRemoved = changeset.elementsRemoved.filter({ $0.section == section }).map(\.item)
         let itemsInserted = changeset.elementsInserted.filter({ $0.section == section }).map(\.item)
