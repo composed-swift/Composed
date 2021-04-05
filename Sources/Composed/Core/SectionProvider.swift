@@ -27,7 +27,7 @@ public extension SectionProvider {
 
     func performBatchUpdates(_ updates: (_ updateDelegate: SectionProviderUpdateDelegate?) -> Void) {
         if let updateDelegate = updateDelegate {
-            updateDelegate.provider(self) { changesReducer in
+            updateDelegate.provider(self) {
                 updates(updateDelegate)
             }
         } else {
@@ -57,7 +57,7 @@ public protocol AggregateSectionProvider: SectionProvider {
 /// A delegate that will respond to update events from a `SectionProvider`
 public protocol SectionProviderUpdateDelegate: AnyObject {
 
-    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void)
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void)
 
     /// /// Notifies the delegate before a provider will process updates
     /// - Parameter provider: The provider that will be updated
@@ -91,11 +91,11 @@ public protocol SectionProviderUpdateDelegate: AnyObject {
 // Default implementations to minimise `SectionProvider` implementation requirements
 public extension SectionProviderUpdateDelegate where Self: SectionProvider {
 
-    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void) {
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void) {
         if let updateDelegate = updateDelegate {
             updateDelegate.provider(self, willPerformBatchUpdates: updates)
         } else {
-            updates(nil)
+            updates()
         }
     }
 

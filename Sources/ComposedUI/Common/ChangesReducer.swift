@@ -38,12 +38,12 @@ import Foundation
  - Element reloads
    - Using index paths after removals and inserts
  */
-public final class ChangesReducer: CustomReflectable {
-    public var hasActiveUpdates: Bool {
+internal struct ChangesReducer: CustomReflectable {
+    internal var hasActiveUpdates: Bool {
         return activeUpdates > 0
     }
 
-    public var customMirror: Mirror {
+    internal var customMirror: Mirror {
         Mirror(
             self,
             children: [
@@ -57,10 +57,10 @@ public final class ChangesReducer: CustomReflectable {
 
     private var changeset: Changeset = Changeset()
 
-    public init() {}
+    internal init() {}
 
     /// Clears existing updates, keeping active updates count.
-    public func clearUpdates() {
+    internal mutating func clearUpdates() {
         changeset = Changeset()
     }
 
@@ -69,14 +69,14 @@ public final class ChangesReducer: CustomReflectable {
     /// It is possible to call this function multiple times to build up a batch of changes.
     ///
     /// All calls to this must be balanced with a call to `endUpdating`.
-    public func beginUpdating() {
+    internal mutating func beginUpdating() {
         activeUpdates += 1
     }
 
     /// End the current collection of updates.
     ///
     /// - Returns: The completed changeset, if this ends the last update in the batch.
-    public func endUpdating() -> Changeset? {
+    internal mutating func endUpdating() -> Changeset? {
         activeUpdates -= 1
 
         guard activeUpdates == 0 else {
@@ -89,7 +89,7 @@ public final class ChangesReducer: CustomReflectable {
         return changeset
     }
 
-    public func insertGroups(_ groups: IndexSet) {
+    internal mutating func insertGroups(_ groups: IndexSet) {
         groups.forEach { insertedGroup in
             changeset.groupsInserted = Set(changeset.groupsInserted.map { existingInsertedGroup in
                 if existingInsertedGroup >= insertedGroup {
@@ -131,11 +131,11 @@ public final class ChangesReducer: CustomReflectable {
         }
     }
 
-    public func removeGroups(_ groups: [Int]) {
+    internal mutating func removeGroups(_ groups: [Int]) {
         removeGroups(IndexSet(groups))
     }
 
-    public func removeGroups(_ groups: IndexSet) {
+    internal mutating func removeGroups(_ groups: IndexSet) {
         groups.sorted(by: >).forEach { removedGroup in
             var removedGroup = removedGroup
             let groupsInsertedBefore = changeset.groupsInserted.filter { $0 < removedGroup }.count
@@ -192,7 +192,7 @@ public final class ChangesReducer: CustomReflectable {
         }
     }
 
-    public func insertElements(at indexPaths: [IndexPath]) {
+    internal mutating func insertElements(at indexPaths: [IndexPath]) {
         indexPaths.forEach { insertedIndexPath in
             if changeset.elementsRemoved.remove(insertedIndexPath) != nil {
                 changeset.elementsUpdated.insert(insertedIndexPath)
@@ -203,7 +203,7 @@ public final class ChangesReducer: CustomReflectable {
         }
     }
 
-    public func removeElements(at indexPaths: [IndexPath]) {
+    internal mutating func removeElements(at indexPaths: [IndexPath]) {
         /**
          Element removals are handled before all other updates.
          */
@@ -259,7 +259,7 @@ public final class ChangesReducer: CustomReflectable {
         }
     }
 
-    public func updateElements(at indexPaths: [IndexPath]) {
+    internal mutating func updateElements(at indexPaths: [IndexPath]) {
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { updatedElement in
             let updatedElement = transformIndexPath(updatedElement, toContext: .original)
 
@@ -269,11 +269,11 @@ public final class ChangesReducer: CustomReflectable {
         }
     }
 
-    public func moveElements(_ moves: [Changeset.Move]) {
+    internal mutating func moveElements(_ moves: [Changeset.Move]) {
         changeset.elementsMoved.formUnion(moves)
     }
 
-    public func moveElements(_ moves: [(from: IndexPath, to: IndexPath)]) {
+    internal mutating func moveElements(_ moves: [(from: IndexPath, to: IndexPath)]) {
         moveElements(moves.map { Changeset.Move(from: $0.from, to: $0.to) })
     }
 

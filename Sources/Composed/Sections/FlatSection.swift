@@ -301,11 +301,11 @@ open class FlatSection: Section, CustomReflectable {
 }
 
 extension FlatSection: SectionUpdateDelegate {
-    public func section(_ section: Section, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {
+    public func section(_ section: Section, willPerformBatchUpdates updates: () -> Void) {
         if let updateDelegate = updateDelegate {
             updateDelegate.section(section, willPerformBatchUpdates: updates)
         } else {
-            updates(nil)
+            updates()
         }
     }
 
@@ -375,11 +375,11 @@ extension FlatSection: SectionUpdateDelegate {
 }
 
 extension FlatSection: SectionProviderUpdateDelegate {
-    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {
+    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void) {
         if let updateDelegate = updateDelegate {
             updateDelegate.section(self, willPerformBatchUpdates: updates)
         } else {
-            updates(nil)
+            updates()
         }
     }
 

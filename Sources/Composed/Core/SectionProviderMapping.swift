@@ -3,7 +3,7 @@ import UIKit
 /// A delegate for responding to mapping updates
 public protocol SectionProviderMappingDelegate: AnyObject {
 
-    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void)
+    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void)
 
     /// Notifies the delegate that the mapping will being updating
     /// - Parameter mapping: The mapping that provided this update
@@ -93,7 +93,6 @@ public protocol SectionProviderMappingDelegate: AnyObject {
 /// An object that encapsulates the logic required to map `SectionProvider`s to a global context,
 /// allowing elements in a `Section` to be referenced via an `IndexPath`
 public final class SectionProviderMapping: SectionProviderUpdateDelegate, SectionUpdateDelegate {
-
     /// The delegate that will respond to updates
     public weak var delegate: SectionProviderMappingDelegate?
 
@@ -146,11 +145,11 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexSet(indexes.map { $0 + offset })
     }
 
-    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {
+    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void) {
         if let delegate = delegate {
             delegate.mapping(self, willPerformBatchUpdates: updates)
         } else {
-            updates(nil)
+            updates()
         }
     }
 
@@ -201,11 +200,11 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mappingDidInvalidate(self)
     }
 
-    public func section(_ section: Section, willPerformBatchUpdates updates: (ChangesReducer?) -> Void) {
+    public func section(_ section: Section, willPerformBatchUpdates updates: () -> Void) {
         if let delegate = delegate {
             delegate.mapping(self, willPerformBatchUpdates: updates)
         } else {
-            updates(nil)
+            updates()
         }
     }
 

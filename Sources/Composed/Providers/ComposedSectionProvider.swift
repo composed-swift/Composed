@@ -179,7 +179,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     public func insert(_ child: Section, at index: Int) {
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
         
-        performBatchUpdates { _ in
+        performBatchUpdates { updateDelegate in
             children.insert(.section(child), at: index)
             numberOfSections += 1
             let sectionOffset = self.sectionOffset(for: child)!
@@ -197,7 +197,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
         
         child.updateDelegate = self
         
-        performBatchUpdates { _ in
+        performBatchUpdates { updateDelegate in
             children.insert(.provider(child), at: index)
             numberOfSections += child.sections.count
             let firstIndex = sectionOffset(for: child)!

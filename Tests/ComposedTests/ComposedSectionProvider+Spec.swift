@@ -302,8 +302,8 @@ final class ComposedSectionProvider_Spec: QuickSpec {
 }
 
 private final class MockSectionProviderUpdateDelegate: SectionProviderUpdateDelegate {
-    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: (ChangesReducer) -> Void) {
-        
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void) {
+        updates()
     }
     
     private(set) var willBeginUpdatingCalls: [SectionProvider] = []

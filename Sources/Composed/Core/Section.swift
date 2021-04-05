@@ -19,7 +19,7 @@ public extension Section {
 
     func performBatchUpdates(_ updates: (_ updateDelegate: SectionUpdateDelegate?) -> Void) {
         if let updateDelegate = updateDelegate {
-            updateDelegate.section(self) { changesReducer in
+            updateDelegate.section(self) {
                 updates(updateDelegate)
             }
         } else {
@@ -32,7 +32,7 @@ public extension Section {
 /// A delegate that will respond to update events from a `Section`
 public protocol SectionUpdateDelegate: AnyObject {
 
-    func section(_ section: Section, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void)
+    func section(_ section: Section, willPerformBatchUpdates updates: () -> Void)
 
     /// Notifies the delegate before a section will process updates
     /// - Parameter section: The section that will be updated

@@ -252,7 +252,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         collectionView.reloadData()
     }
 
-    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: (_ changesReducer: ChangesReducer?) -> Void) {
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void) {
         assert(Thread.isMainThread)
 
         guard !changesReducer.hasActiveUpdates else {
@@ -260,7 +260,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             // been called, which is done inside `performBatchUpdates`. This ensures that any
             // `updates` closure that trigger other updates and call in to this again have
             // their updates applied in the same batch.
-            updates(changesReducer)
+            updates()
             return
         }
 
@@ -287,7 +287,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             debugLog("Starting batch updates")
             changesReducer.beginUpdating()
 
-            updates(changesReducer)
+            updates()
 
             prepareSections()
 
