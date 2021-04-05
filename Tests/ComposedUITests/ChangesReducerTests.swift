@@ -476,6 +476,26 @@ final class ChangesReducerTests: XCTestCase {
         var changesReducer = ChangesReducer()
         changesReducer.beginUpdating()
 
+        /**
+         Assumed to start with:
+
+         - Section 0
+         - Section 1
+         - Section 2
+         - Section 3
+           - Element 0
+           - Element 1
+         */
+
+        /**
+         Remove section 0 and section 1 to become:
+
+         - Section 2
+         - Section 3
+           - Element 0
+           - Element 1
+         */
+
         AssertApplyingUpdates(
             { changesReducer in
                 changesReducer.removeGroups(IndexSet([0, 1]))
@@ -494,6 +514,14 @@ final class ChangesReducerTests: XCTestCase {
                     [0, 1]
                 )
             })
+
+        /**
+         Remove element (1, 1) to become:
+
+         - Section 2
+         - Section 3
+           - Element 0
+         */
 
         AssertApplyingUpdates(
             { changesReducer in
@@ -518,6 +546,13 @@ final class ChangesReducerTests: XCTestCase {
                 )
             })
 
+        /**
+         Remove section 0 to become:
+
+         - Section 3
+           - Element 0
+         */
+
         AssertApplyingUpdates(
             { changesReducer in
                 changesReducer.removeGroups(IndexSet(integer: 0))
@@ -531,6 +566,9 @@ final class ChangesReducerTests: XCTestCase {
 
                 XCTAssertTrue(changeset.elementsInserted.isEmpty)
                 XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [0, 1, 2]
