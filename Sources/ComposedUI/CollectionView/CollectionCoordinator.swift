@@ -52,10 +52,6 @@ open class CollectionCoordinator: NSObject {
 
     private var mapper: SectionProviderMapping
 
-    private var isPerformingBatchedUpdates: Bool {
-        changesReducer.hasActiveUpdates
-    }
-
     private let collectionView: UICollectionView
 
     private weak var originalDelegate: UICollectionViewDelegate?
@@ -392,7 +388,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(Array(sections))")
 
-        guard isPerformingBatchedUpdates else {
+        guard isPerformingUpdates else {
             prepareSections()
             collectionView.insertSections(sections)
             return
@@ -406,7 +402,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(Array(sections))")
 
-        guard isPerformingBatchedUpdates else {
+        guard isPerformingUpdates else {
             prepareSections()
             collectionView.deleteSections(sections)
             return
@@ -420,7 +416,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(indexPaths)")
 
-        guard isPerformingBatchedUpdates else {
+        guard isPerformingUpdates else {
             prepareSections()
             collectionView.insertItems(at: indexPaths)
             return
@@ -434,7 +430,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(indexPaths)")
 
-        guard isPerformingBatchedUpdates else {
+        guard isPerformingUpdates else {
             prepareSections()
             collectionView.deleteItems(at: indexPaths)
             return
@@ -448,7 +444,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(indexPaths)")
 
-        guard isPerformingBatchedUpdates else {
+        guard isPerformingUpdates else {
             prepareSections()
 
             var indexPathsToReload: [IndexPath] = []
@@ -481,7 +477,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(moves)")
 
-        guard isPerformingBatchedUpdates else {
+        guard isPerformingUpdates else {
             prepareSections()
             moves.forEach { collectionView.moveItem(at: $0.0, to: $0.1) }
             return
