@@ -30,7 +30,7 @@ internal struct ChangesReducer: CustomReflectable {
         Mirror(
             self,
             children: [
-                "activeUpdates": activeBatches,
+                "activeBatches": activeBatches,
                 "changeset": changeset,
             ]
         )
