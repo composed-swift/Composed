@@ -16,6 +16,9 @@ import Foundation
  https://developer.apple.com/videos/play/wwdc2018/225/ provides some good insight in to how `UICollectionView`
  applies batched changes. Page 62 of the slides PDF provides a useful – although incomplete – table that describes the
  order changes are applied, along with the context that each kind of change is applied using.
+
+ Element removals are handled _before_ section removals, which is validated by the `testGroupAndElementRemoves`
+ tests in both the `ChangesReducerTests` and `CollectionCoordinatorTests`.
  */
 internal struct ChangesReducer: CustomReflectable {
     /// `true` when `beginUpdating` has been called more than `endUpdating`.
