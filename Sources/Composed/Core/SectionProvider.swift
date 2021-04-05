@@ -2,16 +2,11 @@ import Foundation
 
 /// Represents a collection of `Section`'s.
 public protocol SectionProvider: AnyObject {
-
     /// The child sections contained in this provider
     var sections: [Section] { get }
 
-    /// The number of sections in this provider
-    var numberOfSections: Int { get }
-
     /// The delegate that will respond to updates
     var updateDelegate: SectionProviderUpdateDelegate? { get set }
-
 }
 
 public extension SectionProvider {

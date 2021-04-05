@@ -28,14 +28,14 @@ let package = Package(
             dependencies: ["Quick", "Nimble", "Composed"]),
 
         .target(
-            name: "ComposedLayouts",
-            dependencies: ["Composed", "ComposedUI"]),
-
-        .target(
             name: "ComposedUI",
             dependencies: ["Composed"]),
         .testTarget(
             name: "ComposedUITests",
             dependencies: ["Quick", "Nimble", "ComposedUI"]),
+
+        .target(
+            name: "ComposedLayouts",
+            dependencies: ["Composed", "ComposedUI"]),
     ]
 )

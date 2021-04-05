@@ -3,17 +3,14 @@ import CoreGraphics
 
 /// Represents a single section of data.
 public protocol Section: AnyObject {
-
     /// The number of elements in this section
     var numberOfElements: Int { get }
 
     /// The delegate that will respond to updates
     var updateDelegate: SectionUpdateDelegate? { get set }
-
 }
 
 public extension Section {
-
     /// Returns true if the section contains no elements, false otherwise
     var isEmpty: Bool { return numberOfElements == 0 }
 
@@ -26,7 +23,6 @@ public extension Section {
             updates(nil)
         }
     }
-
 }
 
 /// A delegate that will respond to update events from a `Section`

@@ -1,19 +1,23 @@
 <img src="composed.png" width=20%/>
 
-**Composed** is a protocol oriented framework for composing data from various sources in our app. It provides various concrete implementations for common use cases.
-
-> If you prefer to look at code, there's a demo project here: [ComposedDemo](http://github.com/composed-swift/composed-demo)
-
-The library bases everything on just 2 primitives, `Section` and `SectionProvider`.
+`Composed` is a protocol oriented framework for composing data from multiple sources and building flexible UIs that display the data.
 
 The primary benefits of using Composed include:
 
 - The library makes heavy use of protocol-oriented design allowing your types to opt-in to behaviour rather than inherit it by default.
-- From an API perspective you generally only care about a single section at a time, and so it's irrelevant to you how it's being composed.
+- Each section is isolated from the others, removing the need to think about how the data is composed.
 
-1. [Getting Started](#Getting-Started)
-2. [Behind the Scenes](#Behind-the-Scenes)
-3. [User Interfaces](http://github.com/composed-swift/composedui)
+> If you prefer to look at code, there's a demo project here: [ComposedDemo](http://github.com/composed-swift/composed-demo)
+
+The package contains 3 libraries, each built on top of each other:
+
+- Composed
+- ComposedUI
+- ComposedLayouts
+
+## Composed
+
+The `Composed` library provides the data layer. `Composed` is centered around primitives, `Section` and `SectionProvider`.
 
 ## Getting Started
 
@@ -21,34 +25,73 @@ Composed includes 3 pre-defined sections as well as 2 providers that should sati
 
 ### Sections
 
-**ArraySection**
-Represents a section that manages its elements via an `Array`. This type of section is useful for representing in-memory data.
+A `Section` is a collection of data with a simple set of requirements:
 
-**ManagedSection**
-Represents a section that provides its elements via an `NSFetchedResultsController`. This section is useful for representing data managed by CoreData.
+```swift
+/// Represents a single section of data.
+public protocol Section: AnyObject {
+    /// The number of elements in this section
+    var numberOfElements: Int { get }
 
-**SingleElementSection**
-Represents a section that manages a single element. This section is useful when only have a single element to manage. Hint: Use `Optional<T>` to represent an element that may or may not exist.
+    /// The delegate that will respond to updates
+    var updateDelegate: SectionUpdateDelegate? { get set }
+}
+```
 
-### Providers
+`Composed` provides some sections that should cover a majority of use cases.
 
-**ComposedSectionProvider**
-Represents an collection of `Section`'s and `SectionProvider`'s. The provider supports infinite nesting, including other `ComposedSectionProvider`'s. All children will be active at all times, so `numberOfSections` and `numberOfElements(in:)` will return values representative of all children.
+#### `ArraySection`
 
-**SegmentedSectionProvider**
-Represents an collection of `Section`'s and `SectionProvider`'s. The provider supports infinite nesting, including other `SegmentedSectionProvider`'s. One or zero children may be active at any time, so `numberOfSections` and `numberOfElements(in:)` will return values representative of the currenly active child only.
+Represents a section that manages a collection of same-type elements by using an `Array` backing store. This type of section is useful for representing in-memory data, e.g. data loaded from a network or read from the file system.
+
+#### `SingleElementSection`
+
+Represents a section that manages a single element. This section is useful when only have a single element to manage.
+
+If the stored value is `nil` it will return `0` for `numberOfElements`, allowing for any UI elements the section provides to be hidden (more on this later).
+
+#### `FlatSection`
+
+A `FlatSection` behaved similarly to a `ComposedSectionProvider` but rather than providing a collections of sections it returns a single section that contains every element in the flattened collection of `Section`s and `SectionProvider`s. This has limited use for data alone but proves useful when representing the data in the UI; `FlatSection` allows for multiple sections to be displayed in a single UI section, enabling features such as headers that pin to visible bounds ("sticky headers").
+
+#### `ManagedSection`
+
+`ManagedSection` wraps an `NSManagedObjectContext` and responds to the `NSFetchedResultsControllerDelegate` functions by forwarding them to the `SectionUpdateDelegate`. This enables a single data hierarchy to include a mixture of sections that are backed by core data and other storage mechanisms.
+
+### `SectionProvider`s
+
+`SectionProvider`s are the next layer up, dealing with `Section`s directly by providing an ordered collection of sections:
+
+```swift
+/// Represents a collection of `Section`'s.
+public protocol SectionProvider: AnyObject {
+    /// The child sections contained in this provider
+    var sections: [Section] { get }
+
+    /// The delegate that will respond to updates
+    var updateDelegate: SectionProviderUpdateDelegate? { get set }
+}
+```
+
+#### `ComposedSectionProvider`
+
+Represents an collection of `Section`'s and `SectionProvider`'s. The provider supports infinite nesting, including other `ComposedSectionProvider`'s, by providing a flattened hierarchy.
+
+#### `SegmentedSectionProvider`
+
+Provides the same nesting support as `ComposedSectionProvider` but allows for different segments of children to be active. This could be used to represent a series of tabs with different section providers in each tab.
 
 ### Example
 
 Lets say we wanted to represent a users contacts library. Our contacts will have 2 groups, family and friends. Using Composed, we can easily model that as such:
- 
+
 ```swift
 let family = ArraySection<Person>()
 family.append(Person(name: "Dad"))
 family.append(Person(name: "Mum"))
 
-let friends = ArraySection<Person>()
-friends.append(Person(name: "Best mate"))
+let businesses = ArraySection<Business>()
+businesses.append(Person(name: "ACME Inc."))
 ```
 
 At this point we have 2 separate sections for representing our 2 groups of contacts. Now we can use a provider to compose these 2 together:
@@ -56,7 +99,7 @@ At this point we have 2 separate sections for representing our 2 groups of conta
 ```swift
 let contacts = ComposedSectionProvider()
 contacts.append(family)
-contacts.append(friends)
+contacts.append(businesses)
 ```
 
 That's it! Now we can query our data using the provider without either of the individual sections even being aware that they're now contained in a larger structure:
@@ -66,75 +109,25 @@ contacts.numberOfSections        // 2
 contacts.numberOfElements(in: 1) // 1
 ```
 
-If we want to query individual data in a section (assuming we don't already have a reference to it):
+Swapping to a `FlatSection` would flatten these sections while maintaining all the data:
 
 ```swift
-let people = contacts.sections[0] as? ArraySection<Person>
-people.element(at: 1)            // Mum
+let contacts = FlatSection()
+contacts.append(family)
+contacts.append(businesses)
+contacts.numberOfElements // 3
 ```
 
-> Note: we have to cast the section to a known type because SectionProvider's can contain _any_ type of section as well as other nested providers.
+## ComposedUI
 
-### Opt-In Behaviours
+The `ComposedUI` library builds on top of `Composed` by providing protocols that enable `Section`s to provide UI elements that can then be displayed by a view coordinator.
 
-If we now subclass ArraySection, we can extend our section through protocol conformance to do something more interesting:
+### UI Coordinators
 
-```swift
-final class People: ArraySection<Person> { ... }
+Various coordinators are provided that enable interfacing with `UIKit` by adding extra protocol conformances to your `Section`s.
 
-protocol SelectionHandling: Section { 
-    func didSelect(at index: Int)
-}
+#### `CollectionCoordinator`
 
-extension People: SelectionHandling {
-	func didSelect(at index: Int) {
-		let person = element(at: index)
-		print(person.name)
-	}
-}
-```
+`CollectionCoordinator` allows for the most flexible UIs by coordinating with a `UICollectionView`.
 
-In order to make this work, _something_ needs to call `didSelect`, so for the purposes of this example we'll leave out some details but to give you a preview for how you can build something like this yourself:
-
-```swift
-// Assume we want to select the 2nd element in the 1st section
-let section = provider.sections[0] as? SelectionHandling
-section?.didSelect(at: 1)        // Mum
-```
-
-Composed is handling all of the mapping and structure, allowing us to focus entirely on behavious and extension.
-
-## Behind the Scenes
-
-### Section
-
-A section represents exactly what it says, a single section. The best thing about that is that we have no need for `IndexPath`'s within a section. Just indexes!
-
-### SectionProvider
-
-A section provider is a container type that contains either sections or other providers. Allowing infinite nesting and therefore infinite possibilities.
-
-### Mappings
-
-Mappings provide the glue between your 'tree' structure and the resulting `flattened` structure. Lets take a look at an example.
-
-```swift
-
-// we can define our structure as such:
-- Provider
-    - Section 1
-    - Provider
-        - Section 2
-        - Section 3
-    - Section 4
-
-// mappings will then convert this to:
-- Section 1
-- Section 2
-- Section 3
-- Section 4
-```
-
-Furthermore, mappings take care of the conversion from local to global indexes and more importantly `IndexPath`'s which allows for even more interesting use cases.
-
-> To find out more, checkout [ComposedUI](http://github.com/composed-swift/ComposedUI) which provides user interface implementations that work with `UICollectionView` and `UITableView`, allowing you to power an entire screen from simple reusable `Section`s.
+View the [`CollectionCoordinator` README.md](./Sources/ComposedUI/CollectionView/README.md) to learn more.

@@ -4,7 +4,7 @@ import Composed
 @available(*, deprecated, renamed: "SingleUICollectionViewSection")
 public typealias CollectionSectionProvider = SingleUICollectionViewSection
 
-/// A section in a `UICollectionView`.
+/// A `Section` that provides an object that can be used to dequeue cells to be displayed in a `UICollectionView`.
 public protocol UICollectionViewSection: Section {
     func collectionViewElementsProvider(with traitCollection: UITraitCollection) -> UICollectionViewSectionElementsProvider
 }
