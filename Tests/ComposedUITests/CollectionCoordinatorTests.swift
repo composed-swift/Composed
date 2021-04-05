@@ -335,6 +335,9 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.child0.removeAll()
             sections.child1.removeAll()
             sections.child2.removeAll()
+            sections.child3.removeAll()
+            sections.child3.append("3, 0")
+            sections.child3.append("3, 1")
 
             sections.rootSectionProvider.append(sections.child0)
             sections.rootSectionProvider.append(sections.child1)
