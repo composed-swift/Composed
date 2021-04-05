@@ -1123,6 +1123,168 @@ final class ChangesReducerTests: XCTestCase {
             })
     }
 
+    func testRemoveSectionsWithLowerIndexesThanInsertedSections() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        /**
+         Start assuming 4 existing sections:
+
+         - Section 0
+         - Section 1
+         - Section 2
+         - Section 3
+         */
+
+        /**
+         Insert section at index 4 to become:
+
+         - Section 0
+         - Section 1
+         - Section 2
+         - Section 3
+         - Section 4
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertGroups([4])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [
+                        4,
+                    ]
+                )
+            })
+
+        /**
+         Insert section at index 5 to become:
+
+         - Section 0
+         - Section 1
+         - Section 2
+         - Section 3
+         - Section 4
+         - Section 5
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertGroups([5])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [
+                        4,
+                        5,
+                    ]
+                )
+            })
+
+        /**
+         Remove section at index 2 to become:
+
+         - Section 0
+         - Section 1
+         - Section 3
+         - Section 4
+         - Section 5
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeGroups([2])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertEqual(
+                    changeset.groupsRemoved,
+                    [
+                        2,
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [
+                        3,
+                        4,
+                    ]
+                )
+            })
+
+        /**
+         Remove section at index 2 to become:
+
+         - Section 0
+         - Section 1
+         - Section 4
+         - Section 5
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeGroups([2])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [
+                        2,
+                        3,
+                    ]
+                )
+            })
+    }
+
     // MARK:- Unfinished Tests
 
 //    func testGroupInserts() {
