@@ -146,6 +146,8 @@ internal struct ChangesReducer: CustomReflectable {
                 changeset.groupsRemoved.insert(removedGroup)
             }
 
+            changeset.elementsRemoved = Set(changeset.elementsRemoved.filter { $0.section != removedGroup })
+
             changeset.elementsUpdated = Set(changeset.elementsUpdated.filter { $0.section != removedGroup })
 
             changeset.elementsInserted = Set(changeset.elementsInserted.compactMap { insertedIndexPath in
