@@ -444,15 +444,15 @@ final class CollectionCoordinatorTests: XCTestCase {
 
     func testRemoveInsertsSection() {
         let tester = Tester() { sections in
-            sections.rootSectionProvider.append(sections.child0)
+            sections.rootSectionProvider.append(sections.child1)
         }
 
         tester.applyUpdate { sections in
-            sections.rootSectionProvider.insert(sections.child1, at: 0)
+            sections.rootSectionProvider.insert(sections.child0, at: 0)
         }
 
         tester.applyUpdate { sections in
-            sections.rootSectionProvider.remove(sections.child0)
+            sections.rootSectionProvider.remove(sections.child1)
         }
     }
 
