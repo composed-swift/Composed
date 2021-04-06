@@ -144,7 +144,15 @@ internal struct ChangesReducer: CustomReflectable {
 
                     return insertedGroup
                 })
-                removedGroup = transformSection(removedGroup)
+
+                let availableSpaces = (0..<Int.max)
+                    .lazy
+                    .filter { [groupsRemoved = changeset.groupsRemoved] in
+                        return !groupsRemoved.contains($0)
+                    }
+                let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: removedGroup)
+                removedGroup = availableSpaces[availableSpaceIndex]
+
                 changeset.groupsRemoved.insert(removedGroup)
             }
 
