@@ -18,6 +18,9 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.rootSectionProvider.append(sections.child1)
             sections.rootSectionProvider.append(sections.child2)
             sections.rootSectionProvider.append(sections.child3)
+            sections.child2.append(contentsOf: ["0", "1", "2", "3"])
+            sections.child3.append(contentsOf: ["0", "1", "2"])
+            sections.child5.append(contentsOf: ["0", "1", "2", "3", "4", "5", "6", "7", "8"])
         }
 
         /**
@@ -279,6 +282,7 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.rootSectionProvider.append(sections.child3)
             sections.rootSectionProvider.append(sections.child4)
             sections.rootSectionProvider.append(sections.child5)
+            sections.child4.append("0")
         }
 
         /**
@@ -402,11 +406,12 @@ final class CollectionCoordinatorTests: XCTestCase {
 
     func testSwapping() {
         let tester = Tester() { sections in
-            sections.rootSectionProvider.append(sections.child2)
+            sections.rootSectionProvider.append(sections.child0)
+            sections.child0.append(contentsOf: ["0", "1", "2", "3"])
         }
 
         tester.applyUpdate { sections in
-            sections.child2.swapAt(0, 3)
+            sections.child0.swapAt(0, 3)
         }
     }
 
@@ -422,11 +427,14 @@ final class CollectionCoordinatorTests: XCTestCase {
 
     func testRemoveLast2() {
         let tester = Tester() { sections in
-            sections.rootSectionProvider.append(sections.child2)
+            sections.rootSectionProvider.append(sections.child0)
+            sections.child0.append("0")
+            sections.child0.append("1")
+            sections.child0.append("2")
         }
 
         tester.applyUpdate { sections in
-            sections.child2.removeLast(2)
+            sections.child0.removeLast(2)
         }
     }
 
@@ -856,13 +864,13 @@ private final class MockCollectionArraySection: ArraySection<String>, SingleUICo
 private final class TestSections {
     let rootSectionProvider = ComposedSectionProvider()
 
-    let child0 = MockCollectionArraySection([])
-    let child1 = MockCollectionArraySection([])
-    var child2 = MockCollectionArraySection(["0", "1", "2", "3"])
-    let child3 = MockCollectionArraySection(["0", "1", "2"])
-    let child4 = MockCollectionArraySection(["0"])
-    var child5 = MockCollectionArraySection(["0", "1", "2", "3", "4", "5", "6", "7", "8"])
-    let child6 = MockCollectionArraySection([])
+    var child0 = MockCollectionArraySection([])
+    var child1 = MockCollectionArraySection([])
+    var child2 = MockCollectionArraySection([])
+    var child3 = MockCollectionArraySection([])
+    var child4 = MockCollectionArraySection([])
+    var child5 = MockCollectionArraySection([])
+    var child6 = MockCollectionArraySection([])
 }
 
 private final class Tester {
