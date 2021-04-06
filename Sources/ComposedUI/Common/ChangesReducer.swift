@@ -126,7 +126,7 @@ internal struct ChangesReducer: CustomReflectable {
             var removedGroup = removedGroup
             let groupsInsertedBefore = changeset.groupsInserted.filter { $0 < removedGroup }.count
 
-            if changeset.groupsInserted.remove(removedGroup) != nil {
+            if changeset.groupsInserted.remove(removedGroup) != nil || changeset.groupsUpdated.remove(removedGroup) != nil {
                 changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
                     if insertedGroup > removedGroup {
                         return insertedGroup - 1
@@ -134,7 +134,9 @@ internal struct ChangesReducer: CustomReflectable {
 
                     return insertedGroup
                 })
-            } else if changeset.groupsInserted.remove(removedGroup - groupsInsertedBefore) == nil {
+            } else if changeset.groupsInserted.remove(removedGroup - groupsInsertedBefore) != nil {
+                changeset.groupsUpdated.insert(removedGroup - groupsInsertedBefore)
+            } else {
                 changeset.groupsInserted = Set(changeset.groupsInserted.map { insertedGroup in
                     if insertedGroup > removedGroup {
                         return insertedGroup - 1
@@ -144,6 +146,13 @@ internal struct ChangesReducer: CustomReflectable {
                 })
                 removedGroup = transformSection(removedGroup)
                 changeset.groupsRemoved.insert(removedGroup)
+            }
+
+            let updatedGroups = changeset.groupsRemoved.intersection(changeset.groupsInserted)
+            updatedGroups.forEach { updatedGroup in
+                changeset.groupsRemoved.remove(updatedGroup)
+                changeset.groupsInserted.remove(updatedGroup)
+                changeset.groupsUpdated.insert(updatedGroup)
             }
 
             changeset.elementsRemoved = Set(changeset.elementsRemoved.filter { $0.section != removedGroup })

@@ -419,8 +419,12 @@ final class ChangesReducerTests: XCTestCase {
                     return
                 }
 
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
                 XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [0]
@@ -818,10 +822,10 @@ final class ChangesReducerTests: XCTestCase {
                     return
                 }
 
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
                 XCTAssertTrue(changeset.elementsInserted.isEmpty)
                 XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
@@ -843,9 +847,9 @@ final class ChangesReducerTests: XCTestCase {
                     return
                 }
 
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertTrue(changeset.elementsInserted.isEmpty)
                 XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
@@ -873,11 +877,10 @@ final class ChangesReducerTests: XCTestCase {
                     return
                 }
 
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
                 XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     [
