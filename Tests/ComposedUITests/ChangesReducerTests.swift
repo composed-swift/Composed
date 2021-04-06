@@ -980,6 +980,195 @@ final class ChangesReducerTests: XCTestCase {
             })
     }
 
+    func testRemoveGroupLocatedBeforeRemovedElement() {
+        /**
+         Tests that if a section is removed that is located before an element that has been removed
+         that the removed element it not updated. This is because element removals are processed
+         before section removals.
+         */
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 0, section: 1)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 1),
+                    ]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeGroups([0])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertEqual(
+                    changeset.groupsRemoved,
+                    [
+                        0,
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 1),
+                    ]
+                )
+            })
+    }
+
+    func testRemoveGroupContainingRemovedElement() {
+        /**
+         Tests that if a section is removed that contains an element that has been removed
+         that the removed element is removed from the changeset. This is because element removals
+         are not required when a section is removed.
+         */
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 0, section: 1)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 1),
+                    ]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeGroups([1])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertEqual(
+                    changeset.groupsRemoved,
+                    [
+                        1,
+                    ]
+                )
+            })
+    }
+
+    func testRemoveGroupLocatedAfterRemovedElement() {
+        /**
+         Tests that if a section is removed that is located after an element that has been removed
+         that the removed element it not updated. This is because the element position has not changed.
+         */
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 0, section: 1)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 1),
+                    ]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeGroups([2])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                guard let changeset = changeset else {
+                    XCTFail("Changeset should not be `nil`")
+                    return
+                }
+
+                XCTAssertTrue(changeset.elementsMoved.isEmpty)
+                XCTAssertTrue(changeset.elementsInserted.isEmpty)
+                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
+                XCTAssertTrue(changeset.groupsInserted.isEmpty)
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 1),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.groupsRemoved,
+                    [
+                        2,
+                    ]
+                )
+            })
+    }
+
     func testRemoveThenInsertsThenRemoveGroups() {
         var changesReducer = ChangesReducer()
         changesReducer.beginUpdating()
