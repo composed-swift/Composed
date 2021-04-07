@@ -204,11 +204,15 @@ internal struct ChangesReducer: CustomReflectable {
                 return
             }
 
+            guard !changeset.groupsUpdated.contains(insertedIndexPath.section) else { return }
+            guard !changeset.groupsInserted.contains(insertedIndexPath.section) else { return }
+
             changeset.elementsInserted.insert(insertedIndexPath)
         }
     }
 
     internal mutating func removeElements(at indexPaths: [IndexPath]) {
+        print(#function, indexPaths)
         /**
          Element removals are handled before all other updates.
          */
