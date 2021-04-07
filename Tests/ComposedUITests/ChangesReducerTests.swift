@@ -13,13 +13,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [IndexPath(item: 0, section: 0)]
@@ -39,13 +32,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -68,13 +54,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -98,13 +77,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -129,13 +101,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -161,13 +126,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -195,13 +153,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -237,13 +188,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     [IndexPath(item: 3, section: 0)]
@@ -263,12 +207,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     [IndexPath(item: 2, section: 0)]
@@ -293,13 +231,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
@@ -327,12 +258,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
@@ -365,13 +290,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     [
@@ -414,17 +332,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [0]
@@ -453,11 +360,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
@@ -506,13 +408,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [0, 1]
@@ -533,13 +428,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [0, 1]
@@ -563,16 +451,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [0, 1, 2]
@@ -612,10 +490,6 @@ final class ChangesReducerTests: XCTestCase {
                 )
             ]
         )
-        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
-        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
-        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
     }
 
     func testGroupAndElementInserts() {
@@ -631,8 +505,6 @@ final class ChangesReducerTests: XCTestCase {
             return
         }
 
-        XCTAssertTrue(changeset.elementsMoved.isEmpty)
-        XCTAssertTrue(changeset.elementsRemoved.isEmpty)
         XCTAssertEqual(
             changeset.elementsInserted,
             [
@@ -644,7 +516,6 @@ final class ChangesReducerTests: XCTestCase {
             changeset.groupsInserted,
             [1]
         )
-        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
     }
 
     func testInsertThenRemoveGroups() {
@@ -657,17 +528,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [
@@ -682,18 +542,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
             })
     }
 
@@ -707,17 +555,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [
@@ -732,17 +569,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -757,16 +583,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -787,17 +603,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -817,17 +622,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -842,16 +636,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -872,15 +656,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     [
@@ -912,17 +687,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [
@@ -937,17 +701,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [
@@ -963,17 +716,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [
@@ -998,17 +740,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1023,16 +754,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [
@@ -1063,17 +784,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1088,17 +798,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [
@@ -1122,17 +821,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1147,16 +835,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1195,17 +873,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [
@@ -1226,17 +893,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -1256,17 +912,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [
@@ -1281,17 +926,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -1306,16 +940,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -1336,17 +960,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -1366,17 +979,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1391,16 +993,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
@@ -1420,17 +1012,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1445,15 +1026,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1479,17 +1051,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
@@ -1504,16 +1065,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
@@ -1552,17 +1103,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [
@@ -1588,17 +1128,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [
@@ -1624,16 +1153,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsRemoved,
                     [
@@ -1664,17 +1183,6 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                guard let changeset = changeset else {
-                    XCTFail("Changeset should not be `nil`")
-                    return
-                }
-
-                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-                XCTAssertTrue(changeset.elementsUpdated.isEmpty)
-                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-                XCTAssertTrue(changeset.groupsInserted.isEmpty)
                 XCTAssertEqual(
                     changeset.groupsUpdated,
                     [
@@ -1700,10 +1208,6 @@ final class ChangesReducerTests: XCTestCase {
 //        XCTAssertNotNil(changeset)
 //
 //        XCTAssertEqual(changeset!.groupsInserted, [0, 0, 2])
-//        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
 //    }
 //
 //    func testGroupRemoves() {
@@ -1716,10 +1220,6 @@ final class ChangesReducerTests: XCTestCase {
 //        XCTAssertNotNil(changeset)
 //
 //        XCTAssertEqual(changeset!.groupsRemoved, [0, 1, 2])
-//        XCTAssertTrue(changeset!.groupsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
 //    }
 //
 //    func testElementRemovalAfterOtherChanges() {
@@ -1738,8 +1238,6 @@ final class ChangesReducerTests: XCTestCase {
 //            return
 //        }
 //
-//        XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//        XCTAssertTrue(changeset.elementsRemoved.isEmpty)
 //        XCTAssertEqual(
 //            changeset.elementsInserted,
 //            [
@@ -1751,7 +1249,6 @@ final class ChangesReducerTests: XCTestCase {
 //            changeset.groupsInserted,
 //            [1]
 //        )
-//        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //    }
 //
 //    func testMoveElementThenRemoveElementBeforeMovedElement() {
@@ -1797,9 +1294,6 @@ final class ChangesReducerTests: XCTestCase {
 //            ]
 //        )
 //        XCTAssertEqual(changeset!.elementsRemoved, [IndexPath(row: 0, section: 0)])
-//        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
-//        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
 //    }
 //
 //    func testRemoveAnIndexPathWithAMoveTo() {
@@ -1852,9 +1346,6 @@ final class ChangesReducerTests: XCTestCase {
 //                IndexPath(row: 1, section: 0),
 //            ]
 //        )
-//        XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //    }
 //
 //    func testRemoveAnIndexPathWithAMoveFrom() {
@@ -1907,9 +1398,6 @@ final class ChangesReducerTests: XCTestCase {
 //                IndexPath(row: 1, section: 0),
 //            ]
 //        )
-//        XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //    }
 //
 //    func testMoveElementAtSameIndexAsRemove() {
@@ -1953,7 +1441,6 @@ final class ChangesReducerTests: XCTestCase {
 //                IndexPath(row: 2, section: 0),
 //            ]
 //        )
-//        XCTAssertTrue(changeset!.elementsInserted.isEmpty)
 //        XCTAssertEqual(
 //            changeset!.elementsUpdated,
 //            [
@@ -1961,9 +1448,6 @@ final class ChangesReducerTests: XCTestCase {
 //                IndexPath(row: 1, section: 0),
 //            ]
 //        )
-//        XCTAssertTrue(changeset!.elementsMoved.isEmpty)
-//        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
-//        XCTAssertTrue(changeset!.groupsRemoved.isEmpty)
 //    }
 //
 //    func testBuildingUpComplexChanges() {
@@ -1987,10 +1471,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-//                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //            })
 //
 //        AssertApplyingUpdates(
@@ -2004,10 +1484,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsRemoved.isEmpty)
-//                XCTAssertTrue(changeset.elementsInserted.isEmpty)
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.groupsInserted,
 //                    [0]
@@ -2025,8 +1501,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2058,8 +1532,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2091,8 +1563,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2125,8 +1595,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2159,9 +1627,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2197,9 +1662,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsRemoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2236,8 +1698,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2277,8 +1737,6 @@ final class ChangesReducerTests: XCTestCase {
 //                    return
 //                }
 //
-//                XCTAssertTrue(changeset.elementsMoved.isEmpty)
-//                XCTAssertTrue(changeset.groupsUpdated.isEmpty)
 //                XCTAssertEqual(
 //                    changeset.elementsRemoved,
 //                    [
@@ -2315,11 +1773,55 @@ final class ChangesReducerTests: XCTestCase {
 //    }
 }
 
-private func AssertApplyingUpdates(_ updates: (inout ChangesReducer) -> Void, changesReducer: inout ChangesReducer, produces resultChecker: (Changeset?) -> Void) {
+private func AssertApplyingUpdates(_ updates: (inout ChangesReducer) -> Void, changesReducer: inout ChangesReducer, produces resultChecker: (ChangesetChecker) -> Void) {
     updates(&changesReducer)
 
     var changesReducerCopy = changesReducer
-    let changeset = changesReducerCopy.endUpdating()
+    if let changeset = changesReducerCopy.endUpdating() {
+        let checker = ChangesetChecker(changeset: changeset)
+        resultChecker(checker)
+        checker.assertUncheckedKeyPathsAreEmpty()
+    } else {
+        XCTFail("Changeset should not be `nil`. Please call `beginUpdates` at the start of your tests.")
+    }
+}
 
-    resultChecker(changeset)
+@dynamicMemberLookup
+private final class ChangesetChecker {
+    private let changeset: Changeset
+
+    private var checkedKeyPaths: [PartialKeyPath<Changeset>] = []
+
+    fileprivate init(changeset: Changeset) {
+        self.changeset = changeset
+    }
+
+    fileprivate func assertUncheckedKeyPathsAreEmpty() {
+        if !checkedKeyPaths.contains(\Changeset.groupsInserted) {
+            XCTAssertEqual(changeset.groupsInserted, [], "No groups should have been inserted")
+        }
+        if !checkedKeyPaths.contains(\Changeset.groupsRemoved) {
+            XCTAssertEqual(changeset.groupsRemoved, [], "No groups should have been removed")
+        }
+        if !checkedKeyPaths.contains(\Changeset.groupsUpdated) {
+            XCTAssertEqual(changeset.groupsUpdated, [], "No groups should have been updates")
+        }
+        if !checkedKeyPaths.contains(\Changeset.elementsRemoved) {
+            XCTAssertEqual(changeset.elementsRemoved, [], "No elements should have been removed")
+        }
+        if !checkedKeyPaths.contains(\Changeset.elementsInserted) {
+            XCTAssertEqual(changeset.elementsInserted, [], "No elements should have been inserted")
+        }
+        if !checkedKeyPaths.contains(\Changeset.elementsMoved) {
+            XCTAssertEqual(changeset.elementsMoved, [], "No elements should have been moved")
+        }
+        if !checkedKeyPaths.contains(\Changeset.elementsUpdated) {
+            XCTAssertEqual(changeset.elementsUpdated, [], "No elements should have been updated")
+        }
+    }
+
+    subscript<Value>(dynamicMember keyPath: KeyPath<Changeset, Value>) -> Value {
+        checkedKeyPaths.append(keyPath)
+        return changeset[keyPath: keyPath]
+    }
 }
