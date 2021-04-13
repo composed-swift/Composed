@@ -20,6 +20,17 @@ public extension SectionProvider {
         return sections.count
     }
 
+    /// Perform multiple updates in a single batch, ensuring a single layout pass and animation is used for all updates.
+    ///
+    /// Changes will be reduced in to the minimal total changes required, based on the calls made to the `updateDelegate`. If
+    /// no `updateDelegate` has been set the `updates` closure is called with `nil`, allowing changes to still be made.
+    ///
+    /// Some updates are not correct reduced, or you may wish to avoid this batching behaviour. To enable this the `forceReloadData`
+    /// parameter can be set to `true`. Note that passing `true` is not supported if another batch updates that does not force reload
+    /// data is currently being performed.
+    ///
+    /// - Parameter forceReloadData: If `true` all updates will be ignored and `reloadData` will be called after all updates are applied.
+    /// - Parameter updates: A closure that applies the updates.
     func performBatchUpdates(forceReloadData: Bool = false, _ updates: (_ updateDelegate: SectionProviderUpdateDelegate?) -> Void) {
         if let updateDelegate = updateDelegate {
             updateDelegate.provider(self, willPerformBatchUpdates: {
