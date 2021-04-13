@@ -3,7 +3,7 @@ import UIKit
 /// A delegate for responding to mapping updates
 public protocol SectionProviderMappingDelegate: AnyObject {
 
-    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void)
+    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool)
 
     /// Notifies the delegate that the mapping was invalidated
     /// - Parameter mapping: The mapping that provided this update
@@ -137,9 +137,9 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         return IndexSet(indexes.map { $0 + offset })
     }
 
-    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void) {
+    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         if let delegate = delegate {
-            delegate.mapping(self, willPerformBatchUpdates: updates)
+            delegate.mapping(self, willPerformBatchUpdates: updates, forceReloadData: forceReloadData)
         } else {
             updates()
         }
@@ -184,9 +184,9 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         delegate?.mappingDidInvalidate(self)
     }
 
-    public func section(_ section: Section, willPerformBatchUpdates updates: () -> Void) {
+    public func section(_ section: Section, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         if let delegate = delegate {
-            delegate.mapping(self, willPerformBatchUpdates: updates)
+            delegate.mapping(self, willPerformBatchUpdates: updates, forceReloadData: forceReloadData)
         } else {
             updates()
         }

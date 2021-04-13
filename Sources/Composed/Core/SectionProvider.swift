@@ -25,11 +25,11 @@ public extension SectionProvider {
         return sections.count
     }
 
-    func performBatchUpdates(_ updates: (_ updateDelegate: SectionProviderUpdateDelegate?) -> Void) {
+    func performBatchUpdates(forceReloadData: Bool = false, _ updates: (_ updateDelegate: SectionProviderUpdateDelegate?) -> Void) {
         if let updateDelegate = updateDelegate {
-            updateDelegate.provider(self) {
+            updateDelegate.provider(self, willPerformBatchUpdates: {
                 updates(updateDelegate)
-            }
+            }, forceReloadData: forceReloadData)
         } else {
             updates(nil)
         }
@@ -62,7 +62,7 @@ public protocol SectionProviderUpdateDelegate: AnyObject {
     ///
     /// - Parameter provider: The section provider that will be updated.
     /// - Parameter updates: A closure that will perform the updates.
-    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void)
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool)
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
     /// - Parameter provider: The provider that requested the invalidation
@@ -86,9 +86,9 @@ public protocol SectionProviderUpdateDelegate: AnyObject {
 // Default implementations to minimise `SectionProvider` implementation requirements
 public extension SectionProviderUpdateDelegate where Self: SectionProvider {
 
-    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void) {
+    func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         if let updateDelegate = updateDelegate {
-            updateDelegate.provider(self, willPerformBatchUpdates: updates)
+            updateDelegate.provider(self, willPerformBatchUpdates: updates, forceReloadData: forceReloadData)
         } else {
             updates()
         }

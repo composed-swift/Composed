@@ -60,10 +60,9 @@ open class StackCoordinator: NSObject {
 }
 
 extension StackCoordinator: SectionProviderMappingDelegate {
-    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void) {
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         updates()
     }
-
 
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
         reloadData()

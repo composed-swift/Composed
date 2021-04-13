@@ -50,6 +50,10 @@ open class CollectionCoordinator: NSObject {
     /// the collection view, which can cause the data to be out of sync.
     fileprivate var isPerformingUpdates = false
 
+    /// A (temporary) flag that is set to `true` when batch updates should be ignored because `reloadData`
+    /// will be called after the updates.
+    fileprivate var reloadDataBatchUpdates = false
+
     private var mapper: SectionProviderMapping
 
     private let collectionView: UICollectionView
@@ -241,6 +245,10 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
         assert(Thread.isMainThread)
 
+        guard !reloadDataBatchUpdates else {
+            /// Not necessary; below code will be executed in `mapping(_:willPerformBatchUpdates:forceReloadData:)`
+            return
+        }
         assert(!changesReducer.hasActiveUpdates, "Should not invalidate with active changes")
         debugLog(#function)
         changesReducer.clearUpdates()
@@ -249,14 +257,30 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void) {
+        self.mapping(mapping, willPerformBatchUpdates: updates, forceReloadData: false)
+    }
+
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         assert(Thread.isMainThread)
 
         guard !changesReducer.hasActiveUpdates else {
+            assert(!forceReloadData, "Cannot reload data while inside `performBatchUpdates`")
             // The changes reducer will only have active updates after `beginUpdating` ha
             // been called, which is done inside `performBatchUpdates`. This ensures that any
             // `updates` closure that trigger other updates and call in to this again have
             // their updates applied in the same batch.
             updates()
+            return
+        }
+
+        guard !forceReloadData else {
+            debugLog("Performing updates before reloading data")
+            updates()
+
+            prepareSections()
+
+            debugLog("Reloading data")
+            collectionView.reloadData()
             return
         }
 
@@ -328,6 +352,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(Array(sections))")
 
+        guard !reloadDataBatchUpdates else { return }
+
         guard isPerformingUpdates else {
             prepareSections()
             collectionView.insertSections(sections)
@@ -341,6 +367,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         assert(Thread.isMainThread)
 
         debugLog(#function + "\(Array(sections))")
+
+        guard !reloadDataBatchUpdates else { return }
 
         guard isPerformingUpdates else {
             prepareSections()
@@ -356,6 +384,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(indexPaths)")
 
+        guard !reloadDataBatchUpdates else { return }
+
         guard isPerformingUpdates else {
             prepareSections()
             collectionView.insertItems(at: indexPaths)
@@ -370,6 +400,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(indexPaths)")
 
+        guard !reloadDataBatchUpdates else { return }
+
         guard isPerformingUpdates else {
             prepareSections()
             collectionView.deleteItems(at: indexPaths)
@@ -383,6 +415,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         assert(Thread.isMainThread)
 
         debugLog(#function + "\(indexPaths)")
+
+        guard !reloadDataBatchUpdates else { return }
 
         guard isPerformingUpdates else {
             prepareSections()
@@ -417,6 +451,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog(#function + "\(moves)")
 
+        guard !reloadDataBatchUpdates else { return }
+
         guard isPerformingUpdates else {
             prepareSections()
             moves.forEach { collectionView.moveItem(at: $0.0, to: $0.1) }
@@ -443,6 +479,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        guard !reloadDataBatchUpdates else { return }
         // TODO: Check `isPerformingBatchedUpdates`
         self.mapping(mapping, didMoveElementsAt: [(sourceIndexPath, destinationIndexPath)])
     }
