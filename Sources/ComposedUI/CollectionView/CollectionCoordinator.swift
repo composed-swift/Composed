@@ -241,7 +241,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     public func mappingDidInvalidate(_ mapping: SectionProviderMapping) {
         assert(Thread.isMainThread)
 
-        assert(!changesReducer.hasActiveUpdates, "Should not invalidate with active changes")
+        assert(!changesReducer.hasActiveUpdates, "Cannot invalidate within a batch of updates; `UICollectionView` does not support `reloadData` inside `performBatchUpdates`")
         debugLog(#function)
         changesReducer.clearUpdates()
         prepareSections()
@@ -252,7 +252,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         assert(Thread.isMainThread)
 
         guard !changesReducer.hasActiveUpdates else {
-            // The changes reducer will only have active updates after `beginUpdating` ha
+            // The changes reducer will only have active updates after `beginUpdating` has
             // been called, which is done inside `performBatchUpdates`. This ensures that any
             // `updates` closure that trigger other updates and call in to this again have
             // their updates applied in the same batch.
@@ -260,12 +260,11 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             return
         }
 
-        if isPerformingUpdates {
-            print("Batch updates are being applied to \(self) after a previous batch has been applied but before the collection view has finished laying out. This can occur when the configuration for one of your views triggers an update. Since the update has not yet finished this can cause data to be out of sync. See \(#filePath):L\(#line) for more details. Calling `reloadData`.")
+        guard !isPerformingUpdates else {
+            print("Batch updates are being applied to \(self) after a previous batch has been applied but before the collection view has finished laying out. This can occur when the configuration for one of your views triggers an update. Since the update has not yet finished this can cause data to be out of sync. See \(#filePath):L\(#line) for more details. Calling `reloadData` to attempt to work around this.")
             mappingDidInvalidate(mapping)
             return
         }
-
 
         isPerformingUpdates = true
 
@@ -275,6 +274,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
          At this point the `updates` closure has not been called, so any updates about to be applied
          have not yet been reflected in the data layer.
+
+         This is mainly for making crashes here easier to debug.
          */
         debugLog("Layout out collection view, if needed")
         collectionView.layoutIfNeeded()
