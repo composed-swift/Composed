@@ -191,6 +191,8 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.rootSectionProvider.remove(sections.child3)
         }
 
+        // ^ crash
+
         /**
          - Child 0
          - Child 1
@@ -231,6 +233,32 @@ final class CollectionCoordinatorTests: XCTestCase {
             DispatchQueue.main.async {
                 sections.child0.remove(at: 0)
             }
+        }
+    }
+
+    func testRemoveSectionWhenForcingReloadData() {
+        let tester = Tester(forceReloadData: true) { sections in
+            sections.rootSectionProvider.append(sections.child0)
+            sections.rootSectionProvider.append(sections.child1)
+            sections.rootSectionProvider.append(sections.child2)
+        }
+
+        tester.applyUpdate { sections in
+            let delegate = sections.rootSectionProvider.updateDelegate
+            defer {
+                sections.rootSectionProvider.updateDelegate = delegate
+            }
+            sections.rootSectionProvider.updateDelegate = nil
+
+            sections.rootSectionProvider.remove(sections.child1)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.invalidateAll(sections.rootSectionProvider)
         }
     }
 
@@ -884,7 +912,10 @@ private final class Tester {
 
     private var collectionViews: [UICollectionView] = []
 
-    init(initialState: @escaping Updater) {
+    private let forceReloadData: Bool
+
+    init(forceReloadData: Bool = false, initialState: @escaping Updater) {
+        self.forceReloadData = forceReloadData
         self.initialState = initialState
         
         sections = TestSections()
@@ -904,7 +935,7 @@ private final class Tester {
         collectionCoordinator.enableLogs = true
         collectionView.reloadData()
 
-        rootSectionProvider.performBatchUpdates { _ in
+        rootSectionProvider.performBatchUpdates(forceReloadData: forceReloadData) { _ in
             updaters.forEach { $0(sections) }
         }
 

@@ -14,11 +14,11 @@ public extension Section {
     /// Returns true if the section contains no elements, false otherwise
     var isEmpty: Bool { return numberOfElements == 0 }
 
-    func performBatchUpdates(_ updates: (_ updateDelegate: SectionUpdateDelegate?) -> Void) {
+    func performBatchUpdates(forceReloadData: Bool = false, _ updates: (_ updateDelegate: SectionUpdateDelegate?) -> Void) {
         if let updateDelegate = updateDelegate {
-            updateDelegate.section(self) {
+            updateDelegate.section(self, willPerformBatchUpdates: {
                 updates(updateDelegate)
-            }
+            }, forceReloadData: forceReloadData)
         } else {
             updates(nil)
         }
@@ -33,7 +33,7 @@ public protocol SectionUpdateDelegate: AnyObject {
     ///
     /// - Parameter section: The section that will be updated.
     /// - Parameter updates: A closure that will perform the updates.
-    func section(_ section: Section, willPerformBatchUpdates updates: () -> Void)
+    func section(_ section: Section, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool)
 
     /// Notifies the delegate that all sections should be invalidated, ignoring individual updates
     /// - Parameter section: The section that requested the invalidation

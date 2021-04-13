@@ -160,7 +160,7 @@ extension TableCoordinator: SectionProviderMappingDelegate {
         tableView.reloadData()
     }
 
-    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void) {
+    public func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         assert(Thread.isMainThread)
 
         guard !changesReducer.hasActiveUpdates else {
