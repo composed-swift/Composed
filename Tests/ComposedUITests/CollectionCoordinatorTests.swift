@@ -191,8 +191,6 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.rootSectionProvider.remove(sections.child3)
         }
 
-        // ^ crash
-
         /**
          - Child 0
          - Child 1

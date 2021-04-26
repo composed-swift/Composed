@@ -77,6 +77,8 @@ internal struct ChangesReducer: CustomReflectable {
 
     internal mutating func insertGroups(_ groups: IndexSet) {
         groups.forEach { insertedGroup in
+            let insertedGroup = insertedGroup + changeset.groupsUpdated.filter { $0 >= insertedGroup }.count
+
             changeset.groupsInserted = Set(changeset.groupsInserted.map { existingInsertedGroup in
                 if existingInsertedGroup >= insertedGroup {
                     return existingInsertedGroup + 1

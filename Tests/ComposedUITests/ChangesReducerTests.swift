@@ -431,6 +431,7 @@ final class ChangesReducerTests: XCTestCase {
              - Element 0
              - Element 4
          - Section 5
+             - Element 0...8
          - Section 6
          */
 
@@ -482,6 +483,7 @@ final class ChangesReducerTests: XCTestCase {
              - Element 0
              - Element 4
          - Section 5
+             - Element 0...8
          - Section 6
          */
 
@@ -530,6 +532,7 @@ final class ChangesReducerTests: XCTestCase {
              - Element 4
          - Section 4
          - Section 5
+             - Element 0...8
          - Section 6
          */
 
@@ -577,8 +580,12 @@ final class ChangesReducerTests: XCTestCase {
              - Element 0
              - Element 4
          - Section 3
+             - Element 0
+             - Element 1
+             - Element 2
          - Section 4
          - Section 5
+             - Element 0...8         
          - Section 6
          */
 
@@ -610,6 +617,293 @@ final class ChangesReducerTests: XCTestCase {
                 XCTAssertEqual(
                     changeset.groupsInserted,
                     [4, 5, 6]
+                )
+            })
+
+        /**
+         Remove (3, 2) to become:
+
+         - Section 0
+             - Element 0
+         - Section 1
+         - Section 2
+             - Element 3
+             - Element 1
+             - Element 2
+             - Element 0
+             - Element 4
+         - Section 3
+             - Element 0
+             - Element 1
+         - Section 4
+         - Section 5
+             - Element 0...8
+         - Section 6
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [IndexPath(item: 2, section: 3)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [0, 3]
+                )
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 0, section: 2),
+                        IndexPath(item: 1, section: 2),
+                        IndexPath(item: 2, section: 2),
+                        IndexPath(item: 3, section: 2),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 4, section: 2),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [4, 5, 6]
+                )
+            })
+
+        /**
+         Insert (3, 2) to become:
+
+         - Section 0
+             - Element 0
+         - Section 1
+         - Section 2
+             - Element 3
+             - Element 1
+             - Element 2
+             - Element 0
+             - Element 4
+         - Section 3
+             - Element 0
+             - Element 1
+             - Element 2
+         - Section 4
+         - Section 5
+             - Element 0...8
+         - Section 6
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [IndexPath(item: 2, section: 3)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [0, 3]
+                )
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 0, section: 2),
+                        IndexPath(item: 1, section: 2),
+                        IndexPath(item: 2, section: 2),
+                        IndexPath(item: 3, section: 2),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 4, section: 2),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [4, 5, 6]
+                )
+            })
+
+        /**
+         Insert (3, 3) to become:
+
+         - Section 0
+             - Element 0
+         - Section 1
+         - Section 2
+             - Element 3
+             - Element 1
+             - Element 2
+             - Element 0
+             - Element 4
+         - Section 3
+             - Element 0
+             - Element 1
+             - Element 2
+             - Element 3
+         - Section 4
+         - Section 5
+             - Element 0...8
+         - Section 6
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [IndexPath(item: 3, section: 3)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [0, 3]
+                )
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 0, section: 2),
+                        IndexPath(item: 1, section: 2),
+                        IndexPath(item: 2, section: 2),
+                        IndexPath(item: 3, section: 2),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 4, section: 2),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [4, 5, 6]
+                )
+            })
+
+        /**
+         Remove "Section 2" to become:
+
+         - Section 0
+             - Element 0
+         - Section 1
+         - Section 3
+             - Element 0
+             - Element 1
+             - Element 2
+             - Element 3
+         - Section 4
+         - Section 5
+             - Element 0...8
+         - Section 6
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeGroups([2])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.groupsRemoved,
+                    [2]
+                )
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [0, 3]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [3, 4, 5]
+                )
+            })
+
+        /**
+         Remove "Section 3" to become:
+
+         - Section 0
+             - Element 0
+         - Section 1
+         - Section 4
+         - Section 5
+             - Element 0...8
+         - Section 6
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeGroups([2])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [0, 2, 3]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [4]
+                )
+            })
+
+        /**
+         Insert "Section 2" to become:
+
+         - Section 0
+             - Element 0
+         - Section 1
+         - Section 2
+         - Section 4
+         - Section 5
+             - Element 0...8
+         - Section 6
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertGroups([2])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [0, 2, 3]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [4, 5]
+                )
+            })
+
+        /**
+         Swap (4, 0) and (4, 8) to become:
+
+         - Section 0
+             - Element 0
+         - Section 1
+         - Section 2
+         - Section 4
+         - Section 5
+             - Element 0...8
+         - Section 6
+         */
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.updateElements(at: [
+                    IndexPath(item: 0, section: 4),
+                ])
+                changesReducer.updateElements(at: [
+                    IndexPath(item: 8, section: 4),
+                ])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.groupsUpdated,
+                    [0, 2, 3]
+                )
+                XCTAssertEqual(
+                    changeset.groupsInserted,
+                    [4, 5]
                 )
             })
     }
