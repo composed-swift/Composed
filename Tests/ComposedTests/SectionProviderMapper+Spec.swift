@@ -110,7 +110,7 @@ final class SectionProviderMapping_Spec: QuickSpec {
 }
 
 final class MockSectionProviderMappingDelegate: SectionProviderMappingDelegate {
-    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void) {
+    func mapping(_ mapping: SectionProviderMapping, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         updates()
     }
 

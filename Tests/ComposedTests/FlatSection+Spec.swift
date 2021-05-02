@@ -798,7 +798,7 @@ private final class MockSectionUpdateDelegate: SectionUpdateDelegate {
     private(set) var didInsertElementCalls: [(section: Section, index: Int)] = []
     private(set) var didRemoveElementCalls: [(section: Section, index: Int)] = []
 
-    func section(_ section: Section, willPerformBatchUpdates updates: () -> Void) {
+    func section(_ section: Section, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
         updates()
     }
 
