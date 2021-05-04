@@ -214,7 +214,6 @@ internal struct ChangesReducer: CustomReflectable {
     }
 
     internal mutating func removeElements(at indexPaths: [IndexPath]) {
-        print(#function, indexPaths)
         /**
          Element removals are handled before all other updates.
          */
