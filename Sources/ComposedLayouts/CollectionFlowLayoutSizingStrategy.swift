@@ -75,7 +75,7 @@ open class CollectionFlowLayoutSizingStrategy {
             cachedSizes[index] = size
             return size
         case .automatic(_, let prototype):
-            let targetView: UIView?
+            let targetView: UIView
             let targetSize = CGSize(width: width, height: 0)
 
             if let cell = prototype as? UICollectionViewCell {
@@ -84,11 +84,10 @@ open class CollectionFlowLayoutSizingStrategy {
                 targetView = prototype
             }
 
-            let size = targetView?.systemLayoutSizeFitting(
+            let size = targetView.systemLayoutSizeFitting(
                 targetSize,
                 withHorizontalFittingPriority: .required,
                 verticalFittingPriority: .fittingSizeLevel)
-                ?? .zero
 
             cachedSizes[index] = size
             return size
