@@ -874,6 +874,191 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.rootSectionProvider.remove(at: 2)
         }
     }
+
+    /// Test a crash from Sporty
+    func testSportyCrash3() throws {
+        try XCTSkipIf(true)
+        let tester = Tester() { sections in
+            (0...23).forEach { index in
+                switch index {
+                case 1:
+                    sections.rootSectionProvider.append(MockCollectionArraySection([
+                        "1a",
+                        "1b",
+                        "1c",
+                    ]))
+                default:
+                    sections.rootSectionProvider.append(MockCollectionArraySection([
+                        "\(index)a"
+                    ]))
+                }
+            }
+        }
+
+        tester.applyUpdate { sections in
+            (sections.rootSectionProvider.sections[1] as! ArraySection<String>).remove(at: 2)
+        }
+        tester.applyUpdate { sections in
+            (sections.rootSectionProvider.sections[1] as! ArraySection<String>).remove(at: 1)
+        }
+        tester.applyUpdate { sections in
+            (sections.rootSectionProvider.sections[1] as! ArraySection<String>).insert("1b-new", at: 1)
+        }
+        tester.applyUpdate { sections in
+            (sections.rootSectionProvider.sections[1] as! ArraySection<String>).insert("1c-new", at: 2)
+        }
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(MockCollectionArraySection([
+                "24a"
+            ]))
+        }
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(MockCollectionArraySection([
+                "25a"
+            ]))
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(at: 2)
+        }
+
+        /**
+         Remaining logs:
+
+         [CollectionCoordinator] mapping(_:didInsertSections:)[4]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[5]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[6]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[7]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[8]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[9]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[10]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[11]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[12]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[13]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[14]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[15]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[16]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[17]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[18]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[19]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[20]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[21]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[22]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[23]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[24]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[25]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[26]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[27]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[28]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[29]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[30]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[31]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[32]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[33]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[34]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[35]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[36]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[37]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[38]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[39]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[40]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[41]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[42]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[43]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[44]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[45]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[46]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[47]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[48]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[49]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[50]
+         [CollectionCoordinator] mapping(_:didInsertSections:)[51]
+         */
+    }
 }
 
 private final class MockCollectionArraySection: ArraySection<String>, SingleUICollectionViewSection {
