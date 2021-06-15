@@ -286,7 +286,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         }
 
         guard !isPerformingUpdates else {
-            print("Batch updates are being applied to \(self) after a previous batch has been applied but before the collection view has finished laying out. This can occur when the configuration for one of your views triggers an update. Since the update has not yet finished this can cause data to be out of sync. See \(#filePath):L\(#line) for more details. Calling `reloadData` to attempt to work around this.")
+            print("Batch updates are being applied to \(self) after a previous batch has been applied but before the collection view has finished laying out. This can occur when the configuration for one of your views triggers an update. Since the update has not yet finished this can cause data to be out of sync. See \(#filePath):L\(#line) for more details. Calling `reloadData`.")
             mappingDidInvalidate(mapping)
             return
         }
