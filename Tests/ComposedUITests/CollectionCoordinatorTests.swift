@@ -877,7 +877,6 @@ final class CollectionCoordinatorTests: XCTestCase {
 
     /// Test a crash from Sporty
     func testSportyCrash3() throws {
-        try XCTSkipIf(true)
         let tester = Tester() { sections in
             (0...23).forEach { index in
                 switch index {
@@ -909,12 +908,12 @@ final class CollectionCoordinatorTests: XCTestCase {
         }
         tester.applyUpdate { sections in
             sections.rootSectionProvider.append(MockCollectionArraySection([
-                "24a"
+                "24a-inserted"
             ]))
         }
         tester.applyUpdate { sections in
             sections.rootSectionProvider.append(MockCollectionArraySection([
-                "25a"
+                "25a-inserted"
             ]))
         }
 
@@ -1002,9 +1001,28 @@ final class CollectionCoordinatorTests: XCTestCase {
             sections.rootSectionProvider.remove(at: 2)
         }
 
-        tester.applyUpdate { sections in
+        tester.applyUpdate({ sections in
             sections.rootSectionProvider.remove(at: 2)
-        }
+        }, postUpdateChecks: { sections in
+            XCTAssertEqual(sections.rootSectionProvider.sections.count, 4)
+
+            XCTAssertEqual(
+                (sections.rootSectionProvider.sections[0] as! MockCollectionArraySection).requestedCells,
+                []
+            )
+            XCTAssertEqual(
+                (sections.rootSectionProvider.sections[1] as! MockCollectionArraySection).requestedCells,
+                [1, 2]
+            )
+            XCTAssertEqual(
+                (sections.rootSectionProvider.sections[2] as! MockCollectionArraySection).requestedCells,
+                [0]
+            )
+            XCTAssertEqual(
+                (sections.rootSectionProvider.sections[3] as! MockCollectionArraySection).requestedCells,
+                [0]
+            )
+        })
 
         /**
          Remaining logs:
