@@ -70,7 +70,13 @@ internal struct ChangesReducer: CustomReflectable {
             return nil
         }
 
-        let changeset = self.changeset
+        var changeset = self.changeset
+        let updatedGroups = changeset.groupsRemoved.intersection(changeset.groupsInserted)
+        updatedGroups.forEach { updatedGroup in
+            changeset.groupsRemoved.remove(updatedGroup)
+            changeset.groupsInserted.remove(updatedGroup)
+            changeset.groupsUpdated.insert(updatedGroup)
+        }
         self.changeset = Changeset()
         return changeset
     }
@@ -156,13 +162,6 @@ internal struct ChangesReducer: CustomReflectable {
                 removedGroup = availableSpaces[availableSpaceIndex]
 
                 changeset.groupsRemoved.insert(removedGroup)
-            }
-
-            let updatedGroups = changeset.groupsRemoved.intersection(changeset.groupsInserted)
-            updatedGroups.forEach { updatedGroup in
-                changeset.groupsRemoved.remove(updatedGroup)
-                changeset.groupsInserted.remove(updatedGroup)
-                changeset.groupsUpdated.insert(updatedGroup)
             }
 
             changeset.elementsRemoved = Set(changeset.elementsRemoved.filter { $0.section != removedGroup })
