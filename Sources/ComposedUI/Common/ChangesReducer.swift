@@ -1,8 +1,8 @@
 import Foundation
 
 /**
- A value that collects and reduces a single batch of changes to allow them
- to be applied at once.
+ A value that collects and reduces a multiple changes to allow them
+ to be applied in a single batch of updated.
 
  The logic of how to reduce the changes is designed to match that of `UICollectionView`. It may
  also work for `UITableView` but this has not been tested.
