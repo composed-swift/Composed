@@ -1082,9 +1082,9 @@ final class ChangesReducerTests: XCTestCase {
         changesReducer.beginUpdating()
 
         /**
-         - Element A
-         - Element B
-         - Element C
+         - 0: Element A
+         - 1: Element B
+         - 2: Element C
          */
 
         AssertApplyingUpdates(
@@ -1100,10 +1100,10 @@ final class ChangesReducerTests: XCTestCase {
             })
 
         /**
-         - Element A
-         - Element B
-         - Element C
-         - Element D
+         - 0: Element A
+         - 1: Element B
+         - 2: Element C
+         - 3: Element D (new)
          */
 
         AssertApplyingUpdates(
@@ -1114,7 +1114,9 @@ final class ChangesReducerTests: XCTestCase {
             produces: { changeset in
                 XCTAssertEqual(
                     changeset.elementsInserted,
-                    [IndexPath(item: 2, section: 0)]
+                    [
+                        IndexPath(item: 2, section: 0),
+                    ]
                 )
                 XCTAssertEqual(
                     changeset.elementsRemoved,
@@ -1125,9 +1127,9 @@ final class ChangesReducerTests: XCTestCase {
             })
 
         /**
-         - Element B
-         - Element C
-         - Element D
+         - 0: Element B
+         - 1: Element C
+         - 2: Element D (new)
          */
 
         AssertApplyingUpdates(
@@ -1145,16 +1147,16 @@ final class ChangesReducerTests: XCTestCase {
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     [
-                        IndexPath(item: 2, section: 0),
+                        IndexPath(item: 3, section: 0),
                     ]
                 )
             })
 
         /**
-         - New Element
-         - Element B
-         - Element C
-         - Element D
+         - 0: New Element (inserted; reload)
+         - 1: Element B
+         - 2: Element C
+         - 3: Element D (new)
          */
 
         AssertApplyingUpdates(
@@ -1164,29 +1166,24 @@ final class ChangesReducerTests: XCTestCase {
             changesReducer: &changesReducer,
             produces: { changeset in
                 XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 2, section: 0),
+                    ]
+                )
+                XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
                         IndexPath(item: 0, section: 0),
-                    ]
-                )
-                XCTAssertEqual(
-                    changeset.elementsInserted,
-                    [
-                        IndexPath(item: 1, section: 0),
-                    ]
-                )
-                XCTAssertEqual(
-                    changeset.elementsRemoved,
-                    [
                         IndexPath(item: 2, section: 0),
                     ]
                 )
             })
 
         /**
-         - New Element
-         - Element B
-         - Element D
+         - 0: New Element (reloaded)
+         - 1: Element B
+         - 2: Element D (new)
          */
 
         AssertApplyingUpdates(
