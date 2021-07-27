@@ -392,6 +392,7 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {
         let elementsProvider = self.elementsProvider(for: sectionIndex)
+        let section = mapper.provider.sections[sectionIndex]
 
         if let header = elementsProvider.header {
             switch header.dequeueMethod.method {
@@ -409,17 +410,18 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
         invalidateLayout(with: context)
 
-        guard let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
-
-        let section = mapper.provider.sections[sectionIndex]
-
-        if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
+        if
+            let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)),
+            let header = elementsProvider.header,
+            header.kind.rawValue == UICollectionView.elementKindSectionHeader
+        {
             header.configure(headerView, sectionIndex, section)
         }
     }
 
     public func mappingDidInvalidateFooter(at sectionIndex: Int) {
         let elementsProvider = self.elementsProvider(for: sectionIndex)
+        let section = mapper.provider.sections[sectionIndex]
 
         if let footer = elementsProvider.footer {
             switch footer.dequeueMethod.method {
@@ -433,15 +435,17 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
 
+        debugLog("Section \(sectionIndex) invalidated footer")
+
         let context = UICollectionViewFlowLayoutInvalidationContext()
         context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: sectionIndex)])
         invalidateLayout(with: context)
 
-        guard let footerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) else { return }
-
-        let section = mapper.provider.sections[sectionIndex]
-
-        if let footer = elementsProvider.footer, footer.kind.rawValue == UICollectionView.elementKindSectionFooter {
+        if
+            let footerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)),
+            let footer = elementsProvider.footer,
+            footer.kind.rawValue == UICollectionView.elementKindSectionFooter
+        {
             footer.configure(footerView, sectionIndex, section)
         }
     }
