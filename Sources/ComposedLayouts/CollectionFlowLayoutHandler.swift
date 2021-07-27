@@ -16,17 +16,32 @@ public struct CollectionFlowLayoutMetrics {
 /// Represents the current environment for a `UICollectionView`
 public struct CollectionFlowLayoutEnvironment {
     /// Returns the current size of the collectionView
-    public let contentSize: CGSize
+    public var contentSize: CGSize {
+        collectionView.bounds.insetBy(dx: layout.sectionInset.left + layout.sectionInset.right, dy: 0).size
+    }
+
     /// Returns the current traits of the collectionView
-    public let traitCollection: UITraitCollection
+    public var traitCollection: UITraitCollection {
+        collectionView.traitCollection
+    }
+
+    public let collectionCoordinator: CollectionCoordinator
+
+    public let collectionView: UICollectionView
+
+    public let layout: UICollectionViewFlowLayout
+
+    public let rootSectionIndex: Int
 
     /// Instantiates a new instance
     /// - Parameters:
-    ///   - contentSize: The current content size for this environment
-    ///   - traitCollection: The current traits for this environment
-    public init(contentSize: CGSize, traitCollection: UITraitCollection) {
-        self.contentSize = contentSize
-        self.traitCollection = traitCollection
+    ///   - contentSize: The collection view collectionView
+    ///   - layout: The flow layout
+    public init(collectionCoordinator: CollectionCoordinator, collectionView: UICollectionView, layout: UICollectionViewFlowLayout, rootSectionIndex: Int) {
+        self.collectionCoordinator = collectionCoordinator
+        self.collectionView = collectionView
+        self.layout = layout
+        self.rootSectionIndex = rootSectionIndex
     }
 }
 
