@@ -502,25 +502,22 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
 
-        debugLog("Section \(sectionIndex) invalidated header")
-        collectionView.performBatchUpdates {
-            debugLog("Performing batch updates to update header in section \(sectionIndex)")
-            let context = UICollectionViewFlowLayoutInvalidationContext()
-            context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
-            self.invalidateLayout(with: context)
-        } completion: { [weak section] isFinished in
-            self.debugLog("Performing batch updates completed to update header in section \(sectionIndex). isFinished = \(isFinished)")
-            guard let section = section else { return }
-            guard let headerView = self.collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)) else { return }
+        let context = UICollectionViewFlowLayoutInvalidationContext()
+        context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
+        invalidateLayout(with: context)
 
-            if let header = elementsProvider.header, header.kind.rawValue == UICollectionView.elementKindSectionHeader {
-                header.configure(headerView, sectionIndex, section)
-            }
+        if
+            let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)),
+            let header = elementsProvider.header,
+            header.kind.rawValue == UICollectionView.elementKindSectionHeader
+        {
+            header.configure(headerView, sectionIndex, section)
         }
     }
 
     public func mappingDidInvalidateFooter(at sectionIndex: Int) {
         let elementsProvider = self.elementsProvider(for: sectionIndex)
+        let section = mapper.provider.sections[sectionIndex]
 
         if let footer = elementsProvider.footer {
             switch footer.dequeueMethod.method {
@@ -534,15 +531,17 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
 
+        debugLog("Section \(sectionIndex) invalidated footer")
+
         let context = UICollectionViewFlowLayoutInvalidationContext()
         context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: sectionIndex)])
         invalidateLayout(with: context)
 
-        guard let footerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)) else { return }
-
-        let section = mapper.provider.sections[sectionIndex]
-
-        if let footer = elementsProvider.footer, footer.kind.rawValue == UICollectionView.elementKindSectionFooter {
+        if
+            let footerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)),
+            let footer = elementsProvider.footer,
+            footer.kind.rawValue == UICollectionView.elementKindSectionFooter
+        {
             footer.configure(footerView, sectionIndex, section)
         }
     }
