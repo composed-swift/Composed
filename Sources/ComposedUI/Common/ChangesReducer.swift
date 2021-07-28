@@ -295,8 +295,8 @@ internal struct ChangesReducer: CustomReflectable {
             let updatedElement = transformIndexPath(updatedElement, toContext: .original)
 
             if !changeset.groupsInserted.contains(updatedElement.section),
-               !changeset.groupsUpdated.contains(updatedElement.section),
-               !changeset.elementsInserted.contains(updatedElement) {
+               !changeset.groupsUpdated.contains(updatedElement.section)
+            {
                 changeset.elementsUpdated.insert(updatedElement)
             }
         }
@@ -360,8 +360,9 @@ internal struct ChangesReducer: CustomReflectable {
         let availableSpaces = (0..<Int.max)
             .lazy
             .filter { !itemsRemoved.contains($0) }
+        let item = item - itemsInserted.filter({ $0 < item }).count
         let availableSpaceIndex = availableSpaces.index(availableSpaces.startIndex, offsetBy: item)
 
-        return availableSpaces[availableSpaceIndex]// - itemsInserted.filter({ $0 < item }).count
+        return availableSpaces[availableSpaceIndex]
     }
 }
