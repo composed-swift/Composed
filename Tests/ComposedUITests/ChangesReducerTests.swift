@@ -1077,6 +1077,58 @@ final class ChangesReducerTests: XCTestCase {
             })
     }
 
+    func testReloadInsertReload() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.updateElements(at: [IndexPath(item: 0, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [IndexPath(item: 0, section: 0)]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [IndexPath(item: 1, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [IndexPath(item: 0, section: 0)]
+                )
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [IndexPath(item: 1, section: 0)]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.updateElements(at: [IndexPath(item: 2, section: 0)])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 0, section: 0),
+                        IndexPath(item: 1, section: 0),
+                    ]
+                )
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [IndexPath(item: 1, section: 0)]
+                )
+            })
+    }
+
     func testInsertAndRemovalInSameSection() {
         var changesReducer = ChangesReducer()
         changesReducer.beginUpdating()
