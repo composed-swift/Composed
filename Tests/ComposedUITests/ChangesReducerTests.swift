@@ -2731,11 +2731,7 @@ final class ChangesReducerTests: XCTestCase {
             changesReducer: &changesReducer,
             produces: { changeset in
                 XCTAssertEqual(
-                    changeset.elementsRemoved,
-                    [IndexPath(item: 0, section: 0)]
-                )
-                XCTAssertEqual(
-                    changeset.elementsInserted,
+                    changeset.elementsUpdated,
                     [IndexPath(item: 0, section: 0)]
                 )
             })
