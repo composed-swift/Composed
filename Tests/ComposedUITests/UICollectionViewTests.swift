@@ -87,6 +87,41 @@ final class UICollectionViewTests: XCTestCase {
         }
     }
 
+    /// A test to validate that element reloads are handled before section deletes.
+    func testElementReloadsAreHandledBeforeRemoves() {
+        let viewController = SpyCollectionViewController()
+        viewController.applyInitialData([
+            ["0, 0", "0, 1", "0, 2"],
+        ])
+
+        let callsCompletionExpectations = expectation(description: "Calls completion")
+
+        /**
+         This validates that the reloads are handled using the "before" indexes because
+         `IndexPath(item: 2, section: 0)` is reloaded even though the "after" index path
+         that is requested is `IndexPath(item: 1, section: 0)`.
+         */
+        viewController.collectionView.performBatchUpdates({
+            viewController.data[0].remove(at: 1)
+            viewController.data[0][1] = "0, 1 (updated)"
+            viewController.collectionView.reloadItems(at: [
+                IndexPath(item: 0, section: 0),
+                IndexPath(item: 2, section: 0),
+            ])
+            viewController.collectionView.deleteItems(at: [
+                IndexPath(item: 1, section: 0),
+            ])
+        }, completion: { _ in
+            XCTAssertEqual(viewController.requestedIndexPaths, [
+                IndexPath(item: 0, section: 0),
+                IndexPath(item: 1, section: 0),
+            ])
+            callsCompletionExpectations.fulfill()
+        })
+
+        waitForExpectations(timeout: 1)
+    }
+
     /// A test to validate that section reloads are handled before section deletes.
     func testSectionReloadsAreHandledBeforeRemoves() {
         let viewController = SpyCollectionViewController()
