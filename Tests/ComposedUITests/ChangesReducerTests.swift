@@ -3018,9 +3018,6 @@ final class ChangesReducerTests: XCTestCase {
                 )
             })
 
-        return;
-        // TODO: Fill in `produces`
-
         AssertApplyingUpdates(
             { changesReducer in
                 let removedIndexPaths = (0...21).map { IndexPath(item: $0, section: 6) }
@@ -3033,7 +3030,7 @@ final class ChangesReducerTests: XCTestCase {
                     changeset.elementsUpdated,
                     updatedIndexPaths
                 )
-                let insertedIndexPaths = Set((20...49).map { IndexPath(item: $0, section: 6) })
+                let insertedIndexPaths = Set((20...27).map { IndexPath(item: $0, section: 6) })
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     insertedIndexPaths
@@ -3051,7 +3048,7 @@ final class ChangesReducerTests: XCTestCase {
                     changeset.elementsUpdated,
                     updatedIndexPaths
                 )
-                let insertedIndexPaths = Set((20...49).map { IndexPath(item: $0, section: 6) })
+                let insertedIndexPaths = Set((20...26).map { IndexPath(item: $0, section: 6) })
                 XCTAssertEqual(
                     changeset.elementsInserted,
                     insertedIndexPaths
@@ -3065,15 +3062,10 @@ final class ChangesReducerTests: XCTestCase {
             },
             changesReducer: &changesReducer,
             produces: { changeset in
-                let updatedIndexPaths = Set((0...19).map { IndexPath(item: $0, section: 6) })
+                let removedIndexPaths = Set((0...19).map { IndexPath(item: $0, section: 6) })
                 XCTAssertEqual(
-                    changeset.elementsUpdated,
-                    updatedIndexPaths
-                )
-                let insertedIndexPaths = Set((20...49).map { IndexPath(item: $0, section: 6) })
-                XCTAssertEqual(
-                    changeset.elementsInserted,
-                    insertedIndexPaths
+                    changeset.elementsRemoved,
+                    removedIndexPaths
                 )
             })
 
