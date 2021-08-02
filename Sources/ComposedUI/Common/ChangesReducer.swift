@@ -242,21 +242,30 @@ internal struct ChangesReducer: CustomReflectable {
 
             guard !changeset.groupsInserted.contains(removedIndexPath.section), !changeset.groupsUpdated.contains(removedIndexPath.section) else { return }
 
+            let isInInserted = changeset.elementsInserted.contains(removedIndexPath)
+
+            defer {
+                if !isInInserted {
+                    changeset.elementsRemoved.insert(removedIndexPath)
+                }
+            }
+
             changeset.elementsUpdated = Set(changeset.elementsUpdated.compactMap { existingUpdatedIndexPath in
                 guard existingUpdatedIndexPath.section == removedIndexPath.section else {
                     // Different section; don't modify
                     return existingUpdatedIndexPath
                 }
 
-                var existingInsertedIndexPath = existingUpdatedIndexPath
+                var existingUpdatedIndexPath = existingUpdatedIndexPath
 
-                if existingInsertedIndexPath.item > removedIndexPath.item, !changeset.elementsRemoved.contains(removedIndexPath) {
-                    existingInsertedIndexPath.item -= 1
-                } else if existingInsertedIndexPath.item == removedIndexPath.item {
+                if existingUpdatedIndexPath.item > removedIndexPath.item, !changeset.elementsRemoved.contains(removedIndexPath)
+                {
+                    existingUpdatedIndexPath.item -= 1
+                } else if existingUpdatedIndexPath.item == removedIndexPath.item {
                     return nil
                 }
 
-                return existingInsertedIndexPath
+                return existingUpdatedIndexPath
             })
 
             changeset.elementsInserted = Set(changeset.elementsInserted.compactMap { existingInsertedIndexPath in
@@ -267,7 +276,8 @@ internal struct ChangesReducer: CustomReflectable {
 
                 var existingInsertedIndexPath = existingInsertedIndexPath
 
-                if existingInsertedIndexPath.item > removedIndexPath.item, !changeset.elementsRemoved.contains(existingInsertedIndexPath) {
+                if existingInsertedIndexPath.item > removedIndexPath.item/*, !changeset.elementsRemoved.contains(existingInsertedIndexPath)*/
+                {
                     existingInsertedIndexPath.item -= 1
                 } else if existingInsertedIndexPath.item == removedIndexPath.item {
                     return nil
@@ -275,8 +285,6 @@ internal struct ChangesReducer: CustomReflectable {
 
                 return existingInsertedIndexPath
             })
-
-            changeset.elementsRemoved.insert(removedIndexPath)
         }
     }
 
