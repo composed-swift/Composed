@@ -1,6 +1,6 @@
 import XCTest
 import Composed
-@testable import ComposedUI
+@_spi(TransformAPI) @testable import ComposedUI
 
 final class ChangesReducerTests: XCTestCase {
     /// Mirrors `CollectionCoordinatorTests.testBatchUpdates`
@@ -1204,6 +1204,12 @@ final class ChangesReducerTests: XCTestCase {
                 )
             })
 
+        XCTAssertEqual(
+            changesReducer.transformItem(2, inSection: 0),
+            2,
+            "Transforming an item that has been reloaded should "
+        )
+
         /**
          - 0: New Element (inserted; reload)
          - 1: Element B
@@ -1226,6 +1232,12 @@ final class ChangesReducerTests: XCTestCase {
                 )
             })
 
+        XCTAssertEqual(
+            changesReducer.transformItem(0, inSection: 0),
+            0,
+            "Transforming an item that has been reloaded should "
+        )
+
         /**
          - 0: New Element (reloaded)
          - 1: Element B
@@ -1241,14 +1253,13 @@ final class ChangesReducerTests: XCTestCase {
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [
-                        IndexPath(item: 0, section: 0),
                         IndexPath(item: 2, section: 0),
                     ]
                 )
                 XCTAssertEqual(
                     changeset.elementsRemoved,
                     [
-                        IndexPath(item: 1, section: 0),
+                        IndexPath(item: 0, section: 0),
                     ]
                 )
             })
@@ -2727,6 +2738,105 @@ final class ChangesReducerTests: XCTestCase {
                 XCTAssertEqual(
                     changeset.elementsUpdated,
                     [IndexPath(item: 0, section: 0)]
+                )
+            })
+    }
+
+    func test_Remove_Insert_Insert_Remove_Insert() {
+        var changesReducer = ChangesReducer()
+        changesReducer.beginUpdating()
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [
+                    IndexPath(item: 0, section: 6),
+                ])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    [
+                        IndexPath(item: 0, section: 6),
+                    ]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [
+                    IndexPath(item: 0, section: 6),
+                ])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 0, section: 6),
+                    ]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [
+                    IndexPath(item: 0, section: 6),
+                ])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 0, section: 6),
+                    ]
+                )
+
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 1, section: 6),
+                    ]
+                )
+            })
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.removeElements(at: [
+                    IndexPath(item: 0, section: 6),
+                ])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [IndexPath(item: 0, section: 6)]
+                )
+            })
+
+        return;
+
+        AssertApplyingUpdates(
+            { changesReducer in
+                changesReducer.insertElements(at: [
+                    IndexPath(item: 0, section: 6),
+                ])
+            },
+            changesReducer: &changesReducer,
+            produces: { changeset in
+                XCTAssertEqual(
+                    changeset.elementsUpdated,
+                    [
+                        IndexPath(item: 0, section: 6),
+                    ]
+                )
+
+                XCTAssertEqual(
+                    changeset.elementsInserted,
+                    [
+                        IndexPath(item: 1, section: 6),
+                    ]
                 )
             })
     }

@@ -354,9 +354,17 @@ internal struct ChangesReducer: CustomReflectable {
     /// - Parameter item: The item index to transform.
     /// - Parameter section: The section index to the item belongs to.
     /// - Returns: The transformed item index.
-    private func transformItem(_ item: Int, inSection section: Int) -> Int {
-        let itemsRemoved = changeset.elementsRemoved.filter({ $0.section == section }).map(\.item)
-        let itemsInserted = changeset.elementsInserted.filter({ $0.section == section }).map(\.item)
+    @_spi(TransformAPI)
+    public func transformItem(_ item: Int, inSection section: Int) -> Int {
+        let itemsReloaded = changeset.elementsRemoved.intersection(changeset.elementsInserted).filter({ $0.section == section }).map(\.item)
+
+        func isIncluded(indexPath: IndexPath) -> Bool {
+            indexPath.section == section && !itemsReloaded.contains(indexPath.item)
+        }
+
+        let itemsRemoved = changeset.elementsRemoved.filter(isIncluded(indexPath:)).map(\.item)
+        let itemsInserted = changeset.elementsInserted.filter(isIncluded(indexPath:)).map(\.item)
+
         let availableSpaces = (0..<Int.max)
             .lazy
             .filter { !itemsRemoved.contains($0) }
