@@ -2816,8 +2816,6 @@ final class ChangesReducerTests: XCTestCase {
                 )
             })
 
-        return;
-
         AssertApplyingUpdates(
             { changesReducer in
                 changesReducer.insertElements(at: [
