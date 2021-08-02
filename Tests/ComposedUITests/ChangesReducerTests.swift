@@ -2844,6 +2844,10 @@ final class ChangesReducerTests: XCTestCase {
         var changesReducer = ChangesReducer()
         changesReducer.beginUpdating()
 
+        /**
+         Assumed to start with 23 (0...22) elements.
+         */
+
         AssertApplyingUpdates(
             { changesReducer in
                 let removedIndexPaths = (0...22).map { IndexPath(item: $0, section: 6) }
@@ -2889,6 +2893,12 @@ final class ChangesReducerTests: XCTestCase {
                     changeset.elementsUpdated,
                     [IndexPath(item: 0, section: 6)]
                 )
+
+                let removedIndexPaths = Set((1...22).map { IndexPath(item: $0, section: 6) })
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    removedIndexPaths
+                )
             })
 
         AssertApplyingUpdates(
@@ -2903,6 +2913,12 @@ final class ChangesReducerTests: XCTestCase {
                         IndexPath(item: 0, section: 6),
                         IndexPath(item: 1, section: 6),
                     ]
+                )
+
+                let removedIndexPaths = Set((2...22).map { IndexPath(item: $0, section: 6) })
+                XCTAssertEqual(
+                    changeset.elementsRemoved,
+                    removedIndexPaths
                 )
             })
     }
