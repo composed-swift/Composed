@@ -234,7 +234,6 @@ internal struct ChangesReducer: CustomReflectable {
     }
 
     internal mutating func removeElements(at indexPaths: [IndexPath]) {
-        print(#function, indexPaths, changeset.elementsInserted.sorted(), changeset.elementsRemoved.sorted(), changeset.elementsUpdated.sorted(), separator: "\n")
         /**
          Element removals are handled before all other updates.
          */
@@ -242,10 +241,6 @@ internal struct ChangesReducer: CustomReflectable {
             let removedIndexPath = transformIndexPath(removedIndexPath, toContext: .original)
 
             guard !changeset.groupsInserted.contains(removedIndexPath.section), !changeset.groupsUpdated.contains(removedIndexPath.section) else { return }
-
-//            if changeset.elementsInserted.remove(removedIndexPath) != nil || changeset.elementsUpdated.remove(removedIndexPath) != nil {
-//                return
-//            }
 
             changeset.elementsUpdated = Set(changeset.elementsUpdated.compactMap { existingUpdatedIndexPath in
                 guard existingUpdatedIndexPath.section == removedIndexPath.section else {
@@ -255,7 +250,7 @@ internal struct ChangesReducer: CustomReflectable {
 
                 var existingInsertedIndexPath = existingUpdatedIndexPath
 
-                if existingInsertedIndexPath.item > removedIndexPath.item {
+                if existingInsertedIndexPath.item > removedIndexPath.item, !changeset.elementsRemoved.contains(removedIndexPath) {
                     existingInsertedIndexPath.item -= 1
                 } else if existingInsertedIndexPath.item == removedIndexPath.item {
                     return nil
@@ -264,23 +259,18 @@ internal struct ChangesReducer: CustomReflectable {
                 return existingInsertedIndexPath
             })
 
-            changeset.elementsInserted = Set(changeset.elementsInserted.map { existingInsertedIndexPath in
+            changeset.elementsInserted = Set(changeset.elementsInserted.compactMap { existingInsertedIndexPath in
                 guard existingInsertedIndexPath.section == removedIndexPath.section else {
                     // Different section; don't modify
                     return existingInsertedIndexPath
                 }
 
-                guard !changeset.elementsRemoved.contains(existingInsertedIndexPath) else {
-                    // This insert is really a reload (delete and insert)
-                    return existingInsertedIndexPath
-                }
-
                 var existingInsertedIndexPath = existingInsertedIndexPath
 
-                if existingInsertedIndexPath.item > removedIndexPath.item {
+                if existingInsertedIndexPath.item > removedIndexPath.item, !changeset.elementsRemoved.contains(existingInsertedIndexPath) {
                     existingInsertedIndexPath.item -= 1
-                } else if existingInsertedIndexPath.item == removedIndexPath.item && !changeset.elementsRemoved.contains(existingInsertedIndexPath) {
-                    existingInsertedIndexPath.item -= 1
+                } else if existingInsertedIndexPath.item == removedIndexPath.item {
+                    return nil
                 }
 
                 return existingInsertedIndexPath
