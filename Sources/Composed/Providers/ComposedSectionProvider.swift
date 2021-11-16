@@ -252,6 +252,12 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
             updateDelegate?.provider(self, didRemoveSections: sections, at: IndexSet(integersIn: firstIndex..<endIndex))
         }
     }
+
+    public func removeAll() {
+        performBatchUpdates { updateDelegate in
+            children.reversed().forEach(remove(_:))
+        }
+    }
     
     public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
         assert(sections.count == indexes.count, "Number of indexes must equal number of sections inserted")
