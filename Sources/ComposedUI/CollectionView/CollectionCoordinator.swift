@@ -27,6 +27,30 @@ open class CollectionCoordinator: NSObject {
         let nibName: String
         let bundle: Bundle
         let reuseIdentifier: String
+        let supplementaryViewKind: String?
+
+        internal init(nibName: String, bundle: Bundle, reuseIdentifier: String, supplementaryViewKind: String? = nil) {
+            self.nibName = nibName
+            self.bundle = bundle
+            self.reuseIdentifier = reuseIdentifier
+            self.supplementaryViewKind = supplementaryViewKind
+        }
+    }
+
+    private struct ClassRegistration: Equatable {
+        static func == (lhs: CollectionCoordinator.ClassRegistration, rhs: CollectionCoordinator.ClassRegistration) -> Bool {
+            lhs.class == rhs.class && lhs.reuseIdentifier == rhs.reuseIdentifier && lhs.supplementaryViewKind == rhs.supplementaryViewKind
+        }
+
+        let `class`: UIView.Type
+        let reuseIdentifier: String
+        let supplementaryViewKind: String?
+
+        internal init(class: UIView.Type, reuseIdentifier: String, supplementaryViewKind: String? = nil) {
+            self.class = `class`
+            self.reuseIdentifier = reuseIdentifier
+            self.supplementaryViewKind = supplementaryViewKind
+        }
     }
 
     /// Get/set the delegate for this coordinator
@@ -72,7 +96,12 @@ open class CollectionCoordinator: NSObject {
 
     private var cachedElementsProviders: [UICollectionViewSectionElementsProvider] = []
     private var cellSectionMap = [UICollectionViewCell: (CollectionCellElement, Section)]()
+
+    // Prevent registering the same cell multiple times; this might break reuse.
+    // See: https://developer.apple.com/forums/thread/681739
+    // The post applies to the newer API, but maybe it was always true?
     private var nibRegistrations = Set<NIBRegistration>()
+    private var classRegistrations = [ClassRegistration]()
 
     /// Make a new coordinator with the specified collectionView and sectionProvider
     /// - Parameters:
@@ -203,7 +232,11 @@ open class CollectionCoordinator: NSObject {
                     collectionView.register(nib, forCellWithReuseIdentifier: cell.reuseIdentifier)
                     nibRegistrations.insert(nibRegistration)
                 case let .fromClass(type):
+                    let classRegistration = ClassRegistration(class: type, reuseIdentifier: cell.reuseIdentifier)
+                    guard !classRegistrations.contains(classRegistration) else { break }
+
                     collectionView.register(type, forCellWithReuseIdentifier: cell.reuseIdentifier)
+                    classRegistrations.append(classRegistration)
                 case .fromStoryboard:
                     break
                 }
@@ -212,9 +245,27 @@ open class CollectionCoordinator: NSObject {
             [elementsProvider.header, elementsProvider.footer].compactMap { $0 }.forEach {
                 switch $0.dequeueMethod.method {
                 case let .fromNib(type):
-                    let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                    let nibName = String(describing: type)
+                    let nibBundle = Bundle(for: type)
+                    let nibRegistration = NIBRegistration(
+                        nibName: nibName,
+                        bundle: nibBundle,
+                        reuseIdentifier: $0.reuseIdentifier,
+                        supplementaryViewKind: $0.kind.rawValue
+                    )
+
+                    guard !nibRegistrations.contains(nibRegistration) else { break }
+
+                    let nib = UINib(nibName: nibName, bundle: nibBundle)
                     collectionView.register(nib, forSupplementaryViewOfKind: $0.kind.rawValue, withReuseIdentifier: $0.reuseIdentifier)
                 case let .fromClass(type):
+                    let classRegistration = ClassRegistration(
+                        class: type,
+                        reuseIdentifier: $0.reuseIdentifier,
+                        supplementaryViewKind: $0.kind.rawValue
+                    )
+                    guard !classRegistrations.contains(classRegistration) else { break }
+
                     collectionView.register(type, forSupplementaryViewOfKind: $0.kind.rawValue, withReuseIdentifier: $0.reuseIdentifier)
                 case .fromStoryboard:
                     break
@@ -493,9 +544,26 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         if let header = elementsProvider.header {
             switch header.dequeueMethod.method {
             case let .fromNib(type):
-                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+                let nibName = String(describing: type)
+                let nibBundle = Bundle(for: type)
+                let nibRegistration = NIBRegistration(
+                    nibName: nibName,
+                    bundle: nibBundle,
+                    reuseIdentifier: header.reuseIdentifier,
+                    supplementaryViewKind: header.kind.rawValue
+                )
+                guard !nibRegistrations.contains(nibRegistration) else { break }
+
+                let nib = UINib(nibName: nibName, bundle: nibBundle)
                 collectionView.register(nib, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
             case let .fromClass(type):
+                let classRegistration = ClassRegistration(
+                    class: type,
+                    reuseIdentifier: header.reuseIdentifier,
+                    supplementaryViewKind: header.kind.rawValue
+                )
+                guard !classRegistrations.contains(classRegistration) else { break }
+
                 collectionView.register(type, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
             case .fromStoryboard:
                 break
@@ -522,9 +590,27 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
         if let footer = elementsProvider.footer {
             switch footer.dequeueMethod.method {
             case let .fromNib(type):
-                let nib = UINib(nibName: String(describing: type), bundle: Bundle(for: type))
+
+                let nibName = String(describing: type)
+                let nibBundle = Bundle(for: type)
+                let nibRegistration = NIBRegistration(
+                    nibName: nibName,
+                    bundle: nibBundle,
+                    reuseIdentifier: footer.reuseIdentifier,
+                    supplementaryViewKind: footer.kind.rawValue
+                )
+                guard !nibRegistrations.contains(nibRegistration) else { break }
+
+                let nib = UINib(nibName: nibName, bundle: nibBundle)
                 collectionView.register(nib, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
             case let .fromClass(type):
+                let classRegistration = ClassRegistration(
+                    class: type,
+                    reuseIdentifier: footer.reuseIdentifier,
+                    supplementaryViewKind: footer.kind.rawValue
+                )
+                guard !classRegistrations.contains(classRegistration) else { break }
+
                 collectionView.register(type, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
             case .fromStoryboard:
                 break
