@@ -206,11 +206,6 @@ internal struct ChangesReducer: CustomReflectable {
 
     internal mutating func insertElements(at indexPaths: [IndexPath]) {
         indexPaths.forEach { insertedIndexPath in
-//            if changeset.elementsRemoved.remove(insertedIndexPath) != nil {
-//                changeset.elementsUpdated.insert(insertedIndexPath)
-//                return
-//            }
-
             guard !changeset.groupsUpdated.contains(insertedIndexPath.section) else { return }
             guard !changeset.groupsInserted.contains(insertedIndexPath.section) else { return }
 
@@ -238,6 +233,7 @@ internal struct ChangesReducer: CustomReflectable {
          Element removals are handled before all other updates.
          */
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { removedIndexPath in
+            let originalRemovedIndexPath = removedIndexPath
             let removedIndexPath = transformIndexPath(removedIndexPath, toContext: .original)
 
             guard !changeset.groupsInserted.contains(removedIndexPath.section), !changeset.groupsUpdated.contains(removedIndexPath.section) else { return }
@@ -247,6 +243,8 @@ internal struct ChangesReducer: CustomReflectable {
             defer {
                 if !isInInserted {
                     changeset.elementsRemoved.insert(removedIndexPath)
+                } else if removedIndexPath != originalRemovedIndexPath {
+                    changeset.elementsUpdated.insert(removedIndexPath)
                 }
             }
 
@@ -290,11 +288,12 @@ internal struct ChangesReducer: CustomReflectable {
 
     internal mutating func updateElements(at indexPaths: [IndexPath]) {
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { updatedElement in
+            guard !changeset.elementsInserted.contains(updatedElement) else { return }
+
             let updatedElement = transformIndexPath(updatedElement, toContext: .original)
 
             if !changeset.groupsInserted.contains(updatedElement.section),
-               !changeset.groupsUpdated.contains(updatedElement.section),
-               !changeset.elementsInserted.contains(updatedElement)
+               !changeset.groupsUpdated.contains(updatedElement.section)
             {
                 changeset.elementsUpdated.insert(updatedElement)
             }
