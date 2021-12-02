@@ -239,11 +239,12 @@ internal struct ChangesReducer: CustomReflectable {
             guard !changeset.groupsInserted.contains(removedIndexPath.section), !changeset.groupsUpdated.contains(removedIndexPath.section) else { return }
 
             let isInInserted = changeset.elementsInserted.contains(removedIndexPath)
+            let originalWasInInserted = changeset.elementsInserted.contains(originalRemovedIndexPath)
 
             defer {
                 if !isInInserted {
                     changeset.elementsRemoved.insert(removedIndexPath)
-                } else if removedIndexPath != originalRemovedIndexPath {
+                } else if removedIndexPath.item != originalRemovedIndexPath.item, !originalWasInInserted {
                     changeset.elementsUpdated.insert(removedIndexPath)
                 }
             }
@@ -354,7 +355,7 @@ internal struct ChangesReducer: CustomReflectable {
     /// - Returns: The transformed item index.
     @_spi(TransformAPI)
     public func transformItem(_ item: Int, inSection section: Int) -> Int {
-        let itemsReloaded = changeset.elementsRemoved.intersection(changeset.elementsInserted).filter({ $0.section == section }).map(\.item)
+        let itemsReloaded = changeset.elementsRemoved.intersection(changeset.elementsInserted).filter({ $0.section == section }).union(changeset.elementsUpdated).map(\.item)
 
         func isIncluded(indexPath: IndexPath) -> Bool {
             indexPath.section == section && !itemsReloaded.contains(indexPath.item)
