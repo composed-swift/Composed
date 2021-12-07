@@ -16,8 +16,9 @@ extension CollectionCoordinator: UICollectionViewDelegateFlowLayout {
     }
 
     private func environment(collectionView: UICollectionView, layout: UICollectionViewFlowLayout) -> CollectionFlowLayoutEnvironment {
-        let size = collectionView.bounds.insetBy(dx: layout.sectionInset.left + layout.sectionInset.right, dy: 0).size
-        return CollectionFlowLayoutEnvironment(contentSize: size, traitCollection: collectionView.traitCollection)
+        var contentSize = collectionView.bounds.size
+        contentSize.width -= collectionView.contentInset.left + collectionView.contentInset.right
+        return CollectionFlowLayoutEnvironment(contentSize: contentSize, traitCollection: collectionView.traitCollection)
     }
 
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
