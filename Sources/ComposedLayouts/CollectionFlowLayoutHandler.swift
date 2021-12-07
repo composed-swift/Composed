@@ -15,9 +15,11 @@ public struct CollectionFlowLayoutMetrics {
 
 /// Represents the current environment for a `UICollectionView`
 public struct CollectionFlowLayoutEnvironment {
-    /// Returns the current size of the collectionView
+    /// Returns the current size of ``collectionView``, minus horizontal content insets.
     public var contentSize: CGSize {
-        collectionView.bounds.insetBy(dx: layout.sectionInset.left + layout.sectionInset.right, dy: 0).size
+        var contentSize = collectionView.bounds.size
+        contentSize.width -= collectionView.contentInset.left + collectionView.contentInset.right
+        return contentSize
     }
 
     /// Returns the current traits of the collectionView
