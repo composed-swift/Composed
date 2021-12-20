@@ -342,7 +342,12 @@ internal struct ChangesReducer: CustomReflectable {
     /// - Returns: The transformed item index.
     @_spi(TransformAPI)
     public func transformItem(_ item: Int, inSection section: Int) -> Int {
-        let itemsReloaded = changeset.elementsRemoved.intersection(changeset.elementsInserted).filter({ $0.section == section }).union(changeset.elementsUpdated).map(\.item)
+        /// This is a collection of all the items in the current section that
+        /// will be coalesced in to a reload, but are not yet in the `elementsReloaded`.
+        let itemsReloaded = changeset.elementsRemoved
+            .intersection(changeset.elementsInserted)
+            .filter({ $0.section == section })
+            .map(\.item)
 
         func isIncluded(indexPath: IndexPath) -> Bool {
             indexPath.section == section && !itemsReloaded.contains(indexPath.item)
