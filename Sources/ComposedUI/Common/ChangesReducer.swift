@@ -234,7 +234,7 @@ internal struct ChangesReducer: CustomReflectable {
          */
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { removedIndexPath in
             let originalRemovedIndexPath = removedIndexPath
-            let removedIndexPath = transformIndexPath(removedIndexPath, toContext: .original)
+            let removedIndexPath = transformIndexPath(removedIndexPath)
 
             guard !changeset.groupsInserted.contains(removedIndexPath.section), !changeset.groupsUpdated.contains(removedIndexPath.section) else { return }
 
@@ -291,7 +291,7 @@ internal struct ChangesReducer: CustomReflectable {
         indexPaths.sorted(by: { $0.item > $1.item }).forEach { updatedElement in
             guard !changeset.elementsInserted.contains(updatedElement) else { return }
 
-            let updatedElement = transformIndexPath(updatedElement, toContext: .original)
+            let updatedElement = transformIndexPath(updatedElement)
 
             if !changeset.groupsInserted.contains(updatedElement.section),
                !changeset.groupsUpdated.contains(updatedElement.section)
@@ -309,24 +309,11 @@ internal struct ChangesReducer: CustomReflectable {
         moveElements(moves.map { Changeset.Move(from: $0.from, to: $0.to) })
     }
 
-    private enum IndexPathContext {
-        /// Start of updates.
-        case original
-
-        /// After deletes and reloads
-        case afterUpdates
-    }
-
-    private func transformIndexPath(_ indexPath: IndexPath, toContext context: IndexPathContext) -> IndexPath {
+    private func transformIndexPath(_ indexPath: IndexPath) -> IndexPath {
         var indexPath = indexPath
 
-        switch context {
-        case .original:
-            indexPath.section = transformSection(indexPath.section)
-            indexPath.item = transformItem(indexPath.item, inSection: indexPath.section)
-        case .afterUpdates:
-            break
-        }
+        indexPath.section = transformSection(indexPath.section)
+        indexPath.item = transformItem(indexPath.item, inSection: indexPath.section)
 
         return indexPath
     }
