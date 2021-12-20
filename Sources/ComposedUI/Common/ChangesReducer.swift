@@ -340,8 +340,7 @@ internal struct ChangesReducer: CustomReflectable {
     /// - Parameter item: The item index to transform.
     /// - Parameter section: The section index to the item belongs to.
     /// - Returns: The transformed item index.
-    @_spi(TransformAPI)
-    public func transformItem(_ item: Int, inSection section: Int) -> Int {
+    private func transformItem(_ item: Int, inSection section: Int) -> Int {
         /// This is a collection of all the items in the current section that
         /// will be coalesced in to a reload, but are not yet in the `elementsReloaded`.
         let itemsReloaded = changeset.elementsRemoved

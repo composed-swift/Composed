@@ -1,6 +1,6 @@
 import XCTest
 import Composed
-@_spi(TransformAPI) @testable import ComposedUI
+@testable import ComposedUI
 
 final class ChangesReducerTests: XCTestCase {
     /// Mirrors `CollectionCoordinatorTests.testBatchUpdates`
@@ -1204,12 +1204,6 @@ final class ChangesReducerTests: XCTestCase {
                 )
             })
 
-        XCTAssertEqual(
-            changesReducer.transformItem(2, inSection: 0),
-            2,
-            "Transforming an item that has been reloaded should "
-        )
-
         /**
          - 0: New Element (inserted; reload)
          - 1: Element B
@@ -1231,12 +1225,6 @@ final class ChangesReducerTests: XCTestCase {
                     ]
                 )
             })
-
-        XCTAssertEqual(
-            changesReducer.transformItem(0, inSection: 0),
-            0,
-            "Transforming an item that has been reloaded should "
-        )
 
         /**
          - 0: New Element (reloaded)
