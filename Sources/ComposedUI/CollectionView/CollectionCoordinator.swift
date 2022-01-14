@@ -66,6 +66,9 @@ open class CollectionCoordinator: NSObject {
     /// If `true` this `CollectionCoordinator` instance will log changes to the system log.
     public var enableLogs: Bool = false
 
+    /// A closure that will be called whenever a debug log message is produced.
+    public var logger: ((_ message: String) -> Void)?
+
     internal var changesReducer = ChangesReducer()
 
     /// A flag indicating if the `updates` closure is currently being called in a call to `performBatchUpdates`.
@@ -284,9 +287,13 @@ open class CollectionCoordinator: NSObject {
     }
 
     fileprivate func debugLog(_ message: String) {
-       if #available(iOS 12, *), enableLogs {
-           os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
-       }
+        if #available(iOS 12, *), enableLogs {
+            os_log("%@", log: OSLog(subsystem: "ComposedUI", category: "CollectionCoordinator"), type: .debug, message)
+        }
+
+        if let logger = logger {
+            logger(message)
+        }
     }
 }
 
