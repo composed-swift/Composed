@@ -8,6 +8,24 @@ open class FlatSection: Section, CustomReflectable {
 
         /// An object that provides 0 or more sections.
         case sectionProvider(SectionProvider)
+
+        func equals(_ otherSection: Section) -> Bool {
+            switch self {
+            case .section(let section):
+                return section === otherSection
+            case .sectionProvider:
+                return false
+            }
+        }
+
+        func equals(_ otherSectionProvider: SectionProvider) -> Bool {
+            switch self {
+            case .sectionProvider(let sectionProvider):
+                return sectionProvider === otherSectionProvider
+            case .section:
+                return false
+            }
+        }
     }
 
     public private(set) var sections: ContiguousArray<Section> = []
@@ -33,6 +51,9 @@ open class FlatSection: Section, CustomReflectable {
     public init() {}
 
     public func append(_ section: Section) {
+        if children.contains(where: { $0.equals(section) }) {
+            assertionFailure("Section \(section) has been appended, but it is already a child.")
+        }
         performBatchUpdates { _ in
             let indexOfFirstChildElement = numberOfElements
             children.append(.section(section))
@@ -48,6 +69,9 @@ open class FlatSection: Section, CustomReflectable {
     }
 
     public func append(_ sectionProvider: SectionProvider) {
+        if children.contains(where: { $0.equals(sectionProvider) }) {
+            assertionFailure("Section provider \(sectionProvider) has been appended, but it is already a child.")
+        }
         performBatchUpdates { _ in
             var indexOfFirstSectionElement = numberOfElements
 
@@ -132,7 +156,11 @@ open class FlatSection: Section, CustomReflectable {
 
         performBatchUpdates { _ in
             sectionProvider.sections.reversed().forEach { section in
-                section.updateDelegate = nil
+                if section.updateDelegate === self {
+                    section.updateDelegate = nil
+                } else {
+                    assertionFailure("Section \(section) has had its `delegate` changed, do not modify the delegate directly")
+                }
 
                 let sectionOffset = indexForFirstElement(of: section)!
                 sections = sections.filter { $0 !== section }
@@ -409,6 +437,12 @@ extension FlatSection: SectionProviderUpdateDelegate {
             for (section, sectionIndexInProvider) in zip(sections, indexes).reversed() {
                 let localSectionIndex = sectionIndexInProvider + providerSectionIndex
                 let sectionFirstElementIndex = self.indexForFirstElement(of: section)!
+
+                if section.updateDelegate === self {
+                    section.updateDelegate = nil
+                } else {
+                    assertionFailure("Section \(section) has had its `delegate` changed, do not modify the delegate directly")
+                }
 
                 self.sections.remove(at: localSectionIndex)
 
