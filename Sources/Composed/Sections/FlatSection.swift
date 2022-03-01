@@ -34,79 +34,73 @@ open class FlatSection: Section, CustomReflectable {
 
     public func append(_ section: Section) {
         performBatchUpdates { _ in
+            let indexOfFirstChildElement = numberOfElements
+            children.append(.section(section))
+            sections.append(section)
+            section.updateDelegate = self
 
-        let indexOfFirstChildElement = numberOfElements
-        children.append(.section(section))
-        sections.append(section)
-        section.updateDelegate = self
-
-        (0..<section.numberOfElements)
-            .map { $0 + indexOfFirstChildElement }
-            .forEach { index in
-                updateDelegate?.section(self, didInsertElementAt: index)
-            }
-
+            (0..<section.numberOfElements)
+                .map { $0 + indexOfFirstChildElement }
+                .forEach { index in
+                    updateDelegate?.section(self, didInsertElementAt: index)
+                }
         }
     }
 
     public func append(_ sectionProvider: SectionProvider) {
         performBatchUpdates { _ in
+            var indexOfFirstSectionElement = numberOfElements
 
-        var indexOfFirstSectionElement = numberOfElements
+            children.append(.sectionProvider(sectionProvider))
+            sections.append(contentsOf: sectionProvider.sections)
 
-        children.append(.sectionProvider(sectionProvider))
-        sections.append(contentsOf: sectionProvider.sections)
+            sectionProvider.sections.forEach { section in
+                section.updateDelegate = self
 
-        sectionProvider.sections.forEach { section in
-            section.updateDelegate = self
+                (0..<section.numberOfElements)
+                    .map { $0 + indexOfFirstSectionElement }
+                    .forEach { index in
+                        updateDelegate?.section(self, didInsertElementAt: index)
+                    }
 
-            (0..<section.numberOfElements)
-                .map { $0 + indexOfFirstSectionElement }
-                .forEach { index in
-                    updateDelegate?.section(self, didInsertElementAt: index)
-                }
+                indexOfFirstSectionElement += section.numberOfElements
+            }
 
-            indexOfFirstSectionElement += section.numberOfElements
-        }
-
-        sectionProvider.updateDelegate = self
-
+            sectionProvider.updateDelegate = self
         }
     }
 
     public func insert(_ section: Section, at childIndex: Int) {
         performBatchUpdates { _ in
+            let elementOffset: Int = {
+                if childIndex == 0 {
+                    return 0
+                } else if childIndex == children.count {
+                    return self.numberOfElements
+                }
 
-        let elementOffset: Int = {
-            if childIndex == 0 {
-                return 0
-            } else if childIndex == children.count {
-                return self.numberOfElements
+                let childAtInsertedSection = children[childIndex]
+                return indexForFirstElement(of: childAtInsertedSection)!
+            }()
+
+            let indexInSectionArray = (0..<childIndex).map { children[$0] }.reduce(into: 0) { index, child in
+                switch child {
+                case .section:
+                    index += 1
+                case .sectionProvider(let sectionProvider):
+                    index += sectionProvider.numberOfSections
+                }
             }
 
-            let childAtInsertedSection = children[childIndex]
-            return indexForFirstElement(of: childAtInsertedSection)!
-        }()
+            sections.insert(section, at: indexInSectionArray)
+            children.insert(.section(section), at: childIndex)
+            section.updateDelegate = self
 
-        let indexInSectionArray = (0..<childIndex).map { children[$0] }.reduce(into: 0) { index, child in
-            switch child {
-            case .section:
-                index += 1
-            case .sectionProvider(let sectionProvider):
-                index += sectionProvider.numberOfSections
-            }
-        }
-
-        sections.insert(section, at: indexInSectionArray)
-        children.insert(.section(section), at: childIndex)
-        section.updateDelegate = self
-
-        (0..<section.numberOfElements)
-            .map { $0 + elementOffset }
-            .forEach { index in
-                updateDelegate?.section(self, didInsertElementAt: index)
-            }
-
+            (0..<section.numberOfElements)
+                .map { $0 + elementOffset }
+                .forEach { index in
+                    updateDelegate?.section(self, didInsertElementAt: index)
+                }
         }
     }
 
@@ -120,18 +114,16 @@ open class FlatSection: Section, CustomReflectable {
         guard let childIndex = childIndex(of: section) else { return }
 
         performBatchUpdates { _ in
+            let sectionOffset = indexForFirstElement(of: section)!
+            children.remove(at: childIndex)
+            sections = sections.filter { $0 !== section }
+            if section.updateDelegate === self {
+                section.updateDelegate = nil
+            }
 
-        let sectionOffset = indexForFirstElement(of: section)!
-        children.remove(at: childIndex)
-        sections = sections.filter { $0 !== section }
-        if section.updateDelegate === self {
-            section.updateDelegate = nil
-        }
-
-        (0..<section.numberOfElements).reversed().forEach { index in
-            updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
-        }
-
+            (0..<section.numberOfElements).reversed().forEach { index in
+                updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
+            }
         }
     }
 
@@ -139,22 +131,21 @@ open class FlatSection: Section, CustomReflectable {
         guard let childIndex = self.childIndex(of: sectionProvider) else { return }
 
         performBatchUpdates { _ in
-        sectionProvider.sections.reversed().forEach { section in
-            section.updateDelegate = nil
+            sectionProvider.sections.reversed().forEach { section in
+                section.updateDelegate = nil
 
-            let sectionOffset = indexForFirstElement(of: section)!
-            sections = sections.filter { $0 !== section }
+                let sectionOffset = indexForFirstElement(of: section)!
+                sections = sections.filter { $0 !== section }
 
-            (0..<section.numberOfElements).reversed().forEach { index in
-                updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
+                (0..<section.numberOfElements).reversed().forEach { index in
+                    updateDelegate?.section(self, didRemoveElementAt: index + sectionOffset)
+                }
             }
-        }
-        if sectionProvider.updateDelegate === self {
-            sectionProvider.updateDelegate = nil
-        }
+            if sectionProvider.updateDelegate === self {
+                sectionProvider.updateDelegate = nil
+            }
 
-        children.remove(at: childIndex)
-
+            children.remove(at: childIndex)
         }
     }
 
@@ -394,19 +385,17 @@ extension FlatSection: SectionProviderUpdateDelegate {
         }
 
         performBatchUpdates { _ in
+            for (section, index) in zip(sections, indexes) {
+                section.updateDelegate = self
 
-        for (section, index) in zip(sections, indexes) {
-            section.updateDelegate = self
+                let sectionIndex = index + providerSectionIndex
+                self.sections.insert(section, at: sectionIndex)
+                let firstSectionIndex = self.indexForFirstElement(of: section)!
 
-            let sectionIndex = index + providerSectionIndex
-            self.sections.insert(section, at: sectionIndex)
-            let firstSectionIndex = self.indexForFirstElement(of: section)!
-
-            (firstSectionIndex..<firstSectionIndex + section.numberOfElements).forEach { elementIndex in
-                updateDelegate?.section(self, didInsertElementAt: elementIndex)
+                (firstSectionIndex..<firstSectionIndex + section.numberOfElements).forEach { elementIndex in
+                    updateDelegate?.section(self, didInsertElementAt: elementIndex)
+                }
             }
-        }
-
         }
     }
 
@@ -417,18 +406,16 @@ extension FlatSection: SectionProviderUpdateDelegate {
         }
 
         performBatchUpdates { _ in
+            for (section, sectionIndexInProvider) in zip(sections, indexes).reversed() {
+                let localSectionIndex = sectionIndexInProvider + providerSectionIndex
+                let sectionFirstElementIndex = self.indexForFirstElement(of: section)!
 
-        for (section, sectionIndexInProvider) in zip(sections, indexes).reversed() {
-            let localSectionIndex = sectionIndexInProvider + providerSectionIndex
-            let sectionFirstElementIndex = self.indexForFirstElement(of: section)!
+                self.sections.remove(at: localSectionIndex)
 
-            self.sections.remove(at: localSectionIndex)
-
-            (sectionFirstElementIndex..<sectionFirstElementIndex + section.numberOfElements).reversed().forEach { elementIndex in
-                updateDelegate?.section(self, didRemoveElementAt: elementIndex)
+                (sectionFirstElementIndex..<sectionFirstElementIndex + section.numberOfElements).reversed().forEach { elementIndex in
+                    updateDelegate?.section(self, didRemoveElementAt: elementIndex)
+                }
             }
-        }
-
         }
     }
 }
