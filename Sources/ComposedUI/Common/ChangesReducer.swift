@@ -249,22 +249,8 @@ internal struct ChangesReducer: CustomReflectable {
                 }
             }
 
-            changeset.elementsUpdated = Set(changeset.elementsUpdated.compactMap { existingUpdatedIndexPath in
-                guard existingUpdatedIndexPath.section == removedIndexPath.section else {
-                    // Different section; don't modify
-                    return existingUpdatedIndexPath
-                }
-
-                var existingUpdatedIndexPath = existingUpdatedIndexPath
-
-                if existingUpdatedIndexPath.item > removedIndexPath.item, !changeset.elementsRemoved.contains(removedIndexPath)
-                {
-                    existingUpdatedIndexPath.item -= 1
-                } else if existingUpdatedIndexPath.item == removedIndexPath.item {
-                    return nil
-                }
-
-                return existingUpdatedIndexPath
+            changeset.elementsUpdated = Set(changeset.elementsUpdated.filter { existingUpdatedIndexPath in
+                return existingUpdatedIndexPath != originalRemovedIndexPath
             })
 
             changeset.elementsInserted = Set(changeset.elementsInserted.compactMap { existingInsertedIndexPath in
