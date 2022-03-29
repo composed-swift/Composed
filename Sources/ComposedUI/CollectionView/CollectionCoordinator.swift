@@ -563,6 +563,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
                 let nib = UINib(nibName: nibName, bundle: nibBundle)
                 collectionView.register(nib, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
+
+                nibRegistrations.insert(nibRegistration)
             case let .fromClass(type):
                 let classRegistration = ClassRegistration(
                     class: type,
@@ -572,6 +574,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
                 guard !classRegistrations.contains(classRegistration) else { break }
 
                 collectionView.register(type, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
+
+                classRegistrations.append(classRegistration)
             case .fromStoryboard:
                 break
             }
@@ -610,6 +614,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
                 let nib = UINib(nibName: nibName, bundle: nibBundle)
                 collectionView.register(nib, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
+
+                nibRegistrations.insert(nibRegistration)
             case let .fromClass(type):
                 let classRegistration = ClassRegistration(
                     class: type,
@@ -619,6 +625,8 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
                 guard !classRegistrations.contains(classRegistration) else { break }
 
                 collectionView.register(type, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
+
+                classRegistrations.append(classRegistration)
             case .fromStoryboard:
                 break
             }
