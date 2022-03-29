@@ -546,7 +546,6 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {
         let elementsProvider = self.elementsProvider(for: sectionIndex)
-        let section = self.mapper.provider.sections[sectionIndex]
 
         if let header = elementsProvider.header {
             switch header.dequeueMethod.method {
@@ -581,22 +580,17 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
 
-        let context = UICollectionViewFlowLayoutInvalidationContext()
-        context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
-        invalidateLayout(with: context)
-
-        if
-            let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: sectionIndex)),
-            let header = elementsProvider.header,
-            header.kind.rawValue == UICollectionView.elementKindSectionHeader
-        {
-            header.configure(headerView, sectionIndex, section)
+        // Without performing these changes inside a batch updates the header
+        // may briefly be hidden, causing a "flash" to occur.
+        collectionView.performBatchUpdates {
+            let context = UICollectionViewFlowLayoutInvalidationContext()
+            context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader, at: [IndexPath(item: 0, section: sectionIndex)])
+            invalidateLayout(with: context)
         }
     }
 
     public func mappingDidInvalidateFooter(at sectionIndex: Int) {
         let elementsProvider = self.elementsProvider(for: sectionIndex)
-        let section = mapper.provider.sections[sectionIndex]
 
         if let footer = elementsProvider.footer {
             switch footer.dequeueMethod.method {
@@ -634,16 +628,12 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
 
         debugLog("Section \(sectionIndex) invalidated footer")
 
-        let context = UICollectionViewFlowLayoutInvalidationContext()
-        context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: sectionIndex)])
-        invalidateLayout(with: context)
-
-        if
-            let footerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: sectionIndex)),
-            let footer = elementsProvider.footer,
-            footer.kind.rawValue == UICollectionView.elementKindSectionFooter
-        {
-            footer.configure(footerView, sectionIndex, section)
+        // Without performing these changes inside a batch updates the header
+        // may briefly be hidden, causing a "flash" to occur.
+        collectionView.performBatchUpdates {
+            let context = UICollectionViewFlowLayoutInvalidationContext()
+            context.invalidateSupplementaryElements(ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: sectionIndex)])
+            invalidateLayout(with: context)
         }
     }
 
