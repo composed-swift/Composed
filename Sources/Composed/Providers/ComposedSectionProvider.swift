@@ -177,7 +177,7 @@ open class ComposedSectionProvider: AggregateSectionProvider, SectionProviderUpd
     ///   - child: The `Section` to insert
     ///   - index: The index where the `Section` should be inserted
     public func insert(_ child: Section, at index: Int) {
-        assert(!contains(child), "Attemtping to insert a section that is already a child")
+        assert(!contains(child), "Attemting to insert a section that is already a child")
         guard (0...children.count).contains(index) else { fatalError("Index out of bounds: \(index)") }
         
         performBatchUpdates { updateDelegate in
