@@ -3,7 +3,7 @@ extension FlatSection: SelectionHandler {
         sections.compactMap { $0 as? SelectionHandler }
     }
 
-    open var allowsMultipleSelection: Bool {
+    public var allowsMultipleSelection: Bool {
         let selectionHandlingSection = sections.compactMap { $0 as? SelectionHandler }
         if selectionHandlingSection.isEmpty {
             return false
@@ -15,7 +15,7 @@ extension FlatSection: SelectionHandler {
     }
 
     /// Returns all element indexes that are currently selected
-    open var selectedIndexes: [Int] {
+    public var selectedIndexes: [Int] {
         return sections.flatMap { section -> [Int] in
             guard let section = section as? SelectionHandler else { return [] }
             let offset = self.indexForFirstElement(of: section)!
@@ -25,7 +25,7 @@ extension FlatSection: SelectionHandler {
 
     /// When a highlight is attempted, this method will be called giving the caller a chance to prevent it
     /// - Parameter index: The element index
-    open func shouldHighlight(at index: Int) -> Bool {
+    public func shouldHighlight(at index: Int) -> Bool {
         guard let sectionMeta = self.sectionForElementIndex(index) else { return false }
         guard let section = sectionMeta.section as? SelectionHandler else { return false }
 
@@ -35,7 +35,7 @@ extension FlatSection: SelectionHandler {
 
     /// When a selection is attempted, this method will be called giving the caller a chance to prevent it
     /// - Parameter index: The element index
-    open func shouldSelect(at index: Int) -> Bool {
+    public func shouldSelect(at index: Int) -> Bool {
         guard let sectionMeta = self.sectionForElementIndex(index) else { return false }
         guard let section = sectionMeta.section as? SelectionHandler else { return false }
 
@@ -45,7 +45,7 @@ extension FlatSection: SelectionHandler {
 
     /// When a selection occurs, this method will be called to notify the section
     /// - Parameter index: The element index
-    open func didSelect(at index: Int) {
+    public func didSelect(at index: Int) {
         guard let sectionMeta = self.sectionForElementIndex(index) else { return }
         guard let section = sectionMeta.section as? SelectionHandler else { return }
 
@@ -55,7 +55,7 @@ extension FlatSection: SelectionHandler {
 
     /// When a deselection is attempted, this method will be called giving the caller a chance to prevent it
     /// - Parameter index: The element index
-    open func shouldDeselect(at index: Int) -> Bool {
+    public func shouldDeselect(at index: Int) -> Bool {
         guard let sectionMeta = self.sectionForElementIndex(index) else { return false }
         guard let section = sectionMeta.section as? SelectionHandler else { return false }
 
@@ -65,7 +65,7 @@ extension FlatSection: SelectionHandler {
 
     /// When a deselection occurs, this method will be called to notify the section
     /// - Parameter index: The element index
-    open func didDeselect(at index: Int) {
+    public func didDeselect(at index: Int) {
         guard let sectionMeta = self.sectionForElementIndex(index) else { return }
         guard let section = sectionMeta.section as? SelectionHandler else { return }
 
@@ -75,7 +75,7 @@ extension FlatSection: SelectionHandler {
 
     /// Selects the element at the specified index
     /// - Parameter index: The element index
-    open func select(index: Int) {
+    public func select(index: Int) {
         guard let sectionMeta = self.sectionForElementIndex(index) else { return }
         guard let section = sectionMeta.section as? SelectionHandler else { return }
 
@@ -85,7 +85,7 @@ extension FlatSection: SelectionHandler {
 
     /// Deselects the element at the specified index
     /// - Parameter index: The element index
-    open func deselect(index: Int) {
+    public func deselect(index: Int) {
         guard let sectionMeta = self.sectionForElementIndex(index) else { return }
         guard let section = sectionMeta.section as? SelectionHandler else { return }
 
@@ -94,12 +94,12 @@ extension FlatSection: SelectionHandler {
     }
 
     /// Selects all elements in this section
-    open func selectAll() {
+    public func selectAll() {
         selectionHandlingSections.forEach { $0.selectAll() }
     }
 
     /// Deselects all elements in this section
-    open func deselectAll() {
+    public func deselectAll() {
         selectionHandlingSections.forEach { $0.deselectAll() }
     }
 }
