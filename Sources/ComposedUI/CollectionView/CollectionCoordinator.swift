@@ -545,41 +545,11 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mappingDidInvalidateHeader(at sectionIndex: Int) {
+        // Ensure elements provider is available, views have been registered, etc.
+        prepareSections()
+
         let elementsProvider = self.elementsProvider(for: sectionIndex)
         let section = self.mapper.provider.sections[sectionIndex]
-
-        if let header = elementsProvider.header {
-            switch header.dequeueMethod.method {
-            case let .fromNib(type):
-                let nibName = String(describing: type)
-                let nibBundle = Bundle(for: type)
-                let nibRegistration = NIBRegistration(
-                    nibName: nibName,
-                    bundle: nibBundle,
-                    reuseIdentifier: header.reuseIdentifier,
-                    supplementaryViewKind: header.kind.rawValue
-                )
-                guard !nibRegistrations.contains(nibRegistration) else { break }
-
-                let nib = UINib(nibName: nibName, bundle: nibBundle)
-                collectionView.register(nib, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
-
-                nibRegistrations.insert(nibRegistration)
-            case let .fromClass(type):
-                let classRegistration = ClassRegistration(
-                    class: type,
-                    reuseIdentifier: header.reuseIdentifier,
-                    supplementaryViewKind: header.kind.rawValue
-                )
-                guard !classRegistrations.contains(classRegistration) else { break }
-
-                collectionView.register(type, forSupplementaryViewOfKind: header.kind.rawValue, withReuseIdentifier: header.reuseIdentifier)
-
-                classRegistrations.append(classRegistration)
-            case .fromStoryboard:
-                break
-            }
-        }
 
         // Without performing these changes inside a batch updates the header
         // may briefly be hidden, causing a "flash" to occur.
@@ -599,42 +569,11 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
     }
 
     public func mappingDidInvalidateFooter(at sectionIndex: Int) {
+        // Ensure elements provider is available, views have been registered, etc.
+        prepareSections()
+
         let elementsProvider = self.elementsProvider(for: sectionIndex)
         let section = self.mapper.provider.sections[sectionIndex]
-
-        if let footer = elementsProvider.footer {
-            switch footer.dequeueMethod.method {
-            case let .fromNib(type):
-
-                let nibName = String(describing: type)
-                let nibBundle = Bundle(for: type)
-                let nibRegistration = NIBRegistration(
-                    nibName: nibName,
-                    bundle: nibBundle,
-                    reuseIdentifier: footer.reuseIdentifier,
-                    supplementaryViewKind: footer.kind.rawValue
-                )
-                guard !nibRegistrations.contains(nibRegistration) else { break }
-
-                let nib = UINib(nibName: nibName, bundle: nibBundle)
-                collectionView.register(nib, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
-
-                nibRegistrations.insert(nibRegistration)
-            case let .fromClass(type):
-                let classRegistration = ClassRegistration(
-                    class: type,
-                    reuseIdentifier: footer.reuseIdentifier,
-                    supplementaryViewKind: footer.kind.rawValue
-                )
-                guard !classRegistrations.contains(classRegistration) else { break }
-
-                collectionView.register(type, forSupplementaryViewOfKind: footer.kind.rawValue, withReuseIdentifier: footer.reuseIdentifier)
-
-                classRegistrations.append(classRegistration)
-            case .fromStoryboard:
-                break
-            }
-        }
 
         debugLog("Section \(sectionIndex) invalidated footer")
 
@@ -657,7 +596,6 @@ extension CollectionCoordinator: SectionProviderMappingDelegate {
             }
         }
     }
-
 }
 
 // MARK: - UICollectionViewDataSource
