@@ -261,6 +261,7 @@ open class CollectionCoordinator: NSObject {
 
                     let nib = UINib(nibName: nibName, bundle: nibBundle)
                     collectionView.register(nib, forSupplementaryViewOfKind: $0.kind.rawValue, withReuseIdentifier: $0.reuseIdentifier)
+                    nibRegistrations.insert(nibRegistration)
                 case let .fromClass(type):
                     let classRegistration = ClassRegistration(
                         class: type,
@@ -270,6 +271,7 @@ open class CollectionCoordinator: NSObject {
                     guard !classRegistrations.contains(classRegistration) else { break }
 
                     collectionView.register(type, forSupplementaryViewOfKind: $0.kind.rawValue, withReuseIdentifier: $0.reuseIdentifier)
+                    classRegistrations.append(classRegistration)
                 case .fromStoryboard:
                     break
                 }
