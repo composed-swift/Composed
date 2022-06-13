@@ -32,7 +32,7 @@ let package = Package(
             dependencies: ["Composed"]),
         .testTarget(
             name: "ComposedUITests",
-            dependencies: ["Quick", "Nimble", "ComposedUI"]),
+            dependencies: ["Quick", "Nimble", "ComposedLayouts", "ComposedUI"]),
 
         .target(
             name: "ComposedLayouts",

@@ -1,5 +1,6 @@
 import XCTest
 import Composed
+import ComposedLayouts
 @testable import ComposedUI
 
 final class CollectionCoordinatorTests: XCTestCase {
@@ -1110,14 +1111,19 @@ final class CollectionCoordinatorTests: XCTestCase {
     }
 }
 
-private final class MockCollectionArraySection: ArraySection<String>, SingleUICollectionViewSection {
-    private(set) var requestedCells: [Int] = []
+private final class MockCollectionArraySection: ArraySection<String>, SingleUICollectionViewSection, CollectionFlowLayoutHandler {
+    var requestedCells: [Int] = []
 
     func section(with traitCollection: UITraitCollection) -> CollectionSection {
         let cell = CollectionCellElement(section: self, dequeueMethod: .fromClass(UICollectionViewCell.self), configure: { [weak self] _, cellIndex, _ in
+            print(cellIndex, "was requested")
             self?.requestedCells.append(cellIndex)
         })
         return CollectionSection(section: self, cell: cell)
+    }
+
+    func sizingStrategy(at index: Int, metrics: CollectionFlowLayoutMetrics, environment: CollectionFlowLayoutEnvironment) -> CollectionFlowLayoutSizingStrategy? {
+        CollectionFlowLayoutSizingStrategy(columnCount: 1, sizingMode: .fixed(height: 1), metrics: metrics)
     }
 }
 
@@ -1142,8 +1148,6 @@ private final class Tester {
 
     private let initialState: Updater
 
-    private var collectionViews: [UICollectionView] = []
-
     private let forceReloadData: Bool
 
     init(forceReloadData: Bool = false, initialState: @escaping Updater) {
@@ -1160,14 +1164,31 @@ private final class Tester {
 
         let rootSectionProvider = sections.rootSectionProvider
 
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-        collectionViews.append(collectionView)
+        // Setup a window so the collection view will request cells
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        let collectionViewController = UICollectionViewController(collectionViewLayout: UICollectionViewFlowLayout())
+        window.rootViewController = collectionViewController
+        window.makeKeyAndVisible()
 
-        let collectionCoordinator = CollectionCoordinator(collectionView: collectionView, sectionProvider: rootSectionProvider)
+        let collectionCoordinator = CollectionCoordinator(
+            collectionView: collectionViewController.collectionView!,
+            sectionProvider: rootSectionProvider
+        )
         collectionCoordinator.enableLogs = true
-        collectionView.reloadData()
 
         rootSectionProvider.performBatchUpdates(forceReloadData: forceReloadData) { _ in
+            // In theory all the cells should've been requested by now, so we can
+            // clear the requested cells to allow the `postUpdateChecks` to only
+            // check the changes apply vs the initial state
+
+            sections.child0.requestedCells = []
+            sections.child1.requestedCells = []
+            sections.child2.requestedCells = []
+            sections.child3.requestedCells = []
+            sections.child4.requestedCells = []
+            sections.child5.requestedCells = []
+            sections.child6.requestedCells = []
+
             updaters.forEach { $0(sections) }
         }
 
