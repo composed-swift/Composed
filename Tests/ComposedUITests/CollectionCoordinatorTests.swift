@@ -550,10 +550,16 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.child1.remove(at: 2)
+        } postUpdateChecks: { sections in
+            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
         }
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.remove(sections.child0)
+        } postUpdateChecks: { sections in
+            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
         }
 
         tester.applyUpdate { sections in
@@ -561,6 +567,62 @@ final class CollectionCoordinatorTests: XCTestCase {
         } postUpdateChecks: { sections in
             XCTAssertTrue(sections.child0.requestedCells.isEmpty)
             XCTAssertEqual(sections.child1.requestedCells, [2])
+        }
+    }
+
+    func testRemoveInsertSections() {
+        let tester = Tester() { sections in
+            (0...1).forEach { index in
+                sections.child1.append("\(index)")
+            }
+            (0...2).forEach { index in
+                sections.child2.append("\(index)")
+            }
+            (0...3).forEach { index in
+                sections.child3.append("\(index)")
+            }
+            (0...4).forEach { index in
+                sections.child4.append("\(index)")
+            }
+
+            sections.rootSectionProvider.append(sections.child0)
+            sections.rootSectionProvider.append(sections.child1)
+            sections.rootSectionProvider.append(sections.child2)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child0)
+        } postUpdateChecks: { sections in
+            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.remove(sections.child1)
+        } postUpdateChecks: { sections in
+            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child3)
+        } postUpdateChecks: { sections in
+            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
+            XCTAssertEqual(sections.child3.requestedCells, [0, 1, 2, 3])
+        }
+
+        tester.applyUpdate { sections in
+            sections.rootSectionProvider.append(sections.child4)
+        } postUpdateChecks: { sections in
+            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
+            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
+            XCTAssertEqual(sections.child3.requestedCells, [0, 1, 2, 3])
+            XCTAssertEqual(sections.child4.requestedCells, [0, 1, 2, 3, 4])
         }
     }
 
