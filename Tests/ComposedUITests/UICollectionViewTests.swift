@@ -4,7 +4,7 @@ import UIKit
 /// Tests that are validating the logic of `UICollectionView`, without utilising anything from `Composed`/`ComposedUI`.
 final class UICollectionViewTests: XCTestCase {
     func testReloadDataInBatchUpdate() throws {
-        try XCTSkipIf(true, "This test will purposefully fail; it is validating that `reloadData` should not be called within `performBatchUpdates`.")
+        XCTExpectFailure()
 
         final class CollectionViewController: UICollectionViewController {
             var data: [[String]] = []
@@ -44,7 +44,7 @@ final class UICollectionViewTests: XCTestCase {
     }
 
     func testUpdatingBeforeBatchUpdatesWhenViewNeedsLayout() throws {
-        try XCTSkipIf(true, "This test will purposefully fail; it is validating that `performBatchUpdates` will crash when changes are applied before being called when the layout has not been updated.")
+        XCTExpectFailure()
 
         final class CollectionViewController: UICollectionViewController {
             var data: [[String]] = []
@@ -89,6 +89,10 @@ final class UICollectionViewTests: XCTestCase {
 
     /// A test to validate that element reloads are handled before section deletes.
     func testElementReloadsAreHandledBeforeRemoves() {
+        if #available(iOS 15, *) {
+            XCTExpectFailure("When `reconfigureItems(at:)` was introduced it seems to have broken reloads. In some scenarios nothing will be reloaded, in others on items before a delete will be reloaded. This is the reason ")
+        }
+
         let viewController = SpyCollectionViewController()
         viewController.applyInitialData([
             ["0, 0", "0, 1", "0, 2"],
@@ -102,8 +106,10 @@ final class UICollectionViewTests: XCTestCase {
          that is requested is `IndexPath(item: 1, section: 0)`.
          */
         viewController.collectionView.performBatchUpdates({
+            viewController.data[0][0] = "0, 0 (updated)"
+            viewController.data[0][2] = "0, 2 (updated)"
             viewController.data[0].remove(at: 1)
-            viewController.data[0][1] = "0, 1 (updated)"
+
             viewController.collectionView.reloadItems(at: [
                 IndexPath(item: 0, section: 0),
                 IndexPath(item: 2, section: 0),
@@ -116,6 +122,7 @@ final class UICollectionViewTests: XCTestCase {
                 IndexPath(item: 0, section: 0),
                 IndexPath(item: 1, section: 0),
             ])
+
             callsCompletionExpectations.fulfill()
         })
 
@@ -123,11 +130,13 @@ final class UICollectionViewTests: XCTestCase {
     }
 
     /// A test to validate that section reloads are handled before section deletes.
-    func testSectionReloadsAreHandledBeforeRemoves() {
+    ///
+    /// Items deletes use the section from _before_ section deletes.
+    func testDeleteHandlingOrder() {
         let viewController = SpyCollectionViewController()
         viewController.applyInitialData([
-            ["0, 0"],
-            ["1, 0"],
+            ["0, 0", "0, 1"],
+            ["1, 0", "1, 1", "1, 2"],
             ["2, 0"],
         ])
 
@@ -135,11 +144,23 @@ final class UICollectionViewTests: XCTestCase {
 
         viewController.collectionView.performBatchUpdates({
             viewController.data.remove(at: 0)
+            viewController.collectionView.deleteSections([0])
+            viewController.data[0][1] = "1, 1 (new)"
+            viewController.data[0].append("1, 3")
             viewController.data[1] = ["2, 0 (new)"]
-            viewController.collectionView.deleteSections([1])
-            viewController.collectionView.reloadSections([2])
+            viewController.collectionView.deleteSections([2])
+            viewController.collectionView.insertSections([1])
+            viewController.collectionView.deleteItems(at: [IndexPath(item: 1, section: 1)])
+            viewController.collectionView.insertItems(at: [IndexPath(item: 1, section: 0)])
+            viewController.collectionView.insertItems(at: [IndexPath(item: 3, section: 0)])
         }, completion: { _ in
-            XCTAssertEqual(viewController.requestedIndexPaths, [IndexPath(item: 0, section: 1)])
+            XCTAssertEqual(
+                viewController.requestedIndexPaths, [
+                    IndexPath(item: 0, section: 1),
+                    IndexPath(item: 1, section: 0),
+                    IndexPath(item: 3, section: 0),
+                ]
+            )
             callsCompletionExpectations.fulfill()
         })
 
