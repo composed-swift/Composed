@@ -186,12 +186,14 @@ extension ArraySection: Hashable where Element: Hashable {
 }
 
 extension ArraySection: RangeReplaceableCollection {
-
     public func replaceSubrange<C: Swift.Collection, R: RangeExpression>(_ subrange: R, with newElements: C) where C.Element == Element, R.Bound == Index {
-        elements.replaceSubrange(subrange, with: newElements)
-        updateDelegate?.invalidateAll(self)
+        performBatchUpdates { updateDelegate in
+            elements.replaceSubrange(subrange, with: newElements)
+            for index in subrange.relative(to: elements) {
+                updateDelegate?.section(self, didUpdateElementAt: index)
+            }
+        }
     }
-
 }
 
 extension ArraySection: CustomStringConvertible {
