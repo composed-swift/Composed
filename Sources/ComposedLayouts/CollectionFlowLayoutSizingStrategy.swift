@@ -21,7 +21,11 @@ open class CollectionFlowLayoutSizingStrategy {
     public let columnCount: Int
 
     /// The sizing mode to use for sizing cells
-    public let sizingMode: SizingMode
+    public var sizingMode: SizingMode {
+        didSet {
+            clearCachedSizes()
+        }
+    }
 
     /// The metrics used for calculating column widths
     public let metrics: CollectionFlowLayoutMetrics
@@ -35,6 +39,10 @@ open class CollectionFlowLayoutSizingStrategy {
         self.columnCount = columnCount
         self.sizingMode = sizingMode
         self.metrics = metrics
+    }
+
+    public func clearCachedSizes() {
+        cachedSizes = [:]
     }
 
     private var cachedSizes: [Int: CGSize] = [:]
