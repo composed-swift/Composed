@@ -27,13 +27,17 @@ open class ArraySection<Element>: Section, ExpressibleByArrayLiteral {
     /// Represents the elements this section contains
     public private(set) var elements: [Element]
 
+    public init(elements: [Element]) {
+        self.elements = elements
+    }
+
     public required init() {
         elements = []
     }
 
     /// Makes an `ArraySection` containing the specified elements
     /// - Parameter elements: The elements to append
-    required public init(arrayLiteral elements: Element...) {
+    public required init(arrayLiteral elements: Element...) {
         self.elements = elements
     }
 
