@@ -1,7 +1,7 @@
 import Foundation
 
 /// A section that flattens each of its children in to a single section.
-open class FlatSection: Section, CustomReflectable {
+open class FlatSection: Section, CustomReflectable, SectionUpdateDelegate, SectionProviderUpdateDelegate {
     private enum Child {
         /// A single section.
         case section(Section)
@@ -50,7 +50,142 @@ open class FlatSection: Section, CustomReflectable {
 
     public init() {}
 
-    public func append(_ section: Section) {
+    open func section(_ section: Section, didRemoveElementAt index: Int) {
+        guard let sectionOffset = indexForFirstElement(of: section) else { return }
+        updateDelegate?.section(self, didRemoveElementAt: sectionOffset + index)
+    }
+
+    open func section(_ section: Section, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
+        if let updateDelegate = updateDelegate {
+            updateDelegate.section(section, willPerformBatchUpdates: updates, forceReloadData: forceReloadData)
+        } else {
+            updates()
+        }
+    }
+
+    open func invalidateAll(_ section: Section) {
+        updateDelegate?.invalidateAll(self)
+    }
+
+    open func section(_ section: Section, didInsertElementAt index: Int) {
+        guard let sectionOffset = indexForFirstElement(of: section) else { return }
+        updateDelegate?.section(self, didInsertElementAt: sectionOffset + index)
+    }
+
+    open func section(_ section: Section, didUpdateElementAt index: Int) {
+        guard let sectionOffset = indexForFirstElement(of: section) else { return }
+        updateDelegate?.section(self, didUpdateElementAt: sectionOffset + index)
+    }
+
+    open func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {
+        guard let sectionOffset = indexForFirstElement(of: section) else { return }
+        updateDelegate?.section(self, didMoveElementAt: sectionOffset + index, to: newIndex + index)
+    }
+
+    open func selectedIndexes(in section: Section) -> [Int] {
+        guard let allSelectedIndexes = updateDelegate?.selectedIndexes(in: self) else { return [] }
+        guard let sectionIndexes = indexesRange(for: section) else { return [] }
+
+        return allSelectedIndexes
+            .filter(sectionIndexes.contains(_:))
+            .map { $0 - sectionIndexes.startIndex }
+    }
+
+    open func section(_ section: Section, select index: Int) {
+        guard let sectionOffset = indexForFirstElement(of: section) else { return }
+        updateDelegate?.section(self, select: sectionOffset + index)
+    }
+
+    open func section(_ section: Section, deselect index: Int) {
+        guard let sectionOffset = indexForFirstElement(of: section) else { return }
+        updateDelegate?.section(self, deselect: sectionOffset + index)
+    }
+
+    open func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int) {
+        guard let sectionOffset = indexForFirstElement(of: section) else { return }
+        updateDelegate?.section(self, move: sourceIndex + sectionOffset, to: destinationIndex + sectionOffset)
+    }
+
+    open func sectionDidInvalidateHeader(_ section: Section) {
+        // Headers of children are currently ignored.
+    }
+
+    open func sectionDidInvalidateFooter(_ section: Section) {
+        // Footers of children are currently ignored.
+    }
+
+    open func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
+        if let updateDelegate = updateDelegate {
+            updateDelegate.section(self, willPerformBatchUpdates: updates, forceReloadData: forceReloadData)
+        } else {
+            updates()
+        }
+    }
+
+    open func invalidateAll(_ provider: SectionProvider) {
+        sections = ContiguousArray(children.flatMap { child -> [Section] in
+            switch child {
+            case .section(let section):
+                return [section]
+            case .sectionProvider(let sectionProvider):
+                return sectionProvider.sections
+            }
+        })
+        updateDelegate?.invalidateAll(self)
+    }
+
+    open func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
+        guard let providerSectionIndex = sectionIndex(of: provider) else {
+            assertionFailure(#function + " has been called for a provider that is not a child")
+            return
+        }
+
+        performBatchUpdates { _ in
+            for (section, index) in zip(sections, indexes) {
+                section.updateDelegate = self
+
+                let sectionIndex = index + providerSectionIndex
+                self.sections.insert(section, at: sectionIndex)
+                let firstSectionIndex = self.indexForFirstElement(of: section)!
+
+                (firstSectionIndex..<firstSectionIndex + section.numberOfElements).forEach { elementIndex in
+                    updateDelegate?.section(self, didInsertElementAt: elementIndex)
+                }
+            }
+        }
+    }
+
+    open func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
+        guard let providerSectionIndex = sectionIndex(of: provider) else {
+            assertionFailure(#function + " has been called for a provider that is not a child")
+            return
+        }
+
+        performBatchUpdates { _ in
+            for (section, sectionIndexInProvider) in zip(sections, indexes).reversed() {
+                let localSectionIndex = sectionIndexInProvider + providerSectionIndex
+                let sectionFirstElementIndex = self.indexForFirstElement(of: section)!
+
+                if section.updateDelegate === self {
+                    section.updateDelegate = nil
+                } else {
+                    assertionFailure("Section \(section) has had its `delegate` changed, do not modify the delegate directly")
+                }
+
+                self.sections.remove(at: localSectionIndex)
+
+                (sectionFirstElementIndex..<sectionFirstElementIndex + section.numberOfElements).reversed().forEach { elementIndex in
+                    updateDelegate?.section(self, didRemoveElementAt: elementIndex)
+                }
+            }
+        }
+    }
+
+
+
+
+
+    open func append(_ section: Section) {
         if children.contains(where: { $0.equals(section) }) {
             assertionFailure("Section \(section) has been appended, but it is already a child.")
         }
@@ -68,7 +203,7 @@ open class FlatSection: Section, CustomReflectable {
         }
     }
 
-    public func append(_ sectionProvider: SectionProvider) {
+    open func append(_ sectionProvider: SectionProvider) {
         if children.contains(where: { $0.equals(sectionProvider) }) {
             assertionFailure("Section provider \(sectionProvider) has been appended, but it is already a child.")
         }
@@ -94,7 +229,7 @@ open class FlatSection: Section, CustomReflectable {
         }
     }
 
-    public func insert(_ section: Section, at childIndex: Int) {
+    open func insert(_ section: Section, at childIndex: Int) {
         performBatchUpdates { _ in
             let elementOffset: Int = {
                 if childIndex == 0 {
@@ -128,13 +263,13 @@ open class FlatSection: Section, CustomReflectable {
         }
     }
 
-    public func insert(_ section: Section, after existingSection: Section) {
+    open func insert(_ section: Section, after existingSection: Section) {
         guard let existingSectionIndex = childIndex(of: existingSection) else { return }
 
         insert(section, at: existingSectionIndex + 1)
     }
 
-    public func remove(_ section: Section) {
+    open func remove(_ section: Section) {
         guard let childIndex = childIndex(of: section) else { return }
 
         performBatchUpdates { _ in
@@ -151,7 +286,7 @@ open class FlatSection: Section, CustomReflectable {
         }
     }
 
-    public func remove(_ sectionProvider: SectionProvider) {
+    open func remove(_ sectionProvider: SectionProvider) {
         guard let childIndex = self.childIndex(of: sectionProvider) else { return }
 
         performBatchUpdates { _ in
@@ -316,140 +451,5 @@ open class FlatSection: Section, CustomReflectable {
         }
 
         return nil
-    }
-}
-
-extension FlatSection: SectionUpdateDelegate {
-    public func section(_ section: Section, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
-        if let updateDelegate = updateDelegate {
-            updateDelegate.section(section, willPerformBatchUpdates: updates, forceReloadData: forceReloadData)
-        } else {
-            updates()
-        }
-    }
-
-    public func invalidateAll(_ section: Section) {
-        updateDelegate?.invalidateAll(self)
-    }
-
-    public func section(_ section: Section, didInsertElementAt index: Int) {
-        guard let sectionOffset = indexForFirstElement(of: section) else { return }
-        updateDelegate?.section(self, didInsertElementAt: sectionOffset + index)
-    }
-
-    public func section(_ section: Section, didRemoveElementAt index: Int) {
-        guard let sectionOffset = indexForFirstElement(of: section) else { return }
-        updateDelegate?.section(self, didRemoveElementAt: sectionOffset + index)
-    }
-
-    public func section(_ section: Section, didUpdateElementAt index: Int) {
-        guard let sectionOffset = indexForFirstElement(of: section) else { return }
-        updateDelegate?.section(self, didUpdateElementAt: sectionOffset + index)
-    }
-
-    public func section(_ section: Section, didMoveElementAt index: Int, to newIndex: Int) {
-        guard let sectionOffset = indexForFirstElement(of: section) else { return }
-        updateDelegate?.section(self, didMoveElementAt: sectionOffset + index, to: newIndex + index)
-    }
-
-    public func selectedIndexes(in section: Section) -> [Int] {
-        guard let allSelectedIndexes = updateDelegate?.selectedIndexes(in: self) else { return [] }
-        guard let sectionIndexes = indexesRange(for: section) else { return [] }
-
-        return allSelectedIndexes
-            .filter(sectionIndexes.contains(_:))
-            .map { $0 - sectionIndexes.startIndex }
-    }
-
-    public func section(_ section: Section, select index: Int) {
-        guard let sectionOffset = indexForFirstElement(of: section) else { return }
-        updateDelegate?.section(self, select: sectionOffset + index)
-    }
-
-    public func section(_ section: Section, deselect index: Int) {
-        guard let sectionOffset = indexForFirstElement(of: section) else { return }
-        updateDelegate?.section(self, deselect: sectionOffset + index)
-    }
-
-    public func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int) {
-        guard let sectionOffset = indexForFirstElement(of: section) else { return }
-        updateDelegate?.section(self, move: sourceIndex + sectionOffset, to: destinationIndex + sectionOffset)
-    }
-
-    public func sectionDidInvalidateHeader(_ section: Section) {
-        // Headers of children are currently ignored.
-    }
-
-    public func sectionDidInvalidateFooter(_ section: Section) {
-        // Footers of children are currently ignored.
-    }
-}
-
-extension FlatSection: SectionProviderUpdateDelegate {
-    public func provider(_ provider: SectionProvider, willPerformBatchUpdates updates: () -> Void, forceReloadData: Bool) {
-        if let updateDelegate = updateDelegate {
-            updateDelegate.section(self, willPerformBatchUpdates: updates, forceReloadData: forceReloadData)
-        } else {
-            updates()
-        }
-    }
-
-    public func invalidateAll(_ provider: SectionProvider) {
-        sections = ContiguousArray(children.flatMap { child -> [Section] in
-            switch child {
-            case .section(let section):
-                return [section]
-            case .sectionProvider(let sectionProvider):
-                return sectionProvider.sections
-            }
-        })
-        updateDelegate?.invalidateAll(self)
-    }
-
-    public func provider(_ provider: SectionProvider, didInsertSections sections: [Section], at indexes: IndexSet) {
-        guard let providerSectionIndex = sectionIndex(of: provider) else {
-            assertionFailure(#function + " has been called for a provider that is not a child")
-            return
-        }
-
-        performBatchUpdates { _ in
-            for (section, index) in zip(sections, indexes) {
-                section.updateDelegate = self
-
-                let sectionIndex = index + providerSectionIndex
-                self.sections.insert(section, at: sectionIndex)
-                let firstSectionIndex = self.indexForFirstElement(of: section)!
-
-                (firstSectionIndex..<firstSectionIndex + section.numberOfElements).forEach { elementIndex in
-                    updateDelegate?.section(self, didInsertElementAt: elementIndex)
-                }
-            }
-        }
-    }
-
-    public func provider(_ provider: SectionProvider, didRemoveSections sections: [Section], at indexes: IndexSet) {
-        guard let providerSectionIndex = sectionIndex(of: provider) else {
-            assertionFailure(#function + " has been called for a provider that is not a child")
-            return
-        }
-
-        performBatchUpdates { _ in
-            for (section, sectionIndexInProvider) in zip(sections, indexes).reversed() {
-                let localSectionIndex = sectionIndexInProvider + providerSectionIndex
-                let sectionFirstElementIndex = self.indexForFirstElement(of: section)!
-
-                if section.updateDelegate === self {
-                    section.updateDelegate = nil
-                } else {
-                    assertionFailure("Section \(section) has had its `delegate` changed, do not modify the delegate directly")
-                }
-
-                self.sections.remove(at: localSectionIndex)
-
-                (sectionFirstElementIndex..<sectionFirstElementIndex + section.numberOfElements).reversed().forEach { elementIndex in
-                    updateDelegate?.section(self, didRemoveElementAt: elementIndex)
-                }
-            }
-        }
     }
 }
