@@ -35,27 +35,27 @@ open class SingleElementSection<Element>: Section {
 
     /// Replaces the element with the specified element
     /// - Parameter element: The new element
-    public func replace(element: Element) {
+    open func replace(element: Element) {
         performBatchUpdates { _ in
-        let wasEmpty = isEmpty
-        self.element = element
+            let wasEmpty = isEmpty
+            self.element = element
 
-        if case Optional<Any>.none = element as Any {
-            numberOfElements = 0
-        } else {
-            numberOfElements = 1
-        }
+            if case Optional<Any>.none = element as Any {
+                numberOfElements = 0
+            } else {
+                numberOfElements = 1
+            }
 
-        switch (wasEmpty, isEmpty) {
-        case (true, true):
-            break
-        case (true, false):
-            updateDelegate?.section(self, didInsertElementAt: 0)
-        case (false, true):
-            updateDelegate?.section(self, didRemoveElementAt: 0)
-        case (false, false):
-            updateDelegate?.section(self, didUpdateElementAt: 0)
-        }
+            switch (wasEmpty, isEmpty) {
+            case (true, true):
+                break
+            case (true, false):
+                updateDelegate?.section(self, didInsertElementAt: 0)
+            case (false, true):
+                updateDelegate?.section(self, didRemoveElementAt: 0)
+            case (false, false):
+                updateDelegate?.section(self, didUpdateElementAt: 0)
+            }
         }
     }
 }
