@@ -82,6 +82,16 @@ public protocol SectionProviderMappingDelegate: class {
     ///   - destinationIndexPath: The final indexPath
     func mapping(_ mapping: SectionProviderMapping, move sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath)
 
+    /// Notifies the delegate that the section invalidated its header.
+    /// - Parameters:
+    ///   - sectionIndex: The index of the section that invalidated its header.
+    func mappingDidInvalidateHeader(at sectionIndex: Int)
+
+    /// Notifies the delegate that the section invalidated its footer.
+    /// - Parameters:
+    ///   - sectionIndex: The index of the section that invalidated its footer.
+    func mappingDidInvalidateFooter(at sectionIndex: Int)
+
 }
 
 /// An object that encapsulates the logic required to map `SectionProvider`s to a global context,
@@ -227,6 +237,16 @@ public final class SectionProviderMapping: SectionProviderUpdateDelegate, Sectio
         guard let source = self.indexPath(for: index, in: section) else { return }
         guard let destination = self.indexPath(for: newIndex, in: section) else { return }
         delegate?.mapping(self, didMoveElementsAt: [(source, destination)])
+    }
+
+    public func sectionDidInvalidateHeader(_ section: Section) {
+        guard let sectionOffset = self.sectionOffset(of: section) else { return }
+        delegate?.mappingDidInvalidateHeader(at: sectionOffset)
+    }
+
+    public func sectionDidInvalidateFooter(_ section: Section) {
+        guard let sectionOffset = self.sectionOffset(of: section) else { return }
+        delegate?.mappingDidInvalidateFooter(at: sectionOffset)
     }
 
     // Rebuilds the cached providers to improve lookup performance.

@@ -82,4 +82,13 @@ public protocol SectionUpdateDelegate: class {
     ///   - destinationIndex: The final index where the element will be moved to
     func section(_ section: Section, move sourceIndex: Int, to destinationIndex: Int)
 
+    /// Notifies the delegate that the section invalidated its header.
+    /// - Parameters:
+    ///   - section: The section that invalidated its header.
+    func sectionDidInvalidateHeader(_ section: Section)
+
+    /// Notifies the delegate that the section invalidated its footer.
+    /// - Parameters:
+    ///   - section: The section that invalidated its footer.
+    func sectionDidInvalidateFooter(_ section: Section)
 }
