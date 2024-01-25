@@ -43,8 +43,6 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate({ sections in
             sections.child2.swapAt(0, 3)
-        }, postUpdateChecks: { sections in
-            XCTAssertEqual(Set(sections.child2.requestedCells), Set([0, 3]))
         })
 
         tester.applyUpdate { sections in
@@ -64,14 +62,10 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate({ sections in
             sections.child2[1] = "new-1"
-        }, postUpdateChecks: { sections in
-            XCTAssertEqual(Set(sections.child2.requestedCells), Set([0, 1, 3]))
         })
 
         tester.applyUpdate({ sections in
             sections.child2[2] = "new-2"
-        }, postUpdateChecks: { sections in
-            XCTAssertEqual(Set(sections.child2.requestedCells), Set([0, 1, 2, 3]))
         })
 
         tester.applyUpdate { sections in
@@ -534,8 +528,6 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.child0.remove(at: 0)
-        } postUpdateChecks: { sections in
-            XCTAssertEqual(sections.child0.requestedCells, [1])
         }
     }
 
@@ -550,23 +542,14 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.child1.remove(at: 2)
-        } postUpdateChecks: { sections in
-            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
         }
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.remove(sections.child0)
-        } postUpdateChecks: { sections in
-            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
         }
 
         tester.applyUpdate { sections in
             sections.child1[2] = "new-2"
-        } postUpdateChecks: { sections in
-            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
-            XCTAssertEqual(sections.child1.requestedCells, [2])
         }
     }
 
@@ -592,37 +575,18 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.remove(sections.child0)
-        } postUpdateChecks: { sections in
-            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
         }
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.remove(sections.child1)
-        } postUpdateChecks: { sections in
-            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
         }
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.append(sections.child3)
-        } postUpdateChecks: { sections in
-            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
-            XCTAssertEqual(sections.child3.requestedCells, [0, 1, 2, 3])
         }
 
         tester.applyUpdate { sections in
             sections.rootSectionProvider.append(sections.child4)
-        } postUpdateChecks: { sections in
-            XCTAssertTrue(sections.child0.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child1.requestedCells.isEmpty)
-            XCTAssertTrue(sections.child2.requestedCells.isEmpty)
-            XCTAssertEqual(sections.child3.requestedCells, [0, 1, 2, 3])
-            XCTAssertEqual(sections.child4.requestedCells, [0, 1, 2, 3, 4])
         }
     }
 
@@ -682,8 +646,6 @@ final class CollectionCoordinatorTests: XCTestCase {
         }
         tester.applyUpdate { sections in
             sections.child0[0] = "new-0"
-        } postUpdateChecks: { sections in
-            XCTAssertEqual(sections.child0.requestedCells, [0])
         }
     }
 
@@ -1097,25 +1059,6 @@ final class CollectionCoordinatorTests: XCTestCase {
 
         tester.applyUpdate({ sections in
             sections.rootSectionProvider.remove(at: 2)
-        }, postUpdateChecks: { sections in
-            XCTAssertEqual(sections.rootSectionProvider.sections.count, 4)
-
-            XCTAssertEqual(
-                (sections.rootSectionProvider.sections[0] as! MockCollectionArraySection).requestedCells,
-                []
-            )
-            XCTAssertEqual(
-                (sections.rootSectionProvider.sections[1] as! MockCollectionArraySection).requestedCells,
-                [1, 2]
-            )
-            XCTAssertEqual(
-                (sections.rootSectionProvider.sections[2] as! MockCollectionArraySection).requestedCells,
-                [0]
-            )
-            XCTAssertEqual(
-                (sections.rootSectionProvider.sections[3] as! MockCollectionArraySection).requestedCells,
-                [0]
-            )
         })
 
         /**
@@ -1219,19 +1162,21 @@ private final class Tester {
         sections = TestSections()
     }
 
-    func applyUpdate(_ updater: @escaping Updater, postUpdateChecks: ((TestSections) -> Void)? = nil) {
+    func applyUpdate(_ updater: @escaping Updater) {
+        // This used to accept a `postUpdateChecks` parameter but this was removed because it was
+        // used to check which cells had been requested, however this stopped working (maybe around
+        // iOS 16, possibly earlier). Maybe this is because of some extra optimisations added to
+        // UICollectionView. Even adding the collection view to a window with a very large height
+        // and using small 1x1 cells would not force the cells to be requested.
+        //
+        // This now mostly serves to check that the collection view does not reject the update.
         updaters.append(updater)
         sections = TestSections()
         initialState(sections)
 
         let rootSectionProvider = sections.rootSectionProvider
 
-        // Setup a window so the collection view will request cells
-        let window = UIWindow(frame: UIScreen.main.bounds)
         let collectionViewController = UICollectionViewController(collectionViewLayout: UICollectionViewFlowLayout())
-        window.rootViewController = collectionViewController
-        window.makeKeyAndVisible()
-
         let collectionCoordinator = CollectionCoordinator(
             collectionView: collectionViewController.collectionView!,
             sectionProvider: rootSectionProvider
@@ -1239,21 +1184,7 @@ private final class Tester {
         collectionCoordinator.enableLogs = true
 
         rootSectionProvider.performBatchUpdates(forceReloadData: forceReloadData) { _ in
-            // In theory all the cells should've been requested by now, so we can
-            // clear the requested cells to allow the `postUpdateChecks` to only
-            // check the changes apply vs the initial state
-
-            sections.child0.requestedCells = []
-            sections.child1.requestedCells = []
-            sections.child2.requestedCells = []
-            sections.child3.requestedCells = []
-            sections.child4.requestedCells = []
-            sections.child5.requestedCells = []
-            sections.child6.requestedCells = []
-
             updaters.forEach { $0(sections) }
         }
-
-        postUpdateChecks?(sections)
     }
 }
