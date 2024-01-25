@@ -47,7 +47,7 @@ func testRemoveInsertedSection() {
 }
 ```
 
-Each call to `applyUpdate(_:postUpdateChecks:)` is stored and will be run in the order they are declared, one-by-one, to aid with finding which step causes the crash. In this example the test would fail on the second call to `tester.applyUpdate` with the error `attempt to delete section 0, but there are only 0 sections before the update (NSInternalInconsistencyException)`.
+Each call to `applyUpdate(_:)` is stored and will be run in the order they are declared, one-by-one, to aid with finding which step causes the crash. In this example the test would fail on the second call to `tester.applyUpdate` with the error `attempt to delete section 0, but there are only 0 sections before the update (NSInternalInconsistencyException)`.
 
 The next step would be apply a fix and re-run the tests. If the newly added test and all existing tests pass then the fix has been verified and a pull request can be created.
 
